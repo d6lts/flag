@@ -514,23 +514,23 @@ function flag_form_validate($form_id, $form_values, $form) {
 /**
  * Add/Edit flag form submit.
  */
-function flag_form_submit($form_id, $form) {
-  if ($form['fid']) {
-    $fid = $form['fid'];
-    db_query("UPDATE {flags} SET name = '%s', title = '%s', flag_short = '%s', flag_long = '%s', flag_message = '%s', unflag_short = '%s', unflag_long = '%s', unflag_message = '%s', roles = '%s', global = %d, teaser = %d, node_form = %d WHERE fid = %d", $form['name'], $form['title'], $form['flag_short'], $form['flag_long'], $form['flag_message'], $form['unflag_short'], $form['unflag_long'], $form['unflag_message'], implode(',', array_filter($form['roles'])), $form['global'], $form['teaser'], $form['node_form'], $form['fid']);
-    db_query("DELETE FROM {flag_types} WHERE fid = %d", $form['fid']);
+function flag_form_submit($form_id, $form_values) {
+  if ($form_values['fid']) {
+    $fid = $form_values['fid'];
+    db_query("UPDATE {flags} SET name = '%s', title = '%s', flag_short = '%s', flag_long = '%s', flag_message = '%s', unflag_short = '%s', unflag_long = '%s', unflag_message = '%s', roles = '%s', global = %d, teaser = %d, node_form = %d WHERE fid = %d", $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], $form_values['teaser'], $form_values['node_form'], $form_values['fid']);
+    db_query("DELETE FROM {flag_types} WHERE fid = %d", $form_values['fid']);
   }
   else {
     $fid = db_next_id('{flags}_fid');
-    db_query("INSERT INTO {flags} (fid, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $fid, $form['name'], $form['title'], $form['flag'], $form['flag_long'], $form['flag_message'], $form['unflag'], $form['unflag_long'], $form['unflag_message'], implode(',', array_filter($form['roles'])), $form['global'], $form['teaser'], $form['node_form']);
+    db_query("INSERT INTO {flags} (fid, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $fid, $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], $form_values['teaser'], $form_values['node_form']);
   }
 
-  foreach ($form['node_types'] as $node_type) {
+  foreach ($form_values['node_types'] as $node_type) {
     if ($node_type) {
       db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (%d, '%s')", $fid, $node_type);
     }
   }
-  drupal_set_message(t('Flag @name has been saved.', array('@name' => $form['title'])));
+  drupal_set_message(t('Flag @name has been saved.', array('@name' => $form_values['title'])));
   views_invalidate_cache();
 
   return 'admin/build/flags';
@@ -546,23 +546,26 @@ function flag_delete_confirm($name) {
   }
 
   $form['fid'] = array('#type' => 'value', '#value' => $flag->fid);
+  $form['title'] = array('#type' => 'value', '#value' => $flag->title);
+
   return confirm_form($form,
     t('Are you sure you want to delete %title?', array('%title' => $flag->title)),
-    $_GET['destination'] ? $_GET['destination'] : 'admin/build/flag',
+    $_GET['destination'] ? $_GET['destination'] : 'admin/build/flags',
     t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
   );
 }
 
-function flag_delete_confirm_submit($form_id, $form) {
-  if ($form['confirm']) {
-    db_query("DELETE FROM {flags} WHERE fid = %d", $form['fid']);
-    db_query("DELETE FROM {flag_content} WHERE fid = %d", $form['fid']);
-    db_query("DELETE FROM {flag_types} WHERE fid = %d", $form['fid']);
-    db_query("DELETE FROM {flag_counts} WHERE fid = %d", $form['fid']);
+function flag_delete_confirm_submit($form_id, $form_values) {
+  if ($form_values['confirm']) {
+    db_query("DELETE FROM {flags} WHERE fid = %d", $form_values['fid']);
+    db_query("DELETE FROM {flag_content} WHERE fid = %d", $form_values['fid']);
+    db_query("DELETE FROM {flag_types} WHERE fid = %d", $form_values['fid']);
+    db_query("DELETE FROM {flag_counts} WHERE fid = %d", $form_values['fid']);
     views_invalidate_cache();
   }
-  return 'admin/build/flag';
+  drupal_set_message(t('Flag @name has been deleted.', array('@name' => $form_values['title'])));
+  return 'admin/build/flags';
 }
 
 /**
