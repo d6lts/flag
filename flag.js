@@ -6,7 +6,7 @@ if (Drupal.jsEnabled) {
     function flipLink(element, settings) {
       // Get the current status by reading the class names.
       var currentClass = $(element).attr('class');
-      if (currentClass.indexOf('unflag ') == -1) {
+      if (currentClass.indexOf('unflag') == -1) {
         // Add the unflag link.
         var newLink = $(settings.unflag);
       }
