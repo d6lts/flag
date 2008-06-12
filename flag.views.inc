@@ -13,7 +13,7 @@ function flag_views_tables() {
   $flags = flag_get_flags();
   foreach ($flags as $flag) {
     // Localize the flag title:
-    $flag = _flag_process_labels($flag, NULL, array('title'));
+    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
     $table = array(
       'name' => 'flag_content',
       'join' => array(
@@ -203,36 +203,17 @@ function flag_views_tables() {
  */
 function flag_field_handler_ops($fieldinfo, $fielddata, $value, $data) {
   $flag = flag_get_flag(NULL, $fieldinfo['fid']);
+  $node_type = $data->{'flag_types_'. $flag->name .'_node_type'};
+  $is_flagged = !is_null($value);
 
-  $node_type_field = 'flag_types_'. $flag->name .'_node_type';
-  if (!$data->$node_type_field) {
-    // Flag does not apply to this node.
-    return;
-  }
-
-  $flags = flag_get_flags(NULL, NULL, $GLOBALS['user']);
-  if (!isset($flags[$flag->fid])) {
-    // Flag does not apply to this user.
+  if (!flag_access($flag) || !flag_content_enabled($flag, 'node', $node_type)) {
+    // Flag does not apply to this user or node type.
     return;
   }
 
   // Token replacements.
-  $flag = _flag_process_labels($flag, node_load($data->nid), array('flag', 'flag_long'));
-
-  $flag_html = l($flag->flag_short, 'flag/flag/'. $flag->name .'/node/'. $data->nid, array('class' => "flag-flag links_flag_". $flag->name, 'title' => $flag->flag_long), drupal_get_destination());
-  $unflag_html = l($flag->unflag_short, 'flag/unflag/'. $flag->name .'/node/'. $data->nid, array('class' => "flag-unflag links_flag_". $flag->name, 'title' => $flag->unflag_long), drupal_get_destination());
-
-  flag_add_js($data->nid, $flag->name, $flag_html, $unflag_html);
-
-  // The value of this field is NULL if there isn't a record for this
-  // node in the 'flag_content' table. That is, value is NULL if
-  // this node isn't flagged.
-  if (!is_null($value)) {
-    return $unflag_html;
-  }
-  else {
-    return $flag_html;
-  }
+  $flag = flag_process_labels($flag, 'node', $data->nid, array('flag', 'flag_long'));
+  return theme('flag', $flag, 'node', $data->nid, $is_flagged);
 }
 
 /**
@@ -279,7 +260,7 @@ function flag_views_arguments() {
   $flags = flag_get_flags();
   foreach ($flags as $flag) {
     // Localize the flag title:
-    $flag = _flag_process_labels($flag, NULL, array('title'));
+    $flag = _flag_process_labels($flag, NULL, NULL, array('title'));
     $argument = array(
       'name' => t("Flags '@s' for UID", array('@s' => $flag->title)),
       'handler' => "flag_arg_uid",
@@ -347,7 +328,7 @@ function flag_views_default_views() {
 
   foreach ($flags as $flag) {
     // Localize the flag title:
-    $flag = _flag_process_labels($flag, NULL, array('title'));
+    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
     $fid = $flag->fid;
     $view = new stdClass();
     $view->name = 'flags_'. $flag->name;
