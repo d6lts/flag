@@ -260,7 +260,7 @@ function flag_views_arguments() {
   $flags = flag_get_flags();
   foreach ($flags as $flag) {
     // Localize the flag title:
-    $flag = _flag_process_labels($flag, NULL, NULL, array('title'));
+    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
     $argument = array(
       'name' => t("Flags '@s' for UID", array('@s' => $flag->title)),
       'handler' => "flag_arg_uid",
