@@ -107,7 +107,7 @@ function flag_views_tables() {
           'field' => 'type'
         ),
         'right' => array(
-          'field' => 'node_type'
+          'field' => 'type'
         ),
         'extra' => array(
           'fid' => $flag->fid
@@ -203,16 +203,16 @@ function flag_views_tables() {
  */
 function flag_field_handler_ops($fieldinfo, $fielddata, $value, $data) {
   $flag = flag_get_flag(NULL, $fieldinfo['fid']);
-  $node_type = $data->{'flag_types_'. $flag->name .'_node_type'};
+  $type = $data->{'flag_types_'. $flag->name .'_type'};
   $is_flagged = !is_null($value);
 
-  if (!flag_access($flag) || !flag_content_enabled($flag, 'node', $node_type)) {
+  if (!flag_access($flag) || !flag_content_enabled($flag, 'node', $type)) {
     // Flag does not apply to this user or node type.
     return;
   }
 
   // Token replacements.
-  $flag = flag_process_labels($flag, 'node', $data->nid, array('flag', 'flag_long'));
+  $flag = flag_process_labels($flag, 'node', $data->nid, array('flag_short', 'flag_long', 'flag_message'));
   return theme('flag', $flag, 'node', $data->nid, $is_flagged);
 }
 
@@ -225,10 +225,10 @@ function flag_query_handler_ops($field, $fieldinfo, &$query) {
   $flag = flag_get_flag(NULL, $fid);
 
   // Load the type of the node.
-  // I could simply do $query->add_field('type', 'node', 'node_type') and get
+  // I could simply do $query->add_field('type', 'node', 'type') and get
   // rid of this pseudo table, defined in hook_views_tables(), but I suspect
   // that it will be easier to port to Views 2 if we don't hardcode the 'node'.
-  $query->add_field('node_type', 'flag_types_'. $flag->name, 'flag_types_'. $flag->name .'_node_type');
+  $query->add_field('type', 'flag_types_'. $flag->name, 'flag_types_'. $flag->name .'_type');
 }
 
 /**
@@ -335,7 +335,7 @@ function flag_views_default_views() {
     $view->access = empty($flag->roles) ? array(DRUPAL_AUTHENTICATED_RID) : $flag->roles;
     $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->title));
     $view->page = TRUE;
-    $view->page_title = t('My !flag-title', array('!flag-title' => $flag->title));
+    $view->page_title = $flag->global ? $flag->title : t('My !flag-title', array('!flag-title' => $flag->title));
     $view->page_type = 'table';
     $view->url = 'flags/'. $flag->name;
     $view->use_pager = TRUE;
