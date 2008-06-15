@@ -413,6 +413,7 @@ function flag_views_default_views() {
         'table' => 'node',
         'field' => 'title',
         'label' => 'Title',
+        'link_to_node' => 1,
       ),
       'name' => array(
         'label' => 'Author',
@@ -512,7 +513,7 @@ function flag_views_default_views() {
     $handler->override_option('path', 'flags/'. $flag->name);
     $handler->override_option('menu', array(
       'type' => 'normal',
-      'title' => $flag->title,
+      'title' => $flag->global ? $flag->title : t('My !flag-title', array('!flag-title' => $flag->title)),
       'weight' => '0',
     ));
     $handler->override_option('tab_options', array(
