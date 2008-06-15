@@ -100,7 +100,8 @@ function flag_views_bookmark_update_tables() {
   // Add columns.
   $ret[] = update_sql("ALTER TABLE {views_bookmark_node_count} ADD content_type varchar(32) default '' AFTER fid");
   $ret[] = update_sql("ALTER TABLE {views_bookmark_nodes} ADD content_type varchar(32) default '' AFTER fid");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD name varchar(32) default '' AFTER fid");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD content_type varchar(32) default '' AFTER fid");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD name varchar(32) default '' AFTER content_type");
 
   // Rename all tables.
   $ret[] = update_sql("RENAME TABLE {views_bookmarks} TO {flags}");
@@ -111,6 +112,7 @@ function flag_views_bookmark_update_tables() {
   // Set defaults.
   $ret[] = update_sql("UPDATE {flag_content} SET content_type = 'node'");
   $ret[] = update_sql("UPDATE {flag_counts} SET content_type = 'node'");
+  $ret[] = update_sql("UPDATE {flags} SET content_type = 'node'");
 
   // Create primary keys.
   $ret[] = update_sql("ALTER TABLE {flags} ADD PRIMARY KEY (fid)");

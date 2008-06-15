@@ -362,6 +362,11 @@ function flag_form(&$form_state, $name = NULL) {
     '#value' => isset($flag) ? $flag->fid : NULL,
   );
 
+  $form['content_type'] = array(
+    '#type' => 'value',
+    '#value' => 'node',
+  );
+
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
@@ -506,7 +511,7 @@ function flag_form_submit($form, &$form_state) {
     db_query("DELETE FROM {flag_types} WHERE fid = %d", $form_state['values']['fid']);
   }
   else {
-    db_query("INSERT INTO {flags} (name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $form_state['values']['name'], $form_state['values']['title'], $form_state['values']['flag_short'], $form_state['values']['flag_long'], $form_state['values']['flag_message'], $form_state['values']['unflag_short'], $form_state['values']['unflag_long'], $form_state['values']['unflag_message'], implode(',', array_filter($form_state['values']['roles'])), $form_state['values']['global'], $form_state['values']['teaser'], $form_state['values']['node_form']);
+    db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $form_state['values']['content_type'], $form_state['values']['name'], $form_state['values']['title'], $form_state['values']['flag_short'], $form_state['values']['flag_long'], $form_state['values']['flag_message'], $form_state['values']['unflag_short'], $form_state['values']['unflag_long'], $form_state['values']['unflag_message'], implode(',', array_filter($form_state['values']['roles'])), $form_state['values']['global'], $form_state['values']['teaser'], $form_state['values']['node_form']);
     $fid = db_last_insert_id('flags', 'fid');
   }
 
@@ -879,7 +884,7 @@ function _flag_format_plural($count, $format) {
  *   Reset the internal cache and execute the SQL query another time.
  *
  * @return $flags
- *   An array of the structure [name] => array('type' => [flag title], 'count' => [number of flags]) etc.
+ *   An array of the structure [name] => [number of flags].
  */
 function flag_get_counts($content_type, $content_id, $reset = FALSE) {
   static $counts;
