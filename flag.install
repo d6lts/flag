@@ -44,7 +44,7 @@ function flag_install() {
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
       db_query("CREATE TABLE {flag_types} (
         fid smallint unsigned NOT NULL default '0',
-        node_type varchar(32) NOT NULL default '',
+        type varchar(32) NOT NULL default '',
         INDEX (fid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
       db_query("CREATE TABLE {flag_counts} (
@@ -54,7 +54,7 @@ function flag_install() {
         count int(10) unsigned NOT NULL default '0',
         PRIMARY KEY (fid, content_type, content_id),
         INDEX fid_content_type (fid, content_type),
-        INDEX content_type_content_id ('content_type', 'content_id'),
+        INDEX content_type_content_id (content_type, content_id)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
       $success = TRUE;
       break;
@@ -105,10 +105,15 @@ function flag_install() {
 
   if ($success) {
     // Insert a starting record.
-    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (1, 'node', 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, 0, 0)");
-    db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (1, 'story')");
-    db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (1, 'forum')");
-    db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (1, 'blog')");
+    $options = array(
+      'show_on_page' => 1,
+      'show_on_teaser' => 1,
+      'show_on_form' => 1,
+    );
+    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES (1, 'node', 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, '%s')", serialize($options));
+    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'story')");
+    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'forum')");
+    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'blog')");
 
     // Bump up the counter so next fid is, at least, '2'.
     db_next_id('{flags}_fid');
