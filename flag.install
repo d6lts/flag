@@ -19,11 +19,15 @@ function flag_install() {
 
   if ($success) {
     // Insert a starting record.
-    db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES ('node', 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, 0, 0)");
-    $fid = db_last_insert_id('flags', 'fid');
-    db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (%d, 'story')", $fid);
-    db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (%d, 'forum')", $fid);
-    db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (%d, 'blog')", $fid);
+    $options = array(
+      'show_on_page' => 1,
+      'show_on_teaser' => 1,
+      'show_on_form' => 1,
+    );
+    db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES ('node', 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, '%s')", serialize($options));
+    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'story')");
+    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'forum')");
+    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'blog')");
   }
 
   if ($success) {
@@ -189,7 +193,7 @@ function flag_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'node_type' => array(
+      'type' => array(
         'type' => 'varchar',
         'length' => '32',
         'not null' => TRUE,
