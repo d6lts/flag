@@ -361,6 +361,11 @@ function flag_form($name = NULL) {
     '#value' => isset($flag) ? $flag->fid : NULL,
   );
 
+  $form['content_type'] = array(
+    '#type' => 'value',
+    '#value' => 'node',
+  );
+
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
@@ -516,7 +521,7 @@ function flag_form_submit($form_id, $form_values) {
   }
   else {
     $fid = db_next_id('{flags}_fid');
-    db_query("INSERT INTO {flags} (fid, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $fid, $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], $form_values['teaser'], $form_values['node_form']);
+    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $fid, $form_values['content_type'], $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], $form_values['teaser'], $form_values['node_form']);
   }
 
   foreach ($form_values['types'] as $type) {
@@ -856,7 +861,7 @@ function _flag_format_plural($count, $format) {
  *   Reset the internal cache and execute the SQL query another time.
  *
  * @return $flags
- *   An array of the structure [name] => array('type' => [flag title], 'count' => [number of flags]) etc.
+ *   An array of the structure [name] => [number of flags].
  */
 function flag_get_counts($content_type, $content_id, $reset = FALSE) {
   static $counts;

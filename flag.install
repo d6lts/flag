@@ -17,6 +17,7 @@ function flag_install() {
     case 'mysqli':
       db_query("CREATE TABLE {flags} (
         fid smallint unsigned NOT NULL default '0',
+        content_type varchar(32) default '',
         name varchar(32) default '',
         title varchar(255) default '',
         flag_short varchar(255) default '',
@@ -62,6 +63,7 @@ function flag_install() {
     case 'pgsql':
       db_query("CREATE TABLE {flags} (
         fid smallint NOT NULL default '0',
+        content_type varchar(32) default '',
         name varchar(32) default '',
         title varchar(255) default '',
         flag varchar(255) default '',
@@ -105,7 +107,7 @@ function flag_install() {
 
   if ($success) {
     // Insert a starting record.
-    db_query("INSERT INTO {flags} (fid, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (1, 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, 0, 0)");
+    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (1, 'node', 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, 0, 0)");
     db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (1, 'story')");
     db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (1, 'forum')");
     db_query("INSERT INTO {flag_types} (fid, node_type) VALUES (1, 'blog')");
