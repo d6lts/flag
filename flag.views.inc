@@ -358,7 +358,7 @@ function flag_views_default_views() {
         'tablename' => 'node',
         'field' => 'title',
         'label' => 'Title',
-        'handler' => 'views_handler_field_nodelink_with_flag',
+        'handler' => 'views_handler_field_nodelink',
         'sortable' => '1',
       ),
       array(
