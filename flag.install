@@ -28,8 +28,7 @@ function flag_install() {
         unflag_message varchar(255) default '',
         roles varchar(255) default '',
         global tinyint default 0,
-        teaser tinyint default 0,
-        node_form tinyint default 0,
+        options text default NULL,
         PRIMARY KEY (fid),
         UNIQUE KEY (name)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
@@ -74,8 +73,7 @@ function flag_install() {
         unflag_message varchar(255) default '',
         roles varchar(255) default '',
         global smallint default 0,
-        teaser smallint default 0,
-        node_form smallint default 0,
+        options text default NULL,
         PRIMARY KEY (fid)
       )");
       db_query("ALTER TABLE {flags} ADD CONSTRAINT {flags}_name_key UNIQUE (name)");

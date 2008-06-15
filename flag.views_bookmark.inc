@@ -94,14 +94,28 @@ function flag_views_bookmark_update_tables() {
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN unmark_long unflag_long varchar(255) default ''");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN unmark_message unflag_message varchar(255) default ''");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN global global tinyint default 0");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN teaser teaser tinyint default 0");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN show_on_form node_form tinyint default 0");
 
   // Add columns.
   $ret[] = update_sql("ALTER TABLE {views_bookmark_node_count} ADD content_type varchar(32) default '' AFTER fid");
   $ret[] = update_sql("ALTER TABLE {views_bookmark_nodes} ADD content_type varchar(32) default '' AFTER fid");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD content_type varchar(32) default '' AFTER fid");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD name varchar(32) default '' AFTER content_type");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD options text default NULL");
+
+  // Move options.
+  $result = db_query("SELECT fid, show_on_form, teaser FROM {views_bookmarks}");
+  while ($bookmark = db_fetch_object($result)) {
+    $options = array(
+      'show_on_form' => $bookmark->show_on_form,
+      'show_on_teaser' => $bookmark->teaser,
+      'show_on_page' => 1,
+    );
+    db_query("UPDATE {views_bookmarks} SET options = '%s' WHERE fid = %d", serialize($options), $bookmark->fid);
+  }
+
+  // Delete columns.
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN show_on_form");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN teaser");
 
   // Rename all tables.
   $ret[] = update_sql("RENAME TABLE {views_bookmarks} TO {flags}");

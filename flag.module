@@ -192,7 +192,7 @@ function flag_link($type, $node = NULL, $teaser = FALSE) {
   $node_flags = flag_get_flags('node', $node->type, $user);
 
   foreach ($node_flags as $flag) {
-    if ($teaser && !$flag->teaser) {
+    if ($teaser && !$flag->show_on_teaser || !$teaser && !$flag->show_on_page) {
       continue;
     }
 
@@ -218,7 +218,7 @@ function flag_form_alter($form_id, &$form) {
   if ($form_id == 'node_type_form') {
     $flags = flag_get_flags('node', $form['#node_type']->type, $user);
     foreach ($flags as $flag) {
-      if ($flag->node_form) {
+      if ($flag->show_on_form) {
         $var = 'flag_'. $flag->name .'_default';
         $form['workflow']['flag'][$var] = array(
           '#type' => 'checkbox',
@@ -246,7 +246,7 @@ function flag_form_alter($form_id, &$form) {
 
     // Filter out flags which need to be included on the node form.
     foreach ($flags as $fid => $flag) {
-      if (!$flag->node_form) {
+      if (!$flag->show_on_form) {
         unset($flags[$fid]);
       }
     }
@@ -451,6 +451,13 @@ function flag_form($name = NULL) {
     '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
   );
 
+  $form['global'] = array(
+    '#type' => 'checkbox',
+    '#title' => t("Global flag"),
+    '#default_value' => isset($flag) ? $flag->global : 0,
+    '#description' => t("If checked, flag is considered 'global' and each node is either flagged or not. If unchecked, each user has his or her own flag flag."),
+  );
+
   $form['types'] = array(
     '#type' => 'checkboxes',
     '#title' => t('What nodes this flag may be used on'),
@@ -460,25 +467,29 @@ function flag_form($name = NULL) {
     '#required' => TRUE
   );
 
-  $form['global'] = array(
-    '#type' => 'checkbox',
-    '#title' => t("Global flag"),
-    '#default_value' => isset($flag) ? $flag->global : 0,
-    '#description' => t("If checked, flag is considered 'global' and each node is either flagged or not. If unchecked, each user has his or her own flag flag."),
+  $form['display'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Display options'),
+    '#description' => t('Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here.'),
+    '#tree' => FALSE,
   );
 
-  $form['teaser'] = array(
+  $form['display']['show_on_teaser'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Teaser'),
-    '#default_value' => isset($flag) ? $flag->teaser : 1,
-    '#description' => t('If checked, the "flag this" link will appear on the node teaser; otherwise it will only appear on the full node view.'),
+    '#title' => t('Display link on node teaser'),
+    '#default_value' => isset($flag) ? $flag->show_on_teaser : 1,
   );
 
-  $form['node_form'] = array(
+  $form['display']['show_on_page'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Show on node edit form'),
-    '#default_value' => isset($flag) ? $flag->node_form : 0,
-    '#description' => t('If checked, this flag will appear as a checkbox on the node editing form when new nodes are created.'),
+    '#title' => t('Display link on node page'),
+    '#default_value' => isset($flag) ? $flag->show_on_page : 1,
+  );
+
+  $form['display']['show_on_form'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show checkbox on node edit form'),
+    '#default_value' => isset($flag) ? $flag->show_on_form : 0,
   );
 
   $form['submit'] = array(
@@ -514,14 +525,26 @@ function flag_form_validate($form_id, $form_values, $form) {
  * Add/Edit flag form submit.
  */
 function flag_form_submit($form_id, $form_values) {
+  // Convert options that differ per content-type into an options array.
+  $option_keys = array(
+    'show_on_page',
+    'show_on_teaser',
+    'show_on_form',
+  );
+
+  $options = array();
+  foreach ($option_keys as $key) {
+    $options[$key] = $form_values[$key];
+  }
+
   if ($form_values['fid']) {
     $fid = $form_values['fid'];
-    db_query("UPDATE {flags} SET name = '%s', title = '%s', flag_short = '%s', flag_long = '%s', flag_message = '%s', unflag_short = '%s', unflag_long = '%s', unflag_message = '%s', roles = '%s', global = %d, teaser = %d, node_form = %d WHERE fid = %d", $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], $form_values['teaser'], $form_values['node_form'], $form_values['fid']);
+    db_query("UPDATE {flags} SET name = '%s', title = '%s', flag_short = '%s', flag_long = '%s', flag_message = '%s', unflag_short = '%s', unflag_long = '%s', unflag_message = '%s', roles = '%s', global = %d, options = '%s' WHERE fid = %d", $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], serialize($options), $form_values['fid']);
     db_query("DELETE FROM {flag_types} WHERE fid = %d", $form_values['fid']);
   }
   else {
     $fid = db_next_id('{flags}_fid');
-    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d)", $fid, $form_values['content_type'], $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], $form_values['teaser'], $form_values['node_form']);
+    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $fid, $form_values['content_type'], $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], serialize($options));
   }
 
   foreach ($form_values['types'] as $type) {
@@ -928,6 +951,10 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
     $result = db_query("SELECT * FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
     while ($flag = db_fetch_object($result)) {
       $flag->roles = empty($flag->roles) ? array() : explode(',', $flag->roles);
+      foreach ((array)unserialize($flag->options) as $option => $option_value) {
+        $flag->$option = $option_value;
+      }
+      unset($flag->options);
       if (!isset($flags[$flag->fid])) {
         $flag->types = array($flag->type);
         unset($flag->type);
