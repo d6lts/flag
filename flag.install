@@ -127,17 +127,9 @@ function flag_schema() {
         'not null' => FALSE,
         'default' => 0,
       ),
-      'teaser' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => FALSE,
-        'default' => 0,
-      ),
-      'node_form' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => FALSE,
-        'default' => 0,
+      'options' => array(
+        'type' => 'text',
+        'default' => NULL,
       ),
     ),
     'primary key' => array('fid'),
