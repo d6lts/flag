@@ -544,7 +544,7 @@ function flag_form_submit($form_id, $form_values) {
   }
   else {
     $fid = db_next_id('{flags}_fid');
-    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, teaser, node_form) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $fid, $form_values['content_type'], $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], serialize($options));
+    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $fid, $form_values['content_type'], $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], serialize($options));
   }
 
   foreach ($form_values['types'] as $type) {
