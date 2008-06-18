@@ -112,8 +112,8 @@ if (Drupal.jsEnabled) {
     }
 
     // On load, bind the click behavior for all links on the page.
-    for (i in Drupal.settings.flag.flags) {
-      $('a.' + 'flag-' + i).click(function() {
+    for (flagName in Drupal.settings.flag.flags) {
+      $('a.flag-' + flagName).click(function() {
         return flagClick(this, getLinkSettings(this));
       });
     }
