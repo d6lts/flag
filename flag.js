@@ -2,17 +2,28 @@
 Drupal.behaviors.flag = function() {
   // Note, extra indentation left here to maintain ease of patching for D5 version.
 
-    // Helper function for flipping the flag link contents.
+    /**
+     * Flips a link. 'Flag this!' links turn into 'Unflag this!' and
+     * vice versa.
+     */
     function flipLink(element, settings) {
       // If this is a 'flag this' link...
       if ($(element).is('.flag')) {
         // ...then turn it into an 'unflag this' link;
-        var newLink = $(settings.unflag);
+        var newHtml = settings.unflag;
       }
       else {
         // else, turn it into a 'flag this' link.
-        var newLink = $(settings.flag);
+        var newHtml = settings.flag;
       }
+      updateLink(element, newHtml, settings);
+    }
+
+    /**
+     * Helper function. Updates a link's HTML with a new one.
+     */
+    function updateLink(element, newHtml, settings) {
+      var newLink = $(newHtml);
 
       // Initially hide the message so we can fade it in.
       $('.flag-message', newLink).css('display', 'none');
@@ -34,7 +45,7 @@ Drupal.behaviors.flag = function() {
 
       $('.flag-message', newLink).fadeIn();
     }
-
+    
     // Click function for each Flag link.
     function flagClick(element, settings) {
       // Hide any other active messages.
@@ -65,18 +76,45 @@ Drupal.behaviors.flag = function() {
       return false;
     }
 
+    /**
+     * Like alert(), but displays only once, to keep user from losing sanity.
+     */
+    var warn = function(message) {
+      if (!Drupal.settings.flag.alertShown) {
+        alert('Flag module: ' + message);
+        Drupal.settings.flag.alertShown = true;
+      }
+    }
+
+    /**
+     * Returns the settings for a certain link element.
+     */
+    function getLinkSettings(element) {
+      // The link URL is of the form ?q=flag/unflag/bookmarks/node/23,
+      // so let's parse it to extract the flag name, the content type,
+      // and the content ID.
+      var matches = element.href.match(/flag\/(un)?flag\/(\w+)\/(\w+)\/(\d+)/);
+      if (!matches) {
+        warn("Error: Invalid flag URL '" + element.href + "'");
+      }
+      var flagName    = matches[2];
+      var contentType = matches[3];
+      var contentId   = matches[4];
+
+      var slot = contentType + '_' + contentId;
+
+      if (!Drupal.settings.flag.flags[flagName][slot]) {
+        // Slot does not exist. Create.
+        Drupal.settings.flag.flags[flagName][slot] = {};
+      }
+      // Return a reference to the settings slot.
+      return Drupal.settings.flag.flags[flagName][slot];
+    }
+
     // On load, bind the click behavior for all links on the page.
     for (i in Drupal.settings.flag.flags) {
-      // This bind method is a little silly. We should just be able to pass
-      // in the settings as additional data to the click method, but this
-      // doesn't work in jQuery 1.0.4.
-      $('a.'+ 'flag-' + i).bind('click', function() {
-        var matches = this.className.match(/flag-([a-z0-9_]+)/);
-        var name = matches[1];
-        var matches = this.href.match(/node\/([a-z0-9_]+)/);
-        var nid = 'node_' + matches[1];
-
-        return flagClick(this, Drupal.settings.flag.flags[name][nid]);
+      $('a.' + 'flag-' + i).click(function() {
+        return flagClick(this, getLinkSettings(this));
       });
     }
   // Intentional extra indention.
