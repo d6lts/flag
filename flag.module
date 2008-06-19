@@ -805,12 +805,12 @@ function theme_flag($flag, $content_type, $content_id, $is_flagged) {
  *   JavaScript-based toggling of flags.
  */
 function theme_flag_link($flag, $content_type, $content_id, $action, $after_flagging = FALSE) {
-  $output = '<span class="flag-wrapper"><span>';
+  $output = '<span class="flag-wrapper">';
   $output .= l($flag->{$action .'_short'}, 'flag/'. $action .'/'. $flag->name .'/'. $content_type .'/'. $content_id, array('title' => $flag->{$action .'_long'}, 'class' => $action .' flag-'. $flag->name . ($after_flagging ? ($action == 'flag' ? ' unflagged' : ' flagged') : ''), drupal_get_destination()));
   if ($after_flagging) {
     $output .= '<span class="flag-message flag-'. $action .'-message">'. $flag->{($action == 'flag' ? 'unflag' : 'flag') .'_message'} .'</span>';
   }
-  $output .= '</span></span>';
+  $output .= '</span>';
   return $output;
 }
 
