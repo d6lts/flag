@@ -55,7 +55,7 @@ function flag_views_bookmark_update_prepare() {
   $vb_schema = drupal_get_installed_schema_version('views_bookmark');
   if (!empty($vb_schema) && $vb_schema <= 5102) {
     for ($version = $vb_schema; $version <= 5102; $version++) {
-      $update_function = 'views_bookmark_update_'. $version;
+      $update_function = 'flag_views_bookmark_update_'. $version;
       if (function_exists($update_function)) {
         $ret += $update_function();
       }
