@@ -23,17 +23,17 @@ if (Drupal.jsEnabled) {
      * Helper function. Updates a link's HTML with a new one.
      */
     function updateLink(element, newHtml, settings) {
-      var newLink = $(newHtml);
+      var $newLink = $(newHtml);
 
       // Initially hide the message so we can fade it in.
-      $('.flag-message', newLink).css('display', 'none');
+      $('.flag-message', $newLink).css('display', 'none');
 
       // Reattach the behavior to the new link.
-      if ($('a', newLink).size() > 0) {
-        $('a', newLink).bind('click', function() { return flagClick(this, settings) });
+      if ($('a', $newLink).size() > 0) {
+        $('a', $newLink).bind('click', function() { return flagClick(this, settings) });
       }
       else {
-        $(newLink).bind('click', function() { return flagClick(this, settings) });
+        $newLink.bind('click', function() { return flagClick(this, settings) });
       }
 
       // Find the wrapper of the old link.
@@ -44,9 +44,9 @@ if (Drupal.jsEnabled) {
         $wrapper = $(element);
       }
       // Replace the old link with the new one.
-      $wrapper.after(newLink).remove();
+      $wrapper.after($newLink).remove();
 
-      $('.flag-message', newLink).fadeIn();
+      $('.flag-message', $newLink).fadeIn();
     }
     
     // Click function for each Flag link.
