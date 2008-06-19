@@ -36,12 +36,15 @@ if (Drupal.jsEnabled) {
         $(newLink).bind('click', function() { return flagClick(this, settings) });
       }
 
-      if ($(element).parent('.flag-wrapper').length > 0) {
-        $(element).parent().parent().empty().append(newLink);
+      // Find the wrapper of the old link.
+      var $wrapper = $(element).parents('.flag-wrapper:last');
+      if ($wrapper.length == 0) {
+        // If no ancestor wrapper was found, or if the 'flag-wrapper' class is
+        // attached to the <a> element itself, then take the element itself.
+        $wrapper = $(element);
       }
-      else {
-        $(element).parent().empty().append(newLink);
-      }
+      // Replace the old link with the new one.
+      $wrapper.after(newLink).remove();
 
       $('.flag-message', newLink).fadeIn();
     }
