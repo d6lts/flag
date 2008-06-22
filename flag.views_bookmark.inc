@@ -55,7 +55,7 @@ function flag_views_bookmark_update_prepare() {
   $vb_schema = drupal_get_installed_schema_version('views_bookmark');
   if (!empty($vb_schema) && $vb_schema <= 5102) {
     for ($version = $vb_schema; $version <= 5102; $version++) {
-      $update_function = 'views_bookmark_update_'. $version;
+      $update_function = 'flag_views_bookmark_update_'. $version;
       if (function_exists($update_function)) {
         $ret += $update_function();
       }
@@ -273,78 +273,8 @@ function flag_views_bookmark_update_6() {
  * file, update existing arguments to use that one instead.
  */
 function flag_views_bookmark_update_7() {
-  $ret = array();
-  // Ensure views is available.
-  include_once(drupal_get_path('module', 'views') .'/views.module');
-  // Load the cache to ensure _views_get_default_views() is available.
-  if (function_exists('views_load_cache')) {
-    views_load_cache();
-  }
-
-  // Update database views automatically.
-  $result = db_query("SELECT vid FROM {view_view}");
-
-  while ($view = db_fetch_object($result)) {
-    $view = views_load_view($view->vid);
-    $views[$view->name] = $view;
-    // Check if this view uses a flag filter.
-    foreach ($view->filter as $delta => $filter) {
-      if (strpos($filter['id'], 'flag_nodes_') === 0) {
-        // If so, add the current user filter, which was previous assumed.
-        $view->filter[$delta]['value'] = '***CURRENT_USER***';
-        // Put the updated message in the return array.
-        $ret[] = array('success' => TRUE, 'query' => t('The view %name has been updated to work with Flag 1.4 and higher.', array('%name' => $view->name)));
-      }
-    }
-    foreach ($view->argument as $delta => $argument) {
-      if ($argument['type'] == 'node_nid') {
-        $view->argument[$delta]['type'] = 'nid';
-        $view->argument[$delta]['id'] = 'nid';
-        $view->argument[$delta]['options'] = 0;
-        // Put the updated message in the return array.
-        $ret[] = array('success' => TRUE, 'query' => t('The view %name has been updated to use the <em>Node: ID</em> argument provided by Views node.inc rather than <em>Node: Node ID</em> provided by Flag.', array('%name' => $view->name)));
-      }
-    }
-    _views_save_view($view);
-  }
-
-  // Because we can't actually update default views, just give the user a warning.
-  $default_views = _views_get_default_views();
-  $default_views_warnings = array();
-  foreach ($default_views as $view) {
-    foreach ($view->filter as $delta => $filter) {
-      // If this view contains a flag filter and the value is not set.
-      // The extensive type checking allows for value to be 0, but not NULL or an empty string.
-      if (strpos($filter['id'], 'flag_nodes_') === 0 && (strlen($filter['value']) === 0 || $filter['value'] === 'NULL' || $filter['value'] === NULL)) {
-        $default_views_warnings[] = t('%name needs the %filter filter updated.', array('%name' => $view->name, '%filter' => $filter['id']));
-      }
-    }
-    foreach ($view->argument as $delta => $argument) {
-      if ($argument['type'] == 'node_nid') {
-        $default_views_warnings[] = t('%name needs the %argument argument updated.', array('%name' => $view->name, '%argument' => $argument['id']));
-      }
-    }
-  }
-
-  if (!empty($default_views_warnings)) {
-    $message = t(
-      'The following views are provided by modules and need to be updated in order to work properly with this version of Flag. '.
-      'Refer to the <a href="http://drupal.org/node/49075/release">Flag 1.4 release notes</a> for instructions on how to upgrade the default views in these modules.'
-    ) . theme('item_list', $default_views_warnings);
-    drupal_set_message($message, 'error');
-    watchdog('flag', $message, WATCHDOG_ERROR);
-  }
-
-  $ret[] = array('success' => TRUE, 'query' => t('The views argument handler <em>Node: Node ID</em> has been removed. Use the <em>Node: ID</em> handler provided by Views instead.', array('%name' => $view->name)));
-
-  // Clear views caches.
-  if (function_exists('views_devel_caches')) {
-    $caches = views_devel_caches();
-    foreach ($caches as $cache_table) {
-      db_query('TRUNCATE {'. $cache_table .'}');
-    }
-  }
-  return $ret;
+  // Code from "Views Bookmark" for Drupal 5, which uses View 1 API, removed.
+  return array();
 }
 
 function flag_views_bookmark_update_5100() {
@@ -360,77 +290,8 @@ function flag_views_bookmark_update_5100() {
  * the 'views_bookmark_ops_N.ops' one. See http://drupal.org/node/213488
  */
 function flag_views_bookmark_update_5101() {
-  $ret = array();
-  // Ensure views is available.
-  include_once(drupal_get_path('module', 'views') .'/views.module');
-  // Load the cache to ensure _views_get_default_views() is available.
-  if (function_exists('views_load_cache')) {
-    views_load_cache();
-  }
-
-  // Update database views automatically.
-  $result = db_query("SELECT vid FROM {view_view}");
-
-  while ($view = db_fetch_object($result)) {
-    $view = views_load_view($view->vid);
-    $views[$view->name] = $view;
-    foreach ($view->field as $delta => $field) {
-
-      // Check if this view uses a 'views_bookmark_nodes_N.uid' field.
-      if (strpos($field['tablename'], 'views_bookmark_nodes_') === 0 && $field['field'] == 'uid') {
-        // If so, change it to use 'views_bookmark_users_N.name' instead.
-        $view->field[$delta]['tablename'] = str_replace('_nodes_', '_users_', $field['tablename']);
-        $view->field[$delta]['field'] = 'name';
-        // Put the updated message in the return array.
-        $ret[] = array('success' => TRUE, 'query' => t('The view %name has been updated to use the <em>views_bookmark_users_N.name</em> field', array('%name' => $view->name)));
-      }
-
-      // Check if this view uses a 'views_bookmark_nodes_N.vbid' field.
-      if (strpos($field['tablename'], 'views_bookmark_nodes_') === 0 && $field['field'] == 'vbid') {
-        // If so, change it to use 'views_bookmark_ops_N.ops' instead.
-        $view->field[$delta]['tablename'] = str_replace('_nodes_', '_ops_', $field['tablename']);
-        $view->field[$delta]['field'] = 'ops';
-        // Put the updated message in the return array.
-        $ret[] = array('success' => TRUE, 'query' => t('The view %name has been updated to use the <em>views_bookmark_ops_N.ops</em> field', array('%name' => $view->name)));
-      }
-
-    }
-    _views_save_view($view);
-  }
-
-  // Because we can't actually update default views, just give the user a warning.
-  $default_views = _views_get_default_views();
-  $default_views_warnings = array();
-  foreach ($default_views as $view) {
-    foreach ($view->field as $delta => $field) {
-
-      // Check if this view uses a 'views_bookmark_nodes_N.uid' field.
-      if (strpos($field['tablename'], 'views_bookmark_nodes_') === 0 && $field['field'] == 'uid') {
-        $default_views_warnings[] = t('%name needs the %field field updated.', array('%name' => $view->name, '%field' => $field['id']));
-      }
-
-      // Check if this view uses a 'views_bookmark_nodes_N.vbid' field.
-      if (strpos($field['tablename'], 'views_bookmark_nodes_') === 0 && $field['field'] == 'vbid') {
-        $default_views_warnings[] = t('%name needs the %field field updated.', array('%name' => $view->name, '%field' => $field['id']));
-      }
-
-    }
-  }
-
-  if (!empty($default_views_warnings)) {
-    $message = t('The following views are provided by modules and need to be updated in order to work properly with this version of Flag.') . theme('item_list', $default_views_warnings);
-    drupal_set_message($message, 'error');
-    watchdog('flag', $message, WATCHDOG_ERROR);
-  }
-
-  // Clear views caches.
-  if (function_exists('views_devel_caches')) {
-    $caches = views_devel_caches();
-    foreach ($caches as $cache_table) {
-      db_query('TRUNCATE {'. $cache_table .'}');
-    }
-  }
-  return $ret;
+  // Code from "Views Bookmark" for Drupal 5, which uses View 1 API, removed.
+  return array();
 }
 
 /**
