@@ -273,7 +273,7 @@ function flag_views_bookmark_update_6() {
  * file, update existing arguments to use that one instead.
  */
 function flag_views_bookmark_update_7() {
-  // Code from "Views Bookmark" for Drupal 5, which uses View 1 API, removed.
+  // Code from "Views Bookmark" for Drupal 5, which uses Views 1.x API, removed.
   return array();
 }
 
@@ -290,7 +290,7 @@ function flag_views_bookmark_update_5100() {
  * the 'views_bookmark_ops_N.ops' one. See http://drupal.org/node/213488
  */
 function flag_views_bookmark_update_5101() {
-  // Code from "Views Bookmark" for Drupal 5, which uses View 1 API, removed.
+  // Code from "Views Bookmark" for Drupal 5, which uses Views 1.x API, removed.
   return array();
 }
 
