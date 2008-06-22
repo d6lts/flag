@@ -37,7 +37,7 @@ Drupal.behaviors.flag = function() {
       }
 
       // Find the wrapper of the old link.
-      var $wrapper = $(element).parents('.flag-wrapper:last');
+      var $wrapper = $(element).parents('.flag-wrapper:first');
       if ($wrapper.length == 0) {
         // If no ancestor wrapper was found, or if the 'flag-wrapper' class is
         // attached to the <a> element itself, then take the element itself.
