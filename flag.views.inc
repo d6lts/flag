@@ -28,7 +28,7 @@ function flag_views_data() {
 
   $data['flag_content']['timestamp'] = array(
     'title' => t('Flagged time'),
-    'help' => t('Display the time the node was flagged by a user.'),
+    'help' => t('Display the time the content was flagged by a user.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,
@@ -47,7 +47,7 @@ function flag_views_data() {
   // Specialized is null/is not null filter.
   $data['flag_content']['flagged'] = array(
     'title' => t('Flagged'),
-    'help' => t('Filter to ensure a node has or has not been flagged.'),
+    'help' => t('Filter to ensure content has or has not been flagged.'),
     'real field' => 'uid',
     'filter' => array(
       'handler' => 'flag_handler_filter_flagged',
@@ -55,7 +55,7 @@ function flag_views_data() {
     ),
   );
 
-  // Flag node links.
+  // Flag content links.
   $data['flag_content']['ops'] = array(
     'title' => t('Flag link'),
     'help' => t('Display flag/unflag links.'),
@@ -68,7 +68,7 @@ function flag_views_data() {
   // Flag count totals.
   $data['flag_counts']['count'] = array(
     'title' => t('Flag Count'),
-    'help' => t('The number of times a node has been flagged total by any user.'),
+    'help' => t('The number of times a piece of content has been flagged total by any user.'),
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
@@ -91,33 +91,35 @@ function flag_views_data() {
  * Implementation of hook_views_data_alter().
  */
 function flag_views_data_alter(&$data) {
-  // Flag node relationship.
-  $data['node']['flag_content_rel'] = array(
-    'group' => t('Flags'),
-    'title' => t('Flagged'),
-    'help' => t('Limit results to a particular flag, or display information about the flags on a node.'),
-    'real field' => 'nid',
-    'relationship' => array(
-      'handler' => 'flag_handler_relationship_content_node',
-      'base' => 'flag_content',
-      'field' => 'content_id',
-      'label' => t('flag'),
-    ),
-  );
-
-  // Flag-count node relationship.
-  $data['node']['flag_counts_rel'] = array(
-    'group' => t('Flags'),
-    'title' => t('Flag counts'),
-    'help' => t('Add information about the flag total counts.'),
-    'real field' => 'nid',
-    'relationship' => array(
-      'handler' => 'flag_handler_relationship_counts_node',
-      'base' => 'flag_counts',
-      'field' => 'content_id',
-      'label' => t('flag'),
-    ),
-  );
+  foreach (array('node' => 'nid', 'comments' => 'cid') as $table => $join_field) {
+    // Flag relationship.
+    $data[$table]['flag_content_rel'] = array(
+      'group' => t('Flags'),
+      'title' => t('Flagged'),
+      'help' => t('Limit results to a particular flag, or display information about the flags on a piece of content.'),
+      'real field' => $join_field,
+      'relationship' => array(
+        'handler' => 'flag_handler_relationship_content',
+        'base' => 'flag_content',
+        'field' => 'content_id',
+        'label' => t('flag'),
+      ),
+    );
+  
+    // Flag-count relationship.
+    $data[$table]['flag_counts_rel'] = array(
+      'group' => t('Flags'),
+      'title' => t('Flag counts'),
+      'help' => t('Add information about the flag total counts.'),
+      'real field' => $join_field,
+      'relationship' => array(
+        'handler' => 'flag_handler_relationship_counts',
+        'base' => 'flag_counts',
+        'field' => 'content_id',
+        'label' => t('flag'),
+      ),
+    );
+  }
 }
 
 /**
@@ -126,8 +128,9 @@ function flag_views_data_alter(&$data) {
  * This function is used to select the desired flag when setting up flag
  * relationships and fields.
  */
-function flag_views_flag_config_form($type, $current_flag) {
-  $flags = flag_get_flags();
+function flag_views_flag_config_form($form_type, $content_type, $current_flag) {
+  $flags = flag_get_flags($content_type);
+
   foreach ($flags as $flag) {
     // Localize Flag titles.
     $flag = flag_process_labels($flag, NULL, NULL, array('title'));
@@ -135,7 +138,7 @@ function flag_views_flag_config_form($type, $current_flag) {
   }
 
   $form = array(
-    '#type' => $type,
+    '#type' => $form_type,
     '#title' => t('Flag'),
     '#options' => $options,
     '#default_value' => $current_flag,
@@ -148,11 +151,11 @@ function flag_views_flag_config_form($type, $current_flag) {
 /**
  * Helper function that gets the first defined flag and returns it's name.
  */
-function flag_views_flag_default() {
+function flag_views_flag_default($content_type) {
   static $default_flag;
 
   if (!isset($default_flag)) {
-    $flag = array_shift(flag_get_flags());
+    $flag = array_shift(flag_get_flags($content_type));
     $default_flag = $flag->name;
   }
 
@@ -160,21 +163,22 @@ function flag_views_flag_default() {
 }
 
 /**
- * Specialized relationship handler associating flags and nodes.
+ * Specialized relationship handler associating flags and content.
  */
-class flag_handler_relationship_content_node extends views_handler_relationship {
+class flag_handler_relationship_content extends views_handler_relationship {
   function options(&$options) {
     parent::options($options);
-    $options['flag'] = flag_views_flag_default();
+    $content_type =$this->definition['real field'] == 'nid' ? 'node' : 'comment';
+    $options['flag'] = flag_views_flag_default($content_type);
     $options['user_scope'] = 'current';
     $options['required'] = 1;
   }
 
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
+    $content_type = $this->definition['real field'] == 'nid' ? 'node' : 'comment';
     $form['label']['#description'] .= ' '. t('The name of the selected flag makes a good label.');
-
-    $form['flag'] = flag_views_flag_config_form('radios', $this->options['flag']);
+    $form['flag'] = flag_views_flag_config_form('radios', $content_type, $this->options['flag']);
     $form['flag']['#title'] = t('Flagged');
 
     $form['user_scope'] = array(
@@ -196,13 +200,15 @@ class flag_handler_relationship_content_node extends views_handler_relationship 
    * Called to implement a relationship in a query.
    */
   function query() {
+    $flag = flag_get_flag($this->options['flag']);
+
     // Figure out what base table this relationship brings to the party.
     $join = new views_join();
     $join->definition = array(
       'table' => 'flag_content',
       'field' => 'content_id',
-      'left_table' => 'node',
-      'left_field' => 'nid',
+      'left_table' => $flag->content_type == 'node' ? 'node' : 'comments',
+      'left_field' => $flag->content_type == 'node' ? 'nid' : 'cid',
     );
 
     if (!empty($this->options['required'])) {
@@ -219,7 +225,7 @@ class flag_handler_relationship_content_node extends views_handler_relationship 
       array(
         'field' => 'content_type',
         'alias' => $this->alias,
-        'value' => 'node',
+        'value' => $flag->content_type,
         'numeric' => FALSE,
       ),
     );
@@ -243,18 +249,20 @@ class flag_handler_relationship_content_node extends views_handler_relationship 
 
 
 /**
- * Specialized relationship handler associating flag counts and nodes.
+ * Specialized relationship handler associating flag counts and content.
  */
-class flag_handler_relationship_counts_node extends views_handler_relationship {
+class flag_handler_relationship_counts extends views_handler_relationship {
   function options(&$options) {
     parent::options($options);
-    $options['flag'] = flag_views_flag_default();
+    $content_type = $this->definition['real field'] == 'nid' ? 'node' : 'comment';
+    $options['flag'] = flag_views_flag_default($content_type);
     $options['required'] = 1;
   }
 
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    $form['flag'] = flag_views_flag_config_form('radios', $this->options['flag']);
+    $content_type = $this->definition['real field'] == 'nid' ? 'node' : 'comment';
+    $form['flag'] = flag_views_flag_config_form('radios', $content_type, $this->options['flag']);
 
     $form['required']['#title'] = t('Include only content flagged at least once');
     $form['required']['#description'] = t('If checked, only content that has been flagged will be included.');
@@ -268,13 +276,15 @@ class flag_handler_relationship_counts_node extends views_handler_relationship {
    * Called to implement a relationship in a query.
    */
   function query() {
+    $flag = flag_get_flag($this->options['flag']);
+
     // Figure out what base table this relationship brings to the party.
     $join = new views_join();
     $join->definition = array(
       'table' => 'flag_counts',
       'field' => 'content_id',
-      'left_table' => 'node',
-      'left_field' => 'nid',
+      'left_table' => $flag->content_type == 'node' ? 'node' : 'comments',
+      'left_field' => $flag->content_type == 'node' ? 'nid' : 'cid',
     );
 
     if (!empty($this->options['required'])) {
@@ -291,14 +301,13 @@ class flag_handler_relationship_counts_node extends views_handler_relationship {
       array(
         'field' => 'content_type',
         'alias' => $this->alias,
-        'value' => 'node',
+        'value' => $flag->content_type,
         'numeric' => FALSE,
       ),
     );
     $join->construct();
 
     $alias = $join->definition['table'] . '_' . $join->definition['left_table'];
-
     $this->alias = $this->query->add_relationship($alias, $join, 'flag_counts', $this->relationship);
 
     // Save the flag to the view so we can retrieve it when outputing.
@@ -314,31 +323,34 @@ class flag_handler_field_ops extends views_handler_field {
     parent::init($view, $options);
 
     // We need the node type to check access in the render function.
-    $this->additional_fields['node_type'] = array(
-      'table' => 'node',
-      'field' => 'type',
-    );
+    $flag = $this->view->flags[$this->table_alias];
+    if ($flag->content_type == 'node') {
+      $this->additional_fields['node_type'] = array(
+        'table' => 'node',
+        'field' => 'type',
+      );
+    }
   }
 
   function render($values) {
     // Pull up the flag object created by the relationship.
     $flag = $this->view->flags[$this->table_alias];
-    $node_type = $values->{$this->aliases['node_type']};
+    $node_type = $flag->content_type == 'node' ? $values->{$this->aliases['node_type']} : NULL;
     $is_flagged = !is_null($values->{$this->field_alias});
 
-    if (!flag_access($flag) || !flag_content_enabled($flag, 'node', $node_type)) {
+    if (!flag_access($flag) || !flag_content_enabled($flag, $flag->content_type, $node_type)) {
       // Flag does not apply to this user or node type.
       return;
     }
 
     // Token replacements.
-    $flag = flag_process_labels($flag, 'node', $values->nid, array('flag_short', 'flag_long', 'flag_message'));
-    return theme('flag', $flag, 'node', $values->nid, $is_flagged);
+    $flag = flag_process_labels($flag, $flag->content_type, $values->content_id, array('flag_short', 'flag_long', 'flag_message'));
+    return theme('flag', $flag, $flag->content_type, $flag->content_type == 'node' ? $values->nid : $values->cid, $is_flagged);
   }
 }
 
 /**
- * Handler to filter for nodes that are not in a queue.
+ * Handler to filter for content that has not been flagged.
  */
 class flag_handler_filter_flagged extends views_handler_filter_boolean_operator {
   function options(&$options) {
@@ -365,7 +377,7 @@ class flag_handler_filter_flagged extends views_handler_filter_boolean_operator 
  * Implementation of hook_views_default_views()
  */
 function flag_views_default_views() {
-  $flags = flag_get_flags();
+  $flags = flag_get_flags('node');
 
   foreach ($flags as $flag) {
     $flag = flag_process_labels($flag, NULL, NULL, array('title'));
