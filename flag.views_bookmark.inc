@@ -53,6 +53,7 @@ function flag_views_bookmark_update_prepare() {
 
   // Update Views Bookmark to the latest schema.
   $vb_schema = drupal_get_installed_schema_version('views_bookmark');
+  $ret = array();
   if (!empty($vb_schema) && $vb_schema <= 5102) {
     for ($version = $vb_schema; $version <= 5102; $version++) {
       $update_function = 'flag_views_bookmark_update_'. $version;
