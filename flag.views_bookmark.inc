@@ -12,7 +12,7 @@
  */
 function flag_views_bookmark_update_needed() {
   $result = db_query("SHOW TABLES LIKE '%views_bookmarks%'");
-  if (mysqli_num_rows($result) > 0) {
+  if (db_num_rows($result) > 0) {
     return TRUE;
   }
   return FALSE;
