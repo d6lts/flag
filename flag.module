@@ -554,21 +554,18 @@ function flag_form(&$form_state, $name, $type = NULL) {
       '#type' => 'checkbox',
       '#title' => t('Display link on node teaser'),
       '#default_value' => isset($flag) ? $flag->show_on_teaser : 1,
-      '#access' => $type == 'node',
     );
   
     $form['display']['show_on_page'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link on node page'),
       '#default_value' => isset($flag) ? $flag->show_on_page : 1,
-      '#access' => $type == 'node',
     );
   
     $form['display']['show_on_form'] = array(
       '#type' => 'checkbox',
       '#title' => t('Show checkbox on node edit form'),
       '#default_value' => isset($flag) ? $flag->show_on_form : 0,
-      '#access' => $type == 'node',
     );
   }
 
