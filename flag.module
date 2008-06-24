@@ -1056,7 +1056,7 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
   if (!isset($flags) || $reset) {
     $flags = array();
 
-    $result = db_query("SELECT * FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
+    $result = db_query("SELECT f.*, fn.type FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
     while ($flag = db_fetch_object($result)) {
       $flag->roles = empty($flag->roles) ? array() : explode(',', $flag->roles);
       foreach ((array)unserialize($flag->options) as $option => $option_value) {
