@@ -613,11 +613,14 @@ function flag_form_submit($form, &$form_state) {
     'show_on_page',
     'show_on_teaser',
     'show_on_form',
+    'show_on_comment',
   );
 
   $options = array();
   foreach ($option_keys as $key) {
-    $options[$key] = $form_state['values'][$key];
+    if (isset($form_values[$key])) {
+      $options[$key] = $form_values[$key];
+    }
   }
 
   if (isset($form_state['values']['fid'])) {
