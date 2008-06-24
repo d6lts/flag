@@ -497,14 +497,14 @@ function flag_form($name = NULL, $type = NULL) {
   $form['unflag_long'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflag link description'),
-    '#default_value' => $flag->unflag_long,
+    '#default_value' => isset($flag) ? $flag->unflag_long : '',
     '#description' => t('The description of the "unflag this" link. Usually displayed on mouseover.'),
   );
 
   $form['unflag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflagged message'),
-    '#default_value' => $flag->unflag_message,
+    '#default_value' => isset($flag) ? $flag->unflag_message : '',
     '#description' => t('Message displayed when the user has clicked the "unflag this" link. If javascript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
   );
 
