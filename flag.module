@@ -596,7 +596,7 @@ function flag_form_validate($form, &$form_state) {
   }
 
   // Ensure the machine name is unique.
-  if (empty($form_values['fid'])) {
+  if (empty($form_state['values']['fid'])) {
     $flag = flag_get_flag($form_state['values']['name']);
     if (!empty($flag)) {
       form_error($form['name'], t('Flag names must be unique. This flag name is already in use.'));
@@ -618,8 +618,8 @@ function flag_form_submit($form, &$form_state) {
 
   $options = array();
   foreach ($option_keys as $key) {
-    if (isset($form_values[$key])) {
-      $options[$key] = $form_values[$key];
+    if (isset($form_state['values'][$key])) {
+      $options[$key] = $form_state['values'][$key];
     }
   }
 

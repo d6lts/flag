@@ -244,7 +244,7 @@ function flag_action_form_submit($form, &$form_state) {
 
   // Check the status of the trigger before adding or removing an action.
   $aids = _trigger_get_hook_aids('flag', 'flag');
-  if ($form_state['values']['add_flag_trigger'] && (!isset($form_values['actions_aid']) || !array_key_exists($form_values['actions_aid'], $aids))) {
+  if ($form_state['values']['add_flag_trigger'] && (!isset($form_state['values']['actions_aid']) || !array_key_exists($form_state['values']['actions_aid'], $aids))) {
     $trigger_form_state = array('values' => $trigger_values);
     trigger_assign_form_submit($form, $trigger_form_state);
   }
