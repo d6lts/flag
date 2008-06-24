@@ -276,16 +276,17 @@ function flag_action_email_form($context) {
     '#description' => t('The message that should be sent.'),
     '#weight' => -5,
   );
-  $form['tokens'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Tokens'),
-    '#description' => t('The following tokens can be used in the recipients, subject, or message.'),
-    '#value' => flag_token_help(array('flag','flag-action')),
-    '#collapsible' => 1,
-    '#collapsed' => 1,
-    '#access' => module_exists('token'),
-    '#weight' => -4,
-  );
+  if (module_exists('token')) {
+    $form['tokens'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Tokens'),
+      '#description' => t('The following tokens can be used in the recipients, subject, or message.'),
+      '#value' => flag_token_help(array('flag','flag-action')),
+      '#collapsible' => 1,
+      '#collapsed' => 1,
+      '#weight' => -4,
+    );
+  }
   return $form; 
 }
 
