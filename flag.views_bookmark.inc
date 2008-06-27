@@ -11,11 +11,7 @@
  * Determine if Views Bookmark needs to be updated.
  */
 function flag_views_bookmark_update_needed() {
-  $result = db_query("SHOW TABLES LIKE '%views_bookmarks%'");
-  if (db_num_rows($result) > 0) {
-    return TRUE;
-  }
-  return FALSE;
+  return db_table_exists('views_bookmarks');
 }
 
 /**
@@ -44,8 +40,7 @@ function flag_views_bookmark_update() {
  */
 function flag_views_bookmark_update_prepare() {
   // Ensure the Flag tables are not installed.
-  $result = db_query("SHOW TABLES LIKE 'flags'");
-  if (db_num_rows($result) > 0) {
+  if (db_table_exists('flags')) {
     // Remove Flag tables if already present.
     include_once(drupal_get_path('module', 'flag') .'/flag.install');
     flag_uninstall();
