@@ -11,11 +11,7 @@
  * Determine if Views Bookmark needs to be updated.
  */
 function flag_views_bookmark_update_needed() {
-  $result = db_query("SHOW TABLES LIKE '%views_bookmarks%'");
-  if (db_num_rows($result) > 0) {
-    return TRUE;
-  }
-  return FALSE;
+  return db_table_exists('views_bookmarks');
 }
 
 /**
