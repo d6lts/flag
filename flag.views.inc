@@ -34,7 +34,7 @@ function flag_views_data() {
       'click sortable' => TRUE,
      ),
     'sort' => array(
-      'handler' => 'views_handler_sort',
+      'handler' => 'views_handler_sort_date',
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_date',
@@ -119,6 +119,12 @@ function flag_views_data_alter(&$data) {
         'label' => t('flag'),
       ),
     );
+
+    if ($table == 'comments') {
+      // Make the titles distinguishable or else user will see duplicates in the list.
+      $data[$table]['flag_content_rel']['title'] .= ' ' . t('(comments)');
+      $data[$table]['flag_counts_rel' ]['title'] .= ' ' . t('(comments)');
+    }
   }
 }
 
@@ -222,12 +228,6 @@ class flag_handler_relationship_content extends views_handler_relationship {
         'value' => $flag->fid,
         'numeric' => TRUE,
       ),
-      array(
-        'field' => 'content_type',
-        'alias' => $this->alias,
-        'value' => $flag->content_type,
-        'numeric' => FALSE,
-      ),
     );
     if ($this->options['user_scope'] == 'current' && !$flag->global) {
       $join->definition['extra'][] = array(
@@ -241,9 +241,6 @@ class flag_handler_relationship_content extends views_handler_relationship {
     $alias = $join->definition['table'] . '_' . $join->definition['left_table'];
 
     $this->alias = $this->query->add_relationship($alias, $join, 'flag_content', $this->relationship);
-
-    // Save the flag to the view so we can retrieve it when outputing.
-    $this->view->flags[$this->alias] = $flag;
   }
 }
 
@@ -298,20 +295,11 @@ class flag_handler_relationship_counts extends views_handler_relationship {
         'value' => $flag->fid,
         'numeric' => TRUE,
       ),
-      array(
-        'field' => 'content_type',
-        'alias' => $this->alias,
-        'value' => $flag->content_type,
-        'numeric' => FALSE,
-      ),
     );
     $join->construct();
 
     $alias = $join->definition['table'] . '_' . $join->definition['left_table'];
     $this->alias = $this->query->add_relationship($alias, $join, 'flag_counts', $this->relationship);
-
-    // Save the flag to the view so we can retrieve it when outputing.
-    $this->view->flags[$this->alias] = $flag;
   }
 }
 
@@ -319,24 +307,72 @@ class flag_handler_relationship_counts extends views_handler_relationship {
  * Views field handler for the Flag operations links (flag/unflag).
  */
 class flag_handler_field_ops extends views_handler_field {
-  function init(&$view, &$options) {
-    parent::init($view, $options);
 
-    // We need the node type to check access in the render function.
-    $flag = $this->view->flags[$this->table_alias];
+  /**
+   * Returns the flag object associated with our field.
+   *
+   * A field is in some relationship. This function reaches out for this
+   * relationship and reads its 'flag' option, which holds the flag name.
+   */
+  function get_flag() {
+    $flag_name = $this->view->relationship[$this->options['relationship']]->options['flag'];
+    return flag_get_flag($flag_name);
+  }
+
+  /**
+   * Override base ::query() to pull in some fields we need. Namely, the node
+   * type and the content ID we're linked to.
+   */
+  function query() {
+    $flag = $this->get_flag();
+
+    // We add the extra fields to the parent relationship. We can't add it to
+    // _this_ relationship (by simply registering it in 'additional_fields')
+    // because we haven't described to Views how to connect the node/comment
+    // table to ours.
+    $parent = $this->get_parent_relationship();
+
     if ($flag->content_type == 'node') {
-      $this->additional_fields['node_type'] = array(
-        'table' => 'node',
-        'field' => 'type',
-      );
+      $node_table_alias = $this->query->ensure_table('node', $parent);
+      $this->content_id_alias = $this->query->add_field($node_table_alias, 'nid');
+      // And we need node's 'type' field in the render() method to determine if
+      // the flag applies to the node.
+      $this->node_type_alias  = $this->query->add_field($node_table_alias, 'type');
+    }
+    elseif ($flag->content_type == 'comment') {
+      $comment_table_alias = $this->query->ensure_table('comment', $parent);
+      $this->content_id_alias = $this->query->add_field($comment_table_alias, 'cid');
+    }
+
+    parent::query();
+  }
+
+  /**
+   * Return the the relationship we're linked to. That is, the alias for its
+   * table (which is suitbale for use with the various methods of the 'query'
+   * object).
+   */
+  function get_parent_relationship() {
+    $parent = $this->view->relationship[$this->options['relationship']]->options['relationship'];
+    if (!$parent || $parent == 'none') {
+      return NULL; // Base query table.
+    }
+    else {
+      return $this->view->relationship[$parent]->alias;
     }
   }
 
   function render($values) {
-    // Pull up the flag object created by the relationship.
-    $flag = $this->view->flags[$this->table_alias];
-    $node_type = $flag->content_type == 'node' ? $values->{$this->aliases['node_type']} : NULL;
+    $flag = $this->get_flag();
+    $node_type = $flag->content_type == 'node' ? $values->{$this->node_type_alias} : NULL;
+    $content_id = $values->{$this->content_id_alias};
     $is_flagged = !is_null($values->{$this->field_alias});
+
+    if (is_null($content_id)) {
+      // Content doesn't exist. This may happen, for example, when we LEFT JOIN to
+      // another node relationship, e.g. to "parent book page" and when there's no parent.
+      return;
+    }
 
     if (!flag_access($flag) || !flag_content_enabled($flag, $flag->content_type, $node_type)) {
       // Flag does not apply to this user or node type.
@@ -344,8 +380,8 @@ class flag_handler_field_ops extends views_handler_field {
     }
 
     // Token replacements.
-    $flag = flag_process_labels($flag, $flag->content_type, $values->content_id, array('flag_short', 'flag_long', 'flag_message'));
-    return theme('flag', $flag, $flag->content_type, $flag->content_type == 'node' ? $values->nid : $values->cid, $is_flagged);
+    $flag = flag_process_labels($flag, $flag->content_type, $content_id, array('flag_short', 'flag_long', 'flag_message'));
+    return theme('flag', $flag, $flag->content_type, $content_id, $is_flagged);
   }
 }
 
@@ -393,14 +429,6 @@ function flag_views_default_views() {
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
     $handler = $view->new_display('default', 'Defaults', 'default');
     $handler->override_option('relationships', array(
-      'uid' => array(
-        'label' => 'user',
-        'required' => 0,
-        'id' => 'uid',
-        'table' => 'flag_content',
-        'field' => 'uid',
-        'relationship' => 'flag_content_rel',
-      ),
       'flag_content_rel' => array(
         'label' => $flag->name,
         'required' => 1,
@@ -410,6 +438,14 @@ function flag_views_default_views() {
         'table' => 'node',
         'field' => 'flag_content_rel',
         'relationship' => 'none',
+      ),
+      'uid' => array(
+        'label' => 'user',
+        'required' => 0,
+        'id' => 'uid',
+        'table' => 'flag_content',
+        'field' => 'uid',
+        'relationship' => 'flag_content_rel',
       ),
     ));
 
