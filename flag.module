@@ -201,8 +201,15 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
   $flags = flag_get_flags($type, $node_type, $user);
 
   foreach ($flags as $flag) {
-    if ($teaser && !$flag->show_on_teaser || !$teaser && !$flag->show_on_page) {
-      continue;
+    if ($type == 'node') {
+      if ($teaser && !$flag->show_on_teaser || !$teaser && !$flag->show_on_page) {
+        continue;
+      }
+    }
+    else if ($type == 'comment') {
+      if (!$flag->show_on_comment) {
+        continue;
+      }
     }
 
     // Token replacements.
@@ -216,7 +223,9 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
     );
   }
 
-  return $links;
+  if (isset($links)) {
+    return $links;
+  }
 }
 
 /**
