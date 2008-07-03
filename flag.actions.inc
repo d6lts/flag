@@ -131,7 +131,7 @@ function flag_action_check($context) {
   }
 
   // Check if this action applies to this flag.
-  if (in_array($context['flag'], $context['flags'])) {
+  if (in_array($context['flag'], $context['flags'], TRUE)) {
     // Check if the flag is over the threshold.
     $counts = flag_get_counts($context['content_type'], $context['content_id']);
     if ($counts[$context['flag']] == $context['threshold']) {
@@ -317,7 +317,7 @@ function flag_action_email_validate($form, &$form_state) {
 
 function flag_action_email_submit($form, &$form_state) {
   return array(
-    'flags' => $form_state['values']['flags'],
+    'flags' => array_filter($form_state['values']['flags']),
     'threshold' => $form_state['values']['threshold'],
     'add_flag_trigger' => $form_state['values']['add_flag_trigger'],
     'recipients' => $form_state['values']['recipients'],
@@ -374,7 +374,7 @@ function flag_action_unpublish_form($context) {
 
 function flag_action_unpublish_submit($form, &$form_state) {
   return array(
-    'flags' => $form_state['values']['flags'],
+    'flags' => array_filter($form_state['values']['flags']),
     'threshold' => $form_state['values']['threshold'],
     'add_flag_trigger' => $form_state['values']['add_flag_trigger'],
   );
@@ -412,7 +412,7 @@ function flag_action_delete_form($context) {
 
 function flag_action_delete_submit($form, &$form_state) {
   return array(
-    'flags' => $form_state['values']['flags'],
+    'flags' => array_filter($form_state['values']['flags']),
     'threshold' => $form_state['values']['threshold'],
     'add_flag_trigger' => $form_state['values']['add_flag_trigger'],
   );
