@@ -300,11 +300,11 @@ function flag_views_bookmark_update_5102() {
   //
   // (Note: update_sql() doesn't support %placeholders, so we embed the value
   //  directly.)
-  $ret[] = update_sql("UPDATE {views_bookmark} SET roles = '' WHERE roles = '". DRUPAL_ANONYMOUS_RID ."'");
+  $ret[] = update_sql("UPDATE {views_bookmarks} SET roles = '' WHERE roles = '". DRUPAL_ANONYMOUS_RID ."'");
 
   // We're now making the 'roles' field a required one. If no roles were
   // previously selected, we assign this bookmark to all authenticated users.
-  $ret[] = update_sql("UPDATE {views_bookmark} SET roles = '". DRUPAL_AUTHENTICATED_RID ."' WHERE roles = ''");
+  $ret[] = update_sql("UPDATE {views_bookmarks} SET roles = '". DRUPAL_AUTHENTICATED_RID ."' WHERE roles = ''");
 
   return $ret;
 }
