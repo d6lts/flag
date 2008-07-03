@@ -278,7 +278,7 @@ function flag_action_email_form($context) {
   $form['message'] = array(
     '#type' => 'textarea',
     '#title' => t('Message'),
-    '#default_value' => isset($context['message']) ? $context['message'] : t("The [flag-action-content-type] [flag-action-title] has been flagged [flag-action-count] times with the [flag-title] flag.\n\nView this [flag-action-content-type] at [flag-action-content-url]."),
+    '#default_value' => isset($context['message']) ? $context['message'] : t("The [flag-content-type] [flag-content-title] has been flagged [flag-count] times with the [flag-title] flag.\n\nView this [flag-content-type] at [flag-content-url]."),
     '#description' => t('The message that should be sent.'),
     '#weight' => -5,
   );
