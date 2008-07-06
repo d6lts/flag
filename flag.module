@@ -1,6 +1,8 @@
 <?php
 // $Id$
 
+include_once drupal_get_path('module', 'flag') .'/flag.inc';
+
 if (module_exists('views')) {
   include_once drupal_get_path('module', 'flag') .'/flag.views.inc';
 }
@@ -366,12 +368,7 @@ function flag_admin_page() {
  */
 function flag_add_page($type = NULL, $name = NULL) {
   if (isset($type) && isset($name)) {
-    if (in_array($type, array('node', 'comment'))) {
-      return drupal_get_form('flag_form', $name, $type);
-    }
-    else {
-      drupal_goto('admin/build/flags/add');
-    }
+    return drupal_get_form('flag_form', $name, $type);
   }
   else {
     return drupal_get_form('flag_add_form');
@@ -392,16 +389,18 @@ function flag_add_form() {
     '#required' => TRUE,
   );
 
+  $types = array();
+  foreach (flag_fetch_definition() as $type => $info) {
+    $types[$type] = $info['title'] . '<div class="description">' . $info['description'] . '</div>';
+  }
+
   $form['type'] = array(
     '#type' => 'radios',
     '#title' => t('Flag type'),
     '#default_value' => 'node',
     '#description' => t('The type of content this flag will affect. An individual flag can only affect one type of content. This cannot be changed once the flag is created.'),
     '#required' => TRUE,
-    '#options' => array(
-      'node' => t('Node'),
-      'comment' => t('Comment'),
-    ),
+    '#options' => $types,
   );
 
   $form['submit'] = array(
@@ -409,10 +408,13 @@ function flag_add_form() {
     '#value' => t('Submit'),
   );
 
-  // Reuse the machine-name validation of the flag_form.
-  $form['#validate']['flag_form_validate'] = array();
-
   return $form;
+}
+
+function flag_add_form_validate($form_id, $form_values, $form) {
+  $flag = flag_flag::factory_by_content_type($form_values['type']);
+  $flag->name = $form_values['name'];
+  $flag->validate_name();
 }
 
 function flag_add_form_submit($form_id, $form_values) {
@@ -423,50 +425,43 @@ function flag_add_form_submit($form_id, $form_values) {
  * Add/Edit flag page.
  */
 function flag_form($name = NULL, $type = NULL) {
-  if (isset($name)) {
-    $flag = flag_get_flag($name);
-    if (empty($flag) && !in_array($type, array('node', 'comment'))) {
-      drupal_goto('admin/build/flags');
-    }
-    if (!empty($flag)) {
-      $type = $flag->content_type;
-    }
-  }
-
-  if (isset($flag)) {
-    drupal_set_title(t('Edit @title flag', array('@title' => $flag->title)));
-  }
-  else {
+  if (isset($type)) {
+    // Adding a new flag.
+    $flag = flag_flag::factory_by_content_type($type);
+    $flag->name = $name;
     drupal_set_title(t('Add new flag'));
   }
+  else {
+    // Editing an existing flag.
+    $flag = flag_get_flag($name);
+    if (empty($flag)) {
+      drupal_goto('admin/build/flags');
+    }
+    drupal_set_title(t('Edit @title flag', array('@title' => $flag->title)));
+  }
 
-  $form['fid'] = array(
+  $form['_flag'] = array(
     '#type' => 'value',
-    '#value' => isset($flag) ? $flag->fid : NULL,
-  );
-
-  $form['content_type'] = array(
-    '#type' => 'value',
-    '#value' => isset($flag) ? $flag->content_type : $type,
+    '#value' => $flag,
   );
 
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
-    '#default_value' => isset($flag) ? $flag->name : $name,
+    '#default_value' => $flag->name,
     '#description' => t('The machine-name for this flag. It may be up to 32 characters long and my only contain lowercase letters, underscores, and numbers. It will be used in URLs and in all API calls.'),
     '#maxlength' => 32,
     '#required' => TRUE,
   );
 
-  if (isset($flag)) {
+  if (!empty($flag->fid)) {
     $form['name']['#description'] .= ' <strong>'. t('Change this value only with great care.') .'</strong>';
   }
 
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#default_value' => isset($flag) ? $flag->title : '',
+    '#default_value' => $flag->title,
     '#description' => t('A short, descriptive title for this flag. It will be used in administrative interfaces to refer to this flag. Some examples could be <em>Bookmarks</em>, <em>Favorites</em>, or <em>Offensive</em>.'),
     '#maxlength' => 255,
     '#required' => TRUE,
@@ -475,7 +470,7 @@ function flag_form($name = NULL, $type = NULL) {
   $form['flag_short'] = array(
     '#type' => 'textfield',
     '#title' => t('Flag link text'),
-    '#default_value' => isset($flag) ? $flag->flag_short : '',
+    '#default_value' => $flag->flag_short,
     '#description' => t('The text for the "flag this" link for this flag.'),
     '#required' => TRUE,
   );
@@ -483,21 +478,21 @@ function flag_form($name = NULL, $type = NULL) {
   $form['flag_long'] = array(
     '#type' => 'textfield',
     '#title' => t('Flag link description'),
-    '#default_value' => isset($flag) ? $flag->flag_long : '',
+    '#default_value' => $flag->flag_long,
     '#description' => t('The description of the "flag this" link. Usually displayed on mouseover.'),
   );
 
   $form['flag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Flagged message'),
-    '#default_value' => isset($flag) ? $flag->flag_message : '',
+    '#default_value' => $flag->flag_message,
     '#description' => t('Message displayed when the user has clicked the "flag this" link. If javascript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
   );
 
   $form['unflag_short'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflag link text'),
-    '#default_value' => isset($flag) ? $flag->unflag_short : '',
+    '#default_value' => $flag->unflag_short,
     '#description' => t('The text for the "unflag this" link for this flag.'),
     '#required' => TRUE,
   );
@@ -505,14 +500,14 @@ function flag_form($name = NULL, $type = NULL) {
   $form['unflag_long'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflag link description'),
-    '#default_value' => isset($flag) ? $flag->unflag_long : '',
+    '#default_value' => $flag->unflag_long,
     '#description' => t('The description of the "unflag this" link. Usually displayed on mouseover.'),
   );
 
   $form['unflag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflagged message'),
-    '#default_value' => isset($flag) ? $flag->unflag_message : '',
+    '#default_value' => $flag->unflag_message,
     '#description' => t('Message displayed when the user has clicked the "unflag this" link. If javascript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
   );
 
@@ -530,7 +525,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#type' => 'checkboxes',
     '#title' => t('Roles that may use this flag'),
     '#options' => user_roles(TRUE),
-    '#default_value' => isset($flag) ? $flag->roles : array(2),
+    '#default_value' => $flag->roles,
     '#required' => TRUE,
     '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
   );
@@ -538,7 +533,7 @@ function flag_form($name = NULL, $type = NULL) {
   $form['global'] = array(
     '#type' => 'checkbox',
     '#title' => t("Global flag"),
-    '#default_value' => isset($flag) ? $flag->global : 0,
+    '#default_value' => $flag->global,
     '#description' => t("If checked, flag is considered 'global' and each node is either flagged or not. If unchecked, each user has his or her own flag flag."),
   );
 
@@ -546,7 +541,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#type' => 'checkboxes',
     '#title' => t('What nodes this flag may be used on'),
     '#options' => node_get_types('names'),
-    '#default_value' => isset($flag) ? $flag->types : array(),
+    '#default_value' => $flag->types,
     '#description' => t('Check any node types that this flag may be used on. You must check at least one node type.'),
     '#required' => TRUE
   );
@@ -558,39 +553,15 @@ function flag_form($name = NULL, $type = NULL) {
     '#tree' => FALSE,
   );
 
-  if ($type == 'node') {
-    $form['display']['show_on_teaser'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Display link on node teaser'),
-      '#default_value' => isset($flag) ? $flag->show_on_teaser : 1,
-    );
-  
-    $form['display']['show_on_page'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Display link on node page'),
-      '#default_value' => isset($flag) ? $flag->show_on_page : 1,
-    );
-  
-    $form['display']['show_on_form'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Show checkbox on node edit form'),
-      '#default_value' => isset($flag) ? $flag->show_on_form : 0,
-    );
-  }
-
-  if ($type == 'comment') {
-    $form['display']['show_on_comment'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Show checkbox on comments'),
-      '#default_value' => isset($flag) ? $flag->show_on_comment : 1,
-    );
-  }
-
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
+    // We put this button on the form before calling $flag->options_form()
+    // to give the flag handler a chance to remove it (e.g. flag_broken).
+    '#weight' => 999,
   );
-
+  
+  $flag->options_form($form);
 
   return $form;
 }
@@ -609,57 +580,22 @@ function flag_form_validate($form_id, $form_values, $form) {
     }
   }
 
-  // Ensure a safe machine name.
-  if (!preg_match('/^[a-z0-9_]+$/', $form_values['name'])) {
-    form_error($form['name'], t('The flag name may only contain lowercase letters, underscores, and numbers.'));
-  }
-
-  // Ensure the machine name is unique.
-  if (empty($form_values['fid'])) {
-    $flag = flag_get_flag($form_values['name']);
-    if (!empty($flag)) {
-      form_error($form['name'], t('Flag names must be unique. This flag name is already in use.'));
-    }
-  }
+  $flag = $form_values['_flag'];
+  unset($form_values['_flag']);
+  $flag->form_input($form_values);
+  $flag->validate();
 }
 
 /**
  * Add/Edit flag form submit.
  */
 function flag_form_submit($form_id, $form_values) {
-  // Convert options that differ per content-type into an options array.
-  $option_keys = array(
-    'show_on_page',
-    'show_on_teaser',
-    'show_on_form',
-    'show_on_comment',
-  );
-
-  $options = array();
-  foreach ($option_keys as $key) {
-    if (isset($form_values[$key])) {
-      $options[$key] = $form_values[$key];
-    }
-  }
-
-  if ($form_values['fid']) {
-    $fid = $form_values['fid'];
-    db_query("UPDATE {flags} SET name = '%s', title = '%s', flag_short = '%s', flag_long = '%s', flag_message = '%s', unflag_short = '%s', unflag_long = '%s', unflag_message = '%s', roles = '%s', global = %d, options = '%s' WHERE fid = %d", $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], serialize($options), $form_values['fid']);
-    db_query("DELETE FROM {flag_types} WHERE fid = %d", $form_values['fid']);
-  }
-  else {
-    $fid = db_next_id('{flags}_fid');
-    db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $fid, $form_values['content_type'], $form_values['name'], $form_values['title'], $form_values['flag_short'], $form_values['flag_long'], $form_values['flag_message'], $form_values['unflag_short'], $form_values['unflag_long'], $form_values['unflag_message'], implode(',', array_filter($form_values['roles'])), $form_values['global'], serialize($options));
-  }
-
-  foreach ($form_values['types'] as $type) {
-    if ($type) {
-      db_query("INSERT INTO {flag_types} (fid, type) VALUES (%d, '%s')", $fid, $type);
-    }
-  }
-  drupal_set_message(t('Flag @name has been saved.', array('@name' => $form_values['title'])));
+  $flag = $form_values['_flag'];
+  unset($form_values['_flag']);
+  $flag->form_input($form_values);
+  $flag->save();
+  drupal_set_message(t('Flag @name has been saved.', array('@name' => $flag->title)));
   views_invalidate_cache();
-
   return 'admin/build/flags';
 }
 
@@ -684,11 +620,9 @@ function flag_delete_confirm($name) {
 }
 
 function flag_delete_confirm_submit($form_id, $form_values) {
+  $flag = flag_get_flag(NULL, $form_values['fid']);
   if ($form_values['confirm']) {
-    db_query("DELETE FROM {flags} WHERE fid = %d", $form_values['fid']);
-    db_query("DELETE FROM {flag_content} WHERE fid = %d", $form_values['fid']);
-    db_query("DELETE FROM {flag_types} WHERE fid = %d", $form_values['fid']);
-    db_query("DELETE FROM {flag_counts} WHERE fid = %d", $form_values['fid']);
+    $flag->delete();
     views_invalidate_cache();
   }
   drupal_set_message(t('Flag @name has been deleted.', array('@name' => $form_values['title'])));
@@ -1063,21 +997,13 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
   // Retreive a list of all flags, regardless of the parameters.
   if (!isset($flags) || $reset) {
     $flags = array();
-
     $result = db_query("SELECT f.*, fn.type FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
-    while ($flag = db_fetch_object($result)) {
-      $flag->roles = empty($flag->roles) ? array() : explode(',', $flag->roles);
-      foreach ((array)unserialize($flag->options) as $option => $option_value) {
-        $flag->$option = $option_value;
-      }
-      unset($flag->options);
-      if (!isset($flags[$flag->fid])) {
-        $flag->types = array($flag->type);
-        unset($flag->type);
-        $flags[$flag->fid] = $flag;
+    while ($row = db_fetch_object($result)) {
+      if (!isset($flags[$row->fid])) {
+        $flags[$row->fid] = flag_flag::factory($row);
       }
       else {
-        array_push($flags[$flag->fid]->types, $flag->type);
+        $flags[$row->fid]->types[] = $row->type;
       }
     }
   }
