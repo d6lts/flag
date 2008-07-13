@@ -1108,14 +1108,14 @@ function flag_get_content_flags($content_type, $content_id, $reset = FALSE) {
  * link on the page yourself. For example, you could call this function from
  * your 'node.tpl.php':
  *
- *   <?php print _flag_create_link('bookmarks', $node->nid); ?>
+ *   <?php print flag_create_link('bookmarks', $node->nid); ?>
  *
  * @param $flag_name
  *   The "machine readable" name of the flag; e.g. 'bookmarks'.
  * @param $content_id
  *   The content ID to check for flagging. This is usually a node ID.
  */
-function _flag_create_link($flag_name, $content_id) {
+function flag_create_link($flag_name, $content_id) {
   $flag = flag_get_flag($flag_name);
   if (!$flag) {
     // Flag does not exist.
