@@ -521,7 +521,7 @@ function flag_views_bookmark_update_5101() {
 function flag_views_bookmark_update_5102() {
   // Because of a certain FAPI trait, when the admin didn't selected any
   // roles on the flag configuration form it's as if he selected the
-  // 'anonymouse role'. We clear this bogus selection.
+  // 'anonymous role'. We clear this bogus selection.
   //
   // (Note: update_sql() doesn't support %placeholders, so we embed the value
   //  directly.)
