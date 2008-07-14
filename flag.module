@@ -1,12 +1,6 @@
 <?php
 // $Id$
 
-include_once drupal_get_path('module', 'flag') .'/flag.inc';
-
-if (module_exists('views')) {
-  include_once drupal_get_path('module', 'flag') .'/flag.views.inc';
-}
-
 /**
  * Implementation of hook_menu().
  */
@@ -78,11 +72,16 @@ function flag_menu($may_cache) {
 function flag_init() {
   // Only load for non-cached pages.
   if (function_exists('drupal_set_content')) {
+    $path = drupal_get_path('module', 'flag');
+    include_once $path .'/flag.inc';
+    if (module_exists('views')) {
+      include_once $path .'/flag.views.inc';
+    }
     if (module_exists('actions')) {
-      include_once drupal_get_path('module', 'flag') .'/flag.actions.inc';
+      include_once $path .'/flag.actions.inc';
     }
     if (module_exists('token')) {
-      include_once drupal_get_path('module', 'flag') .'/flag.token.inc';
+      include_once $path .'/flag.token.inc';
     }
   }
 }
