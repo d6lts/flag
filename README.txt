@@ -39,8 +39,8 @@ displays possible relating to the number of times a node has been flagged.
 
 This module was formerly known as Views Bookmark.
 
-Originally written by Earl Miles. Maintenance and new features
-implemented by Nathan Haug and mystery man Mooffie.
+Originally written by Earl Miles. New features and maintenance
+by Nathan Haug and mystery man Mooffie.
 
 Recommended Modules
 -------------------

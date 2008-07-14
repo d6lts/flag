@@ -7,7 +7,7 @@
  */
 
 /**
- * Implementation of hook_views_date().
+ * Implementation of hook_views_data().
  */
 function flag_views_data() {
   $data = array();
@@ -155,7 +155,7 @@ function flag_views_flag_config_form($form_type, $content_type, $current_flag) {
 }
 
 /**
- * Helper function that gets the first defined flag and returns it's name.
+ * Helper function that gets the first defined flag and returns its name.
  */
 function flag_views_flag_default($content_type) {
   static $default_flag;
