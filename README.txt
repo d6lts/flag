@@ -37,11 +37,13 @@ Besides editing the default view that comes with the module, Flag
 provides many views filters, fields, and sort criteria to make all sorts of
 displays possible relating to the number of times a node has been flagged.
 
-Views boomark was written by Earl Miles.
-Maintenance and new features implemented by Nathan Haug and mystery man Moofie.
+This module was formerly known as Views Bookmark.
 
-Dependencies
-------------
+Originally written by Earl Miles. Maintenance and new features
+implemented by Nathan Haug and mystery man Mooffie.
+
+Recommended Modules
+-------------------
 - Views
 
 Installation
