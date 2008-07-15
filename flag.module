@@ -72,11 +72,13 @@ function flag_menu() {
  * Implementation of hook_init().
  */
 function flag_init() {
+  $path = drupal_get_path('module', 'flag');
+  include_once $path .'/flag.inc';
   if (module_exists('trigger')) {
-    include_once drupal_get_path('module', 'flag') .'/flag.actions.inc';
+    include_once $path .'/flag.actions.inc';
   }
   if (module_exists('token')) {
-    include_once drupal_get_path('module', 'flag') .'/flag.token.inc';
+    include_once $path .'/flag.token.inc';
   }
 }
 
