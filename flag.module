@@ -53,7 +53,7 @@ function flag_menu($may_cache) {
     );
   }
 
-  if (module_exists('actions')) {
+  if (_flag_have_actions_version_2()) {
     $items[] = array(
       'path' => 'admin/build/flags/actions',
       'title' => t('Actions'),
@@ -64,6 +64,13 @@ function flag_menu($may_cache) {
   }
 
   return $items;
+}
+
+/**
+ * We only support Actions 2.x. Not Actions 1.x. 
+ */
+function _flag_have_actions_version_2() {
+  return module_exists('actions') && function_exists('_actions_get_hook_aids');
 }
 
 /**
@@ -734,7 +741,7 @@ function flag($action, $flag_name, $content_type, $content_id, $uid = NULL) {
  * Implementation of hook_flag(). Trigger actions if any are available.
  */
 function flag_flag($action, $flag_name, $content_type, $content_id, $uid) {
-  if (module_exists('actions')) {
+  if (_flag_have_actions_version_2()) {
 
     // TODO: Create a real class for flag actions?
     $flag_action = new stdClass();
