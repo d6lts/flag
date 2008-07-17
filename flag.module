@@ -1,6 +1,8 @@
 <?php
 // $Id$
 
+include_once dirname(__FILE__) .'/flag.inc';
+
 /**
  * Implementation of hook_menu().
  */
@@ -71,7 +73,6 @@ function flag_menu() {
  */
 function flag_init() {
   $path = drupal_get_path('module', 'flag');
-  include_once $path .'/flag.inc';
   if (module_exists('trigger')) {
     include_once $path .'/flag.actions.inc';
   }
