@@ -106,6 +106,12 @@ function flag_install() {
       break;
   }
 
+  // Future code in this hook may wish to utilize the flag API, so we make sure
+  // it's fully loaded. This is only needed for the D5 version. This isn't needed
+  // for code in hook_update because update.php calls our module's hook_init(),
+  // which already loads 'flag.inc'.
+  include_once dirname(__FILE__) .'/flag.inc';
+
   if ($success) {
     // Insert a starting record.
     $options = array(
