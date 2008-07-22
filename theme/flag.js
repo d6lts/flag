@@ -8,7 +8,7 @@ if (Drupal.jsEnabled) {
      */
     function flipLink(element, settings) {
       // If this is a 'flag this' link...
-      if ($(element).is('.flag')) {
+      if ($(element).is('.flag-action')) {
         // ...then turn it into an 'unflag this' link;
         var newHtml = settings.unflag;
       }
@@ -115,10 +115,8 @@ if (Drupal.jsEnabled) {
     }
 
     // On load, bind the click behavior for all links on the page.
-    for (flagName in Drupal.settings.flag.flags) {
-      $('a.flag-' + flagName).click(function() {
-        return flagClick(this, getLinkSettings(this));
-      });
-    }
+    $('a.flag').click(function() {
+      return flagClick(this, getLinkSettings(this));
+    });
   });
 }

@@ -213,7 +213,7 @@ function flag_field_handler_ops($fieldinfo, $fielddata, $value, $data) {
 
   // Token replacements.
   $flag = flag_process_labels($flag, 'node', $data->nid, array('flag_short', 'flag_long', 'flag_message'));
-  return theme('flag', $flag, 'node', $data->nid, $is_flagged);
+  return $flag->theme($is_flagged ? 'unflag' : 'flag', $data->nid);
 }
 
 /**
