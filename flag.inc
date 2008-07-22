@@ -273,6 +273,37 @@ class flag_flag {
     db_query('DELETE FROM {flag_types} WHERE fid = %d', $this->fid);
     db_query('DELETE FROM {flag_counts} WHERE fid = %d', $this->fid);
   }
+
+  /**
+   * Renders a flag/unflag link. This is a wrapper around theme('flag') that,
+   * in Drupal 6, easily channels the call to the right template file.
+   *
+   * For parameters docmentation, see theme_flag().
+   */
+  function theme($action, $content_id, $after_flagging = FALSE) {
+    // The following 'if ... else' is because I don't want to maintain two
+    // versions of this file because of 1 line of code.
+    if (function_exists('theme_get_registry')) {
+      // We're running Drupal 6.
+      return theme($this->theme_suggestions(), $this, $action, $content_id, $after_flagging);
+    }
+    else {
+      // We're running Drupal 5. Noting to do: The theme_suggestions[] are
+      // handed to phptemplate in phptemplate_flag(), if the user bothered to
+      // copy that function into her 'template.php'.
+      return theme('flag', $this, $action, $content_id, $after_flagging);
+    }
+  }
+
+  /**
+   * Provides an array of possible themes to try for a given flag.
+   */
+  function theme_suggestions() {
+    $suggestions = array();
+    $suggestions[] = 'flag_' . $this->name;
+    $suggestions[] = 'flag';
+    return $suggestions;
+  }
 }
 
 /**

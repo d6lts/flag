@@ -129,12 +129,6 @@ function flag_content_enabled($flag, $content_type, $content_subtype = NULL) {
 }
 
 /**
- * Helper function for adding the JavaScript behaviour.
- */
-function flag_add_js($nid, $flag_name, $flag_html, $unflag_html) {
-}
-
-/**
  * Processes the various flag labels for display. This means token replacements
  * and language translation.
  *
@@ -218,10 +212,11 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
     // Token replacements.
     $flag = flag_process_labels($flag, $type, $id, array('flag_short', 'flag_long', 'flag_message'), array('teaser' => $teaser));
 
+    $is_flagged = isset($flag_status[$flag->name]);
     // The flag links are actually fully rendered theme functions.
     // The HTML attribute is set to TRUE to allow whatever the themer desires.
     $links['flag-'. $flag->name] = array(
-      'title' => theme('flag', $flag, $type, $id, isset($flag_status[$flag->name])),
+      'title' => $flag->theme($is_flagged ? 'unflag' : 'flag', $id),
       'html' => TRUE,
     );
   }
@@ -805,12 +800,14 @@ function flag_mail($key, &$message, $params) {
  * Implementation of hook_theme().
  */
 function flag_theme() {
+  $path = drupal_get_path('module', 'flag') .'/theme';
+
   return array(
     'flag' => array(
-      'arguments' => array('flag' => NULL, 'content_type' => NULL, 'content_id' => NULL, 'is_flagged' => NULL),
-    ),
-    'flag_link' => array(
-      'arguments' => array('flag' => NULL, 'content_type' => NULL, 'content_id' => NULL, 'action' => NULL, 'after_flagging' => NULL),
+      'arguments' => array('flag' => NULL, 'action' => NULL, 'content_id' => NULL, 'after_flagging' => FALSE),
+      'template' => 'flag',
+      'pattern' => 'flag_',
+      'path' => $path,
     ),
     'flag_token_help' => array(
       'arguments' => array('types' => NULL, 'prefix' => NULL, 'suffix' => NULL),
@@ -822,64 +819,66 @@ function flag_theme() {
 }
 
 /**
- * Theme an entire flag link, including JavaScript behaviors.
+ * A preprocess function for our theme('flag'). It generates the
+ * variables needed there.
  *
- * @param $flag
- *   The flag object.
- * @param $content_type
- *   The type of content being flagged. Usually "node".
- * @param $content_id
- *   The ID of the content being flagged.
- * @param $is_flagged
- *   Boolean value of the current status of the flag being output.
+ * The $variables array initially contains the following arguments:
+ * - $flag
+ * - $action
+ * - $content_id
+ * - $after_flagging
+ *
+ * See 'flag.tpl.php' for their documentation.
+ *
+ * Note: The Drupal 5 version of this module calls this function directly.
  */
-function theme_flag($flag, $content_type, $content_id, $is_flagged) {
+function template_preprocess_flag(&$variables) {
+  static $first_time = TRUE;
+
+  // Some typing shotcuts:
+  $flag =& $variables['flag'];
+  $action = $variables['action'];
+
+  $variables['setup'] = $first_time;
+  $first_time = FALSE;
+  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$flag->content_type/$variables[content_id]", array('query' => drupal_get_destination())));
+  $variables['link_text'] = $flag->{$action .'_short'};
+  $variables['link_title'] = strip_tags($flag->{$action .'_long'});
+  $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
+  $variables['last_action'] = ($action == 'flag' ? 'unflagged' : 'flagged');
+  if ($variables['after_flagging']) {
+    $inverse_action = ($action == 'flag' ? 'unflag' : 'flag');
+    $variables['message_text'] = $flag->{$inverse_action .'_message'};
+  }
+}
+
+/**
+ * Helper function for adding extra JavaScript behaviour to the page. (The
+ * basic JavaScript file is added in flag.tpl.php.)
+ */
+function flag_add_extra_js(&$flag, $action, $content_id, $after_flagging) {
   static $added_flags, $js_added;
+
+  if ($after_flagging) {
+    // Since flag.tpl.php calls this function, and since we ourselves trigger
+    // flag.tpl.php here (when we do $flag->theme(), to generate the links to
+    // store in some JS array), we need to guard against recursion:
+    return;
+  }
 
   // Add initial JS/CSS to the page.
   if (!isset($js_added)) {
-    drupal_add_css(drupal_get_path('module', 'flag') .'/flag.css');
-    drupal_add_js(drupal_get_path('module', 'flag') .'/flag.js');
     drupal_add_js(array('flag' => array('cleanUrl' => variable_get('clean_url', 0))), 'setting');
     $js_added = TRUE;
   }
 
   // Add JavaScript copies of the links so we can swap them out when the user clicks.
-  if (!(isset($added_flags[$flag->name][$content_type][$content_id]))) {
-    $flag_html = theme('flag_link', $flag, $content_type, $content_id, 'flag', TRUE);
-    $unflag_html = theme('flag_link', $flag, $content_type, $content_id, 'unflag', TRUE);
-    drupal_add_js(array('flag' => array('flags' => array($flag->name => array($content_type .'_'. $content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
-    $added_flags[$flag->name][$content_type][$content_id] = TRUE;
+  if (!(isset($added_flags[$flag->name][$flag->content_type][$content_id]))) {
+    $flag_html = $flag->theme('flag', $content_id, TRUE);
+    $unflag_html = $flag->theme('unflag', $content_id, TRUE);
+    drupal_add_js(array('flag' => array('flags' => array($flag->name => array($flag->content_type .'_'. $content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
+    $added_flags[$flag->name][$flag->content_type][$content_id] = TRUE;
   }
-
-  return theme('flag_link', $flag, $content_type, $content_id, $is_flagged ? 'unflag' : 'flag');
-}
-
-/**
- * Theme an individual link and a message after the link is marked.
- *
- * @param $flag
- *   The flag object.
- * @param $content_type
- *   The type of content being flagged. Usually "node".
- * @param $content_id
- *   The ID of the content being flagged.
- * @param $action
- *   Either "flag" or "unflag".
- * @param $after_flagging
- *   This function is called for both the link both before and after being
- *   flagged. If displaying to the user immediately after flagging, this value
- *   will be boolean TRUE. This is usually used in conjunction with immedate
- *   JavaScript-based toggling of flags.
- */
-function theme_flag_link($flag, $content_type, $content_id, $action, $after_flagging = FALSE) {
-  $output = '<span class="flag-wrapper">';
-  $output .= l($flag->{$action .'_short'}, 'flag/'. $action .'/'. $flag->name .'/'. $content_type .'/'. $content_id, array('query' => drupal_get_destination(), 'attributes' => array('title' => $flag->{$action .'_long'}, 'class' => $action .' flag-'. $flag->name . ($after_flagging ? ($action == 'flag' ? ' unflagged' : ' flagged') : ''))));
-  if ($after_flagging) {
-    $output .= '<span class="flag-message flag-'. $action .'-message">'. $flag->{($action == 'flag' ? 'unflag' : 'flag') .'_message'} .'</span>';
-  }
-  $output .= '</span>';
-  return $output;
 }
 
 /**
@@ -1153,6 +1152,7 @@ function flag_create_link($flag_name, $content_id) {
 
   $flag = flag_process_labels($flag, $flag->content_type, $content_id, array('flag_short', 'flag_long', 'flag_message'));
   $flag_status = flag_get_user_flags($flag->content_type, $content_id);
-  return theme('flag', $flag, $flag->content_type, $content_id, isset($flag_status[$flag->name]));
+  $is_flagged = isset($flag_status[$flag->name]);
+  return $flag->theme($is_flagged ? 'unflag' : 'flag', $content_id);
 }
 

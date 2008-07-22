@@ -381,7 +381,7 @@ class flag_handler_field_ops extends views_handler_field {
 
     // Token replacements.
     $flag = flag_process_labels($flag, $flag->content_type, $content_id, array('flag_short', 'flag_long', 'flag_message'));
-    return theme('flag', $flag, $flag->content_type, $content_id, $is_flagged);
+    return $flag->theme($is_flagged ? 'unflag' : 'flag', $content_id);
   }
 }
 
