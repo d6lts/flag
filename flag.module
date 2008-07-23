@@ -792,10 +792,12 @@ function flag_node_operations() {
     $operations['flag_'. $flag->name] = array(
       'label' => $flag->flag_short,
       'callback' => 'flag_nodes',
+      'callback arguments' => array('flag', $flag->name),
     );
     $operations['unflag_'. $flag->name] = array(
       'label' => $flag->unflag_short,
       'callback' => 'flag_nodes',
+      'callback arguments' => array('unflag', $flag->name),
     );
   }
   return $operations;
@@ -804,14 +806,9 @@ function flag_node_operations() {
 /**
  * Callback function for hook_node_operations().
  */
-function flag_nodes($nodes) {
-  $matches = array();
-  preg_match('/((un)?flag)_(.*)/', $_POST['operation'], $matches);
-  $action = $matches[1];
-  $name = $matches[3];
-
+function flag_nodes($nodes, $action, $flag_name) {
   foreach ($nodes as $nid) {
-    flag($action, $name, 'node', $nid);
+    flag($action, $flag_name, 'node', $nid);
   }
 }
 
