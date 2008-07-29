@@ -329,13 +329,14 @@ function flag_views_default_views() {
   foreach ($flags as $flag) {
     // Localize the flag title:
     $flag = flag_process_labels($flag, NULL, NULL, array('title'));
-    $fid = $flag->fid;
+    $menu_title = $flag->global ? drupal_ucfirst($flag->title) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->title)));
+
     $view = new stdClass();
     $view->name = 'flags_'. $flag->name;
     $view->access = empty($flag->roles) ? array(DRUPAL_AUTHENTICATED_RID) : $flag->roles;
     $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->title));
     $view->page = TRUE;
-    $view->page_title = $flag->global ? $flag->title : t('My !flag-title', array('!flag-title' => $flag->title));
+    $view->page_title = $menu_title;
     $view->page_type = 'table';
     $view->url = 'flags/'. $flag->name;
     $view->use_pager = TRUE;

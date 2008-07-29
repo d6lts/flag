@@ -607,7 +607,7 @@ function flag_form_submit($form_id, $form_values) {
   $flag->form_input($form_values);
   $flag->save();
   drupal_set_message(t('Flag @name has been saved.', array('@name' => $flag->title)));
-  views_invalidate_cache();
+  _flag_clear_cache();
   return 'admin/build/flags';
 }
 
@@ -625,7 +625,7 @@ function flag_delete_confirm($name) {
 
   return confirm_form($form,
     t('Are you sure you want to delete %title?', array('%title' => $flag->title)),
-    $_GET['destination'] ? $_GET['destination'] : 'admin/build/flags',
+    !empty($_GET['destination']) ? $_GET['destination'] : 'admin/build/flags',
     t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
   );
@@ -635,10 +635,26 @@ function flag_delete_confirm_submit($form_id, $form_values) {
   $flag = flag_get_flag(NULL, $form_values['fid']);
   if ($form_values['confirm']) {
     $flag->delete();
-    views_invalidate_cache();
+    _flag_clear_cache();
   }
   drupal_set_message(t('Flag @name has been deleted.', array('@name' => $form_values['title'])));
   return 'admin/build/flags';
+}
+
+/*
+ * Clears various caches when a flag is modified.
+ */
+function _flag_clear_cache() {
+  if (module_exists('views')) {
+    views_invalidate_cache();
+  }
+  // The title of a flag may appear in the menu (indirectly, via our "default
+  // views"), so we need to clear the menu cache. (Note: we can't call
+  // 'menu_rebuild()', as Views at this point still provides the old data.)
+  cache_clear_all('*', 'cache_menu', TRUE);
+  // And clear the page cache too, because the flag labels may have
+  // changed.
+  cache_clear_all('*', 'cache_page', TRUE);
 }
 
 /**
