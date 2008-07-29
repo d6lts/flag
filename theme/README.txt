@@ -25,32 +25,10 @@ you should place in your theme's folder.
 The phptemplate_flag()
 ----------------------
 You should paste the following function into your 'tempalte.php'. This
-function instructs PHPTempalte to use your template file, or files, when
-theming a flag.
+function instructs PHPTemplate to use your template file, or files, when
+theming flags.
 
 
   function phptemplate_flag($flag, $action, $content_id, $after_flagging = FALSE) {
-    // Create the variables that will be available in the template.
-    $variables = array(
-      'flag' => $flag,
-      'action' => $action,
-      'content_id' => $content_id,
-      'after_flagging' => $after_flagging,
-    );
-    template_preprocess_flag($variables);
-
-    // Prepare an array of suggested templates to use.
-    $suggestions = array();
-    foreach ($flag->theme_suggestions() as $suggestion) {
-      $suggestions[] = str_replace('_', '-', $suggestion);
-    }
-    $suggestions = array_reverse($suggestions);
-
-    // Hand control to the phptemplate engine.
-    $output = _phptemplate_callback('flag', $variables, $suggestions);
-
-    // Finally, handle Drupal 5's jQuery bug. See explanation in theme_flag().
-    $output = strtr($output, "\r\n", '  ');
-    return $output;
+    return flag_phptemplate_adapter($flag, $action, $content_id, $after_flagging);
   }
-

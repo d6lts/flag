@@ -925,6 +925,41 @@ function flag_add_extra_js(&$flag, $action, $content_id, $after_flagging) {
 }
 
 /**
+ * In Drupal 5 it is possible to put a phptemplate_flag() function in your
+ * 'template.php', and within that function instructions to make Drupal scan
+ * for various template files for theming a flag.
+ *
+ * The syntax for that phptemplate_flag() is somewhat arcane --and may need
+ * updating when our API changes-- so here we provide a ready-made version of
+ * that funtion. You should call it from your phptemplate_flag(). See
+ * 'theme/README.txt'.
+ */
+function flag_phptemplate_adapter($flag, $action, $content_id, $after_flagging = FALSE) {
+  // Prepare the variables to be available in the template.
+  $variables = array(
+    'flag' => $flag,
+    'action' => $action,
+    'content_id' => $content_id,
+    'after_flagging' => $after_flagging,
+  );
+  template_preprocess_flag($variables);
+
+  // Prepare an array of suggested templates to try.
+  $suggestions = array();
+  foreach ($flag->theme_suggestions() as $suggestion) {
+    $suggestions[] = str_replace('_', '-', $suggestion);
+  }
+  $suggestions = array_reverse($suggestions);
+  
+  // Hand control to the phptemplate engine.
+  $output = _phptemplate_callback('flag', $variables, $suggestions);
+  
+  // Finally, handle Drupal 5's jQuery bug. See explanation in theme_flag().
+  $output = strtr($output, "\r\n", '  ');
+  return $output;
+}
+
+/**
  * Format a string containing a count of items.
  *
  * _flag_format_plural() is a version of format_plural() which
