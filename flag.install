@@ -24,7 +24,10 @@ function flag_install() {
       'show_on_teaser' => 1,
       'show_on_form' => 1,
     );
-    db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES ('node', 'bookmarks', 'Bookmarks', 'bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, '%s')", serialize($options));
+    // Note that UI strings in the following SQL, e.g. "Bookmark this", aren't
+    // wrapped in t() and that's intentional: they are passed to t() later,
+    // thus allowing for multilingual sites.
+    db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES ('node', 'bookmarks', 'Bookmarks', 'Bookmark this', 'Add this post to your bookmarks', 'This post has been added to your bookmarks', 'Unbookmark this', 'Remove this post from your bookmarks', 'This post has been removed from your bookmarks', '2', 0, '%s')", serialize($options));
     db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'story')");
     db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'forum')");
     db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'blog')");

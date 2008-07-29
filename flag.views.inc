@@ -417,6 +417,7 @@ function flag_views_default_views() {
 
   foreach ($flags as $flag) {
     $flag = flag_process_labels($flag, NULL, NULL, array('title'));
+    $menu_title = $flag->global ? drupal_ucfirst($flag->title) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->title)));
 
     $view = new view;
     $view->name = 'flag_'. $flag->name;
@@ -552,7 +553,7 @@ function flag_views_default_views() {
       );
     }
 
-    $handler->override_option('title', $flag->global ? $flag->title : t('My !flag-title', array('!flag-title' => $flag->title)));
+    $handler->override_option('title', $menu_title);
     $handler->override_option('items_per_page', '25');
     $handler->override_option('use_pager', TRUE);
     $handler->override_option('style_plugin', 'table');
@@ -561,7 +562,7 @@ function flag_views_default_views() {
     $handler->override_option('path', 'flags/'. $flag->name);
     $handler->override_option('menu', array(
       'type' => 'normal',
-      'title' => $flag->global ? $flag->title : t('My !flag-title', array('!flag-title' => $flag->title)),
+      'title' => $menu_title,
       'weight' => '0',
     ));
     $handler->override_option('tab_options', array(
