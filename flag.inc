@@ -245,8 +245,16 @@ class flag_flag {
    * Saves a new flag to the database. Better use save().
    */
   function insert() {
-    db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $this->content_type, $this->name, $this->title, $this->flag_short, $this->flag_long, $this->flag_message, $this->unflag_short, $this->unflag_long, $this->unflag_message, implode(',', $this->roles), $this->global, $this->get_serialized_options());
-    $this->fid = db_last_insert_id('flags', 'fid');
+    if (function_exists('db_last_insert_id')) {
+      // Drupal 6. We have a 'serial' primary key.
+      db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $this->content_type, $this->name, $this->title, $this->flag_short, $this->flag_long, $this->flag_message, $this->unflag_short, $this->unflag_long, $this->unflag_message, implode(',', $this->roles), $this->global, $this->get_serialized_options());
+      $this->fid = db_last_insert_id('flags', 'fid');
+    }
+    else {
+      // Drupal 5. We have an 'integer' primary key.
+      $this->fid = db_next_id('{flags}_fid');
+      db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $this->fid, $this->content_type, $this->name, $this->title, $this->flag_short, $this->flag_long, $this->flag_message, $this->unflag_short, $this->unflag_long, $this->unflag_message, implode(',', $this->roles), $this->global, $this->get_serialized_options());
+    }
     foreach ($this->types as $type) {
       db_query("INSERT INTO {flag_types} (fid, type) VALUES (%d, '%s')", $this->fid, $type);
     }
