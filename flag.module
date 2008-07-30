@@ -648,13 +648,14 @@ function _flag_clear_cache() {
   if (module_exists('views')) {
     views_invalidate_cache();
   }
+  // Reset our flags cache, thereby making the following code aware of the
+  // modifications.
+  flag_get_flags(NULL, NULL, NULL, TRUE);
   // The title of a flag may appear in the menu (indirectly, via our "default
-  // views"), so we need to clear the menu cache. (Note: we can't call
-  // 'menu_rebuild()', as Views at this point still provides the old data.)
-  cache_clear_all('*', 'cache_menu', TRUE);
-  // And clear the page cache too, because the flag labels may have
+  // views"), so we need to clear the menu cache. This call also clears the
+  // page cache, which is desirable too because the flag labels may have
   // changed.
-  cache_clear_all('*', 'cache_page', TRUE);
+  menu_rebuild();
 }
 
 /**
