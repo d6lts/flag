@@ -1094,10 +1094,10 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
   static $flagged_content;
 
   $uid = !isset($uid) ? $GLOBALS['user']->uid : $uid;
-  $flags = flag_get_flags($content_type);
 
   if (isset($content_id)) {
     if (!isset($flagged_content[$uid][$content_type][$content_id]) || $reset) {
+      $flags = flag_get_flags($content_type);
       $flagged_content[$uid][$content_type][$content_id] = array();
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d AND (uid = %d OR uid = 0)", $content_type, $content_id, $uid);
       while ($flag = db_fetch_object($result)) {
@@ -1109,6 +1109,7 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
 
   else {
     if (!isset($flagged_content[$uid]['all'][$content_type]) || $reset) {
+      $flags = flag_get_flags($content_type);
       $flagged_content[$uid]['all'][$content_type] = TRUE;
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0)", $content_type, $uid);
       while ($flag = db_fetch_object($result)) {
