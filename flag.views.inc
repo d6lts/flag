@@ -470,7 +470,6 @@ function flag_views_default_views() {
         'id' => 'name',
         'table' => 'users',
         'field' => 'name',
-        'relationship' => 'uid',
       ),
     );
 
