@@ -252,8 +252,8 @@ function flag_action_email_form($context) {
   $form = flag_action_form($context);
 
   $form['flags']['#title'] = t('Send when any of the following flags are over the threshold');
-  $form['flags']['#field_prefix'] = t('Send an e-mail after content has been flagged');
-  $form['flags']['#field_suffix'] = t('times');
+  $form['threshold']['#field_prefix'] = t('Send an e-mail after content has been flagged');
+  $form['threshold']['#field_suffix'] = t('times');
 
   $form['recipients'] = array(
     '#type' => 'textfield',
