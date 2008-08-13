@@ -10,7 +10,7 @@
  * Implementation of hook_views_tables
  */
 function flag_views_tables() {
-  $flags = flag_get_flags();
+  $flags = flag_get_flags('node'); // Views 1.x supports only nodes.
   foreach ($flags as $flag) {
     // Localize the flag title:
     $flag = flag_process_labels($flag, NULL, NULL, array('title'));
@@ -324,7 +324,7 @@ function flag_arg_uid($op, &$query, $argtype, $arg = '') {
  * Implementation of hook_views_default_views()
  */
 function flag_views_default_views() {
-  $flags = flag_get_flags();
+  $flags = flag_get_flags('node'); // Views 1.x supports only nodes.
 
   foreach ($flags as $flag) {
     // Localize the flag title:
