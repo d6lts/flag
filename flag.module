@@ -108,22 +108,10 @@ function flag_perm() {
 /**
  * Access checking to check an account for flagging ability.
  *
- * @param $flag
- *   The flag object being checked for access by a user.
- * @param $account
- *   Optional. The user object. If none given, the current user will be used.
- *
- * @return
- *   Boolean TRUE if the user is allowed to flag/unflag. FALSE otherwise.
+ * See documentation for $flag->user_access()
  */
 function flag_access($flag, $account = NULL) {
-  if (!isset($account)) {
-    global $user;
-    $account = $user;
-  }
-
-  $matched_roles = array_intersect($flag->roles, array_keys($account->roles));
-  return !empty($matched_roles) || empty($flag->roles) || $account->uid == 1;
+  return $flag->user_access($account);
 }
 
 /**
@@ -189,61 +177,49 @@ function flag_process_labels($flag, $content_type = NULL, $content_id = NULL, $v
  * Implementation of hook_link().
  */
 function flag_link($type, $object = NULL, $teaser = FALSE) {
-  if (!in_array($type, array('node', 'comment')) || !isset($object)) {
+  if (!isset($object) || !flag_fetch_definition($type)) {
     return;
   }
   global $user;
 
   // Anonymous users can't create flags with this system.
-  if (!$user || !$user->uid) {
+  if (!$user->uid) {
     return;
   }
 
-  if ($type == 'comment') {
-    $id = $object->cid;
-    $node = node_load($object->nid);
-    $node_type = $node->type;
-  }
-  else {
-    $id = $object->nid;
-    $node_type = $object->type;
-  }
-
-  // Get the user's flag status for this node.
-  $flag_status = flag_get_user_flags($type, $id);
-
-  // Get all possible flags for this node.
-  $flags = flag_get_flags($type, $node_type, $user);
-
+  // Get all possible flags for this content-type.
+  $flags = flag_get_flags($type);
+  
   foreach ($flags as $flag) {
-    if ($type == 'node') {
-      if ($teaser && !$flag->show_on_teaser || !$teaser && !$flag->show_on_page) {
-        continue;
-      }
+    if (!$flag->user_access($user)) {
+      // User has no permission to use this flag.
+      continue;
     }
-    else if ($type == 'comment') {
-      if (!$flag->show_on_comment) {
-        continue;
-      }
+    if (!$flag->uses_hook_link($teaser)) {
+      // Flag is not configured to show its link here.
+      continue;
+    }
+    if (!$flag->applies_to_content_object($object)) {
+      // Flag does not apply to this content.
+      continue;
     }
 
+    $content_id = $flag->get_content_id($object);
     // Token replacements.
-    $flag = flag_process_labels($flag, $type, $id, array('flag_short', 'flag_long', 'flag_message'), array('teaser' => $teaser));
+    $flag = flag_process_labels($flag, $type, $content_id, array('flag_short', 'flag_long', 'flag_message'), array('teaser' => $teaser));
 
-    $is_flagged = isset($flag_status[$flag->name]);
     // The flag links are actually fully rendered theme functions.
     // The HTML attribute is set to TRUE to allow whatever the themer desires.
     $links['flag-'. $flag->name] = array(
-      'title' => $flag->theme($is_flagged ? 'unflag' : 'flag', $id),
+      'title' => $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id),
       'html' => TRUE,
-     );
+    );
   }
 
   if (isset($links)) {
     return $links;
   }
 }
-
 /**
  * Implementation of hook_form_alter().
  */
@@ -319,7 +295,7 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
       // Response to the flag checkboxes added to the form in flag_form_alter().
       if (isset($node->flag)) {
         foreach ($node->flag as $name => $state) {
-          flag($state ? 'flag' : 'unflag', $name, 'node', $node->nid);
+          flag($state ? 'flag' : 'unflag', $name, $node->nid);
         }
       }
       break;
@@ -664,7 +640,7 @@ function _flag_clear_cache() {
  * Used both for the regular callback as well as the JS version.
  */
 function flag_page($action = 'flag', $flag_name, $content_type, $content_id = '') {
-  $result = flag($action, $flag_name, $content_type, $content_id);
+  $result = flag($action, $flag_name, $content_id);
   $js = isset($_REQUEST['js']);
 
   if (!$result) {
@@ -697,66 +673,57 @@ function flag_page($action = 'flag', $flag_name, $content_type, $content_id = ''
 
 /**
  * Action for flagging or unflagging a piece of content.
+ *
+ * @return
+ *   FALSE if some error occured (e.g., user has no permission, flag isn't
+ *   applicable, etc.), TRUE otherwise.
+ *
+ * @todo There's no reason not to turn this function into a method of the
+ * flag object; More so that this function uses 'private' methods of this flag
+ * object.
  */
-function flag($action, $flag_name, $content_type, $content_id, $uid = NULL) {
-  if (!isset($uid)) {
+function flag($action, $flag_name, $content_id, $account = NULL) {
+  if (!isset($account)) {
     global $user;
     $account = $user;
   }
-  else {
-    $account = user_load(array('uid' => $uid));
-  }
-
-  // Anonymous users can't create flags with this system.
-  if (!$account || !$account->uid) {
+  if (!$account) {
     return FALSE;
   }
 
-  // Check that the node exists.
-  if ($content_type == 'node' && is_numeric($content_id)) {
-    $object = node_load($content_id);
-    $node_type = $object->type;
-  }
-  elseif ($content_type == 'comment' && is_numeric($content_id)) {
-    $object = _comment_load($content_id);
-    $node = node_load($object->nid);
-    $node_type = $node->type;
-  }
-  if (empty($object)) {
+  if (!$account->uid) {
+    // Anonymous users can't create flags with this system.
     return FALSE;
   }
-
-  // Check if this user has access to this flag.
+  
   $flag = flag_get_flag($flag_name);
-  $fid = $flag->fid;
-  if (!flag_access($flag, $account)) {
+  if (!$flag) {
+    // Flag does not exist.
     return FALSE;
   }
-
+  if (!$flag->user_access($account)) {
+    // User has no permission to use this flag.
+    return FALSE;
+  }
+  if (!$flag->applies_to_content_id($content_id)) {
+    // Flag does not apply to this content.
+    return FALSE;
+  }
+  
   // Perform the flagging or unflagging of this flag.
   $uid = $flag->global ? 0 : $account->uid;
-  $flagged = db_result(db_query("SELECT fid FROM {flag_content} WHERE fid = %d AND uid = %d AND content_type = '%s' AND content_id = %d", $fid, $uid, $content_type, $content_id));
-  if ($flagged && $action == 'unflag') {
-    db_query("DELETE FROM {flag_content} WHERE fid = %d AND uid = %d AND content_type = '%s' AND content_id = %d", $fid, $uid, $content_type, $content_id);
+  $flagged = $flag->_is_flagged($content_id, $uid);
+  if ($action == 'unflag' && $flagged) {
+    $flag->_unflag($content_id, $uid);
+    // Let other modules perform actions.
+    module_invoke_all('flag', 'unflag', $flag_name, $flag->content_type, $content_id, $uid);
   }
-  elseif (!$flagged && $action == 'flag') {
-    db_query("INSERT INTO {flag_content} (fid, content_type, content_id, uid, timestamp) VALUES (%d, '%s', %d, %d, %d)", $fid, $content_type, $content_id, $uid, time());
-  }
-
-  // Update the flag count for this node.
-  $count = db_result(db_query("SELECT count(*) FROM {flag_content} WHERE fid = %d AND content_type = '%s' AND content_id = %d", $fid, $content_type, $content_id));
-  $result = db_query("UPDATE {flag_counts} set count = %d WHERE fid = %d AND content_type = '%s' AND content_id = %d", $count, $fid, $content_type, $content_id);
-  if (!db_affected_rows()) {
-    db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count) VALUES (%d, '%s', %d, %d)", $fid, $content_type, $content_id, $count);
+  elseif ($action == 'flag' && !$flagged) {
+    $flag->_flag($content_id, $uid);
+    // Let other modules perform actions.
+    module_invoke_all('flag', 'flag', $flag_name, $flag->content_type, $content_id, $uid);
   }
 
-  // Let other modules perform actions.
-  if ($flagged && $action == 'unflag') {
-    module_invoke_all('flag', 'unflag', $flag_name, $content_type, $content_id, $uid);
-  }
-  elseif (!$flagged && $action == 'flag') {
-    module_invoke_all('flag', 'flag', $flag_name, $content_type, $content_id, $uid);
-  }
   return TRUE;
 }
 
@@ -825,7 +792,7 @@ function flag_node_operations() {
  */
 function flag_nodes($nodes, $action, $flag_name) {
   foreach ($nodes as $nid) {
-    flag($action, $flag_name, 'node', $nid);
+    flag($action, $flag_name, $nid);
   }
 }
 
@@ -1234,21 +1201,16 @@ function flag_create_link($flag_name, $content_id) {
     // Flag does not exist.
     return;
   }
-  if (!flag_access($flag)) {
+  if (!$flag->user_access()) {
     // User has no permission to use this flag.
     return;
   }
-  if ($flag->content_type == 'node') {
-    $node = node_load($content_id);
-    if (!flag_content_enabled($flag, $flag->content_type, $node->type)) {
-      // Flag does not apply to this node-type.
-      return;
-    }
+  if (!$flag->applies_to_content_id($content_id)) {
+    // Flag does not apply to this content.
+    return;
   }
 
   $flag = flag_process_labels($flag, $flag->content_type, $content_id, array('flag_short', 'flag_long', 'flag_message'));
-  $flag_status = flag_get_user_flags($flag->content_type, $content_id);
-  $is_flagged = isset($flag_status[$flag->name]);
-  return $flag->theme($is_flagged ? 'unflag' : 'flag', $content_id);
+  return $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id);
 }
 

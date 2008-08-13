@@ -219,6 +219,150 @@ class flag_flag {
   }
 
   /**
+   * Loads, possibly from some cache, a content object this flag works with.
+   * Derived classes must implement this.
+   *
+   * @abstract
+   */
+  function load_content($content_id) {
+    return NULL;
+  }
+
+  /**
+   * Returns TRUE if the flag applies to the given content.
+   * Derived classes must implement this.
+   *
+   * @abstract
+   */
+  function applies_to_content_object($content) {
+    return FALSE;
+  }
+
+  /**
+   * Returns TRUE if the flag applies to the content with the given ID.
+   *
+   * This is a convenience method that simply loads the object and calls
+   * applies_to_content_object(). If you already have the object, don't call
+   * this function: call applies_to_content_object() directly.
+   */
+  function applies_to_content_id($content_id) {
+    return $this->applies_to_content_object($this->load_content($content_id));
+  }
+  
+  /**
+   * Given a content object, returns its ID.
+   * Derived classes must implement this.
+   *
+   * @abstract
+   */
+  function get_content_id($content) {
+    return NULL;
+  }
+
+  /**
+   * Returns TRUE if the flag is configured to show the flag-link using hook_link.
+   * Derived classes are likely to implement this.
+   */
+  function uses_hook_link($teaser) {
+    return FALSE;
+  }
+
+  /**
+   * Returns TRUE if user has access to use this flag.
+   *
+   * @param $account
+   *   Optional. The user object. If none given, the current user will be used.
+   *
+   * @return
+   *   Boolean TRUE if the user is allowed to flag/unflag. FALSE otherwise.
+   */
+  function user_access($account = NULL) {
+    if (!isset($account)) {
+      global $user;
+      $account = $user;
+    }
+    $matched_roles = array_intersect($this->roles, array_keys($account->roles));
+    return !empty($matched_roles) || empty($this->roles) || $account->uid == 1;
+  }
+
+  /**
+   * Returns TRUE if a certain user has flagged this content.
+   *
+   * This function uses a cache to save on SQL queries.
+   *
+   * @param $uid
+   *   Optional. The user ID whose flags we're checking. If none given, the
+   *   current user will be used.
+   */
+  function is_flagged($content_id, $uid = NULL) {
+    $uid = !isset($uid) ? $GLOBALS['user']->uid : $uid;
+
+    // flag_get_user_flags() alreday does caching, but nevertheless we manage a
+    // cache of our own to save on function calls.
+    static $flag_status = array();
+    if (!isset($flag_status[$uid][$this->content_type][$content_id])) {
+      $flag_status[$uid][$this->content_type][$content_id] = flag_get_user_flags($this->content_type, $content_id, $uid);
+    }
+
+    return isset($flag_status[$uid][$this->content_type][$content_id][$this->name]);
+  }
+
+  /**
+   * Returns TRUE if a certain user has flagged this content.
+   *
+   * You probably shouldn't call this raw private method: call the
+   * is_flagged() method instead.
+   *
+   * This method is similar to is_flagged() except that it does direct SQL and
+   * doesn't do caching. Use it when you want to not affect the cache, or to
+   * bypass it.
+   *
+   * @private
+   */
+  function _is_flagged($content_id, $uid) {
+    return db_result(db_query("SELECT fid FROM {flag_content} WHERE fid = %d AND uid = %d AND content_id = %d", $this->fid, $uid, $content_id));
+  }
+
+  /**
+   * A low-level method to flag content.
+   *
+   * You probably shouldn't call this raw private method: call the flag()
+   * function instead.
+   *
+   * @private
+   */
+  function _flag($content_id, $uid) {
+    db_query("INSERT INTO {flag_content} (fid, content_type, content_id, uid, timestamp) VALUES (%d, '%s', %d, %d, %d)", $this->fid, $this->content_type, $content_id, $uid, time());
+    $this->_update_count($content_id);
+  }
+
+  /**
+   * A low-level method to unflag content.
+   *
+   * You probably shouldn't call this raw private method: call the flag()
+   * function instead.
+   *
+   * @private
+   */
+  function _unflag($content_id, $uid) {
+    db_query("DELETE FROM {flag_content} WHERE fid = %d AND uid = %d AND content_id = %d", $this->fid, $uid, $content_id);
+    $this->_update_count($content_id);
+  }
+
+  /**
+   * Updates the flag count for this content
+   *
+   * @private
+   */
+  function _update_count($content_id) {
+    $count = db_result(db_query("SELECT COUNT(*) FROM {flag_content} WHERE fid = %d AND content_id = %d", $this->fid, $content_id));
+    $result = db_query("UPDATE {flag_counts} SET count = %d WHERE fid = %d AND content_id = %d", $count, $this->fid, $content_id);
+    if (!db_affected_rows()) {
+      db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count) VALUES (%d, '%s', %d, %d)", $this->fid, $this->content_type, $content_id, $count);
+    }
+  }
+
+  /**
    * Saves a flag to the database. It is a wrapper around update() and insert().
    */
   function save() {
@@ -344,6 +488,29 @@ class flag_node extends flag_flag {
       '#default_value' => $this->show_on_form,
     );
   }
+
+  function load_content($content_id) {
+    $node = is_numeric($content_id) ? node_load($content_id) : NULL;
+    return $node ? $node : NULL;
+  }
+
+  function applies_to_content_object($node) {
+    if ($node && in_array($node->type, $this->types)) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  function get_content_id($node) {
+    return $node->nid;
+  }
+
+  function uses_hook_link($teaser) {
+    if ($teaser && $this->show_on_teaser || !$teaser && $this->show_on_page) {
+      return TRUE;
+    }
+    return FALSE;
+  }
 }
 
 /**
@@ -363,6 +530,31 @@ class flag_comment extends flag_flag  {
       '#title' => t('Show checkbox on comments'),
       '#default_value' => $this->show_on_comment,
     );
+  }
+
+  function load_content($content_id) {
+    // The Comment module doesn't do caching, so we manage a cache ourselves.
+    static $comments = array();
+    if (!array_key_exists($content_id, $comments)) {
+      $comment = _comment_load($content_id);
+      $comments[$content_id] = $comment ? $comment : NULL;
+    }
+    return $comments[$content_id];
+  }
+
+  function applies_to_content_object($comment) {
+    if ($comment && ($node = node_load($comment->nid)) && in_array($node->type, $this->types)) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+  
+  function get_content_id($comment) {
+    return $comment->cid;
+  }
+
+  function uses_hook_link($teaser) {
+    return $this->show_on_comment;
   }
 }
 
