@@ -581,6 +581,33 @@ class flag_user extends flag_flag {
       '#default_value' => $this->show_on_profile,
     );
   }
+
+  function load_content($content_id) {
+    // The User module doesn't do caching, so we manage a cache ourselves.
+    static $users = array();
+    if (!array_key_exists($content_id, $users)) {
+      $user = user_load(array('uid' => $content_id));
+      $users[$content_id] = $user ? $user : NULL;
+    }
+    return $users[$content_id];
+  }
+
+  function applies_to_content_object($user) {
+    // This user flag doesn't currently support subtypes so we return TRUE for
+    // any user.
+    if ($user) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+  
+  function get_content_id($user) {
+    return $user->uid;
+  }
+
+  function uses_hook_link($teaser) {
+    return FALSE;
+  }
 }
 
 /**
