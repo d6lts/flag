@@ -195,6 +195,8 @@ class flag_flag {
     // But checkboxes need some massaging:
     $this->roles = array_values(array_filter($this->roles));
     $this->types = array_values(array_filter($this->types));
+    // Clear internal titles cache:
+    $this->get_title(NULL, TRUE);
   }
 
   /**
@@ -363,6 +365,70 @@ class flag_flag {
   }
 
   /**
+   * Processes a flag label for display. This means language translation and
+   * token replacements.
+   *
+   * You should always call this function and not get at the label directly.
+   * E.g., do `print $flag->get_label('title')` instead of `print
+   * $flag->title`.
+   *
+   * @param $label
+   *   The label to get, e.g. 'title', 'flag_short', 'unflag_short', etc.
+   * @param $content_id
+   *   The ID in whose context to interpret tokens. If not given, only global
+   *   tokens will be substituted.
+   * @return
+   *   The processed label.
+   */
+  function get_label($label, $content_id = NULL) {
+    if (!isset($this->$label)) {
+      return;
+    }
+    $label = t($this->$label);
+    if (strpos($label, '[') !== FALSE && module_exists('token')) {
+      $label = $this->_replace_tokens($label, $content_id);
+    }
+    return filter_xss_admin($label);
+  }
+
+  /**
+   * Replaces tokens in a label. This basic implementation knows about global
+   * tokens only, so derived classes should override this method to replace all
+   * token types they understand.
+   */  
+  function _replace_tokens($label, $content_id = NULL) {
+    return token_replace($label, 'global');
+  }
+  
+  /**
+   * Returns the token types this flag understands in labels. These are used
+   * for narrowing down the token list shown in the help box to only the
+   * relevant ones.
+   *
+   * Derived classes should override this.
+   */
+  function get_labels_token_types() {
+    return array('global');
+  }
+
+  /**
+   * A convenience method for getting the flag title.
+   *
+   * `$flag->get_title()` is shorthand for `$flag->get_label('title')`.
+   */
+  function get_title($content_id = NULL, $reset = FALSE) {
+    static $titles = array();
+    if ($reset) {
+      $titles = array();
+    }
+    $slot = intval($content_id); // Convert NULL to 0.
+    if (!isset($titles[$this->fid][$slot])) {
+      $titles[$this->fid][$slot] = $this->get_label('title', $content_id);
+    }
+    return $titles[$this->fid][$slot];
+  }
+  
+  /**
    * Saves a flag to the database. It is a wrapper around update() and insert().
    */
   function save() {
@@ -484,7 +550,7 @@ class flag_node extends flag_flag {
     );
     $form['display']['show_on_form'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Show checkbox on node edit form'),
+      '#title' => t('Display checkbox on node edit form'),
       '#default_value' => $this->show_on_form,
     );
   }
@@ -511,6 +577,17 @@ class flag_node extends flag_flag {
     }
     return FALSE;
   }
+
+  function get_labels_token_types() {
+    return array('node');
+  }
+
+  function _replace_tokens($label, $content_id = NULL) {
+    if ($content_id && ($node = $this->load_content($content_id))) {
+      return token_replace($label, 'node', $node);
+    }
+    return token_replace($label, 'global');
+  }
 }
 
 /**
@@ -527,7 +604,7 @@ class flag_comment extends flag_flag  {
     parent::options_form($form);
     $form['display']['show_on_comment'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Show checkbox on comments'),
+      '#title' => t('Display link under comment'),
       '#default_value' => $this->show_on_comment,
     );
   }
@@ -556,6 +633,19 @@ class flag_comment extends flag_flag  {
   function uses_hook_link($teaser) {
     return $this->show_on_comment;
   }
+
+  function get_labels_token_types() {
+    return array('comment', 'node');
+  }
+
+  function _replace_tokens($label, $content_id = NULL) {
+    if ($content_id) {
+      if (($comment = $this->load_content($content_id)) && ($node = node_load($comment->nid))) {
+        return token_replace_multiple($label, array('comment' => $comment, 'node' => $node));
+      }
+    }
+    return token_replace($label, 'global');
+  }
 }
 
 /**
@@ -577,7 +667,7 @@ class flag_user extends flag_flag {
     );
     $form['display']['show_on_profile'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Show checkbox on user profile page'),
+      '#title' => t('Display link on user profile page'),
       '#default_value' => $this->show_on_profile,
     );
   }
@@ -607,6 +697,17 @@ class flag_user extends flag_flag {
 
   function uses_hook_link($teaser) {
     return FALSE;
+  }
+
+  function get_labels_token_types() {
+    return array('user');
+  }
+
+  function _replace_tokens($label, $content_id = NULL) {
+    if ($content_id && ($user = $this->load_content($content_id))) {
+      return token_replace($label, 'user', $user);
+    }
+    return token_replace($label, 'global');
   }
 }
 

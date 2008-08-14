@@ -171,7 +171,7 @@ function flag_action_form($context) {
 
   $options = array();
   foreach ($flags as $flag) {
-    $options[$flag->name] = $flag->title;
+    $options[$flag->name] = $flag->get_title();
   }
   $form['flags'] = array(
     '#type' => 'checkboxes',

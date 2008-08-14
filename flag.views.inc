@@ -138,9 +138,7 @@ function flag_views_flag_config_form($form_type, $content_type, $current_flag) {
   $flags = flag_get_flags($content_type);
 
   foreach ($flags as $flag) {
-    // Localize Flag titles.
-    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
-    $options[$flag->name] = $flag->title;
+    $options[$flag->name] = $flag->get_title();
   }
 
   $form = array(
@@ -379,8 +377,6 @@ class flag_handler_field_ops extends views_handler_field {
       return;
     }
 
-    // Token replacements.
-    $flag = flag_process_labels($flag, $flag->content_type, $content_id, array('flag_short', 'flag_long', 'flag_message'));
     return $flag->theme($is_flagged ? 'unflag' : 'flag', $content_id);
   }
 }
@@ -416,12 +412,11 @@ function flag_views_default_views() {
   $flags = flag_get_flags('node');
 
   foreach ($flags as $flag) {
-    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
-    $menu_title = $flag->global ? drupal_ucfirst($flag->title) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->title)));
+    $menu_title = $flag->global ? drupal_ucfirst($flag->get_title()) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->get_title())));
 
     $view = new view;
     $view->name = 'flag_'. $flag->name;
-    $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->title));
+    $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->get_title()));
     $view->tag = t('default');
     $view->view_php = '';
     $view->base_table = 'node';
