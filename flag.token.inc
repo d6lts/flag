@@ -1,4 +1,5 @@
 <?php
+// $Id$
 
 /**
  * Implementation of hook_token().
@@ -59,24 +60,6 @@ function flag_token_values($type, $object = NULL) {
 }
 
 /**
- * Retreive a list of tokens from multiple types. Merged into a single array.
- *
- * @param $types
- *   An array of all types that should return their tokens in a single array.
- * @return
- *   The array of usable tokens and their descriptions, organized by
- *   token type.
- */
-function flag_token_get_list($types = array('all')) {
-  token_include();
-  $return = array();
-  foreach($types as $type) {
-    $return = array_merge_recursive($return, module_invoke_all('token_list', $type));
-  }
-  return $return;
-}
-
-/**
  * Generate token help text for form elements in nodeflag.
  */
 function flag_token_help($types = array('user','node','flag')) {
@@ -84,17 +67,13 @@ function flag_token_help($types = array('user','node','flag')) {
 }
 
 /**
- * For a given context, builds a formatted list of tokens and descriptions
- * of their replacement values.
+ * This is a replacement for Token's theme_token_help().
  *
- * @param $types
- *   The token types to display documentation for. Defaults to 'all'.
- * @param $prefix
- *   The prefix your module will use when parsing tokens. Defaults to '['.
- * @param $suffix
- *   The suffix your module will use when parsing tokens. Defaults to ']'.
- * @return
- *   An HTML table containing the formatting docs.
+ * This is a duplicate of the Token's function, but with a small modification:
+ * the $type parameter is now $types, allowing for listing tokens from several
+ * categories.
+ *
+ * @todo Incorporate this feature into the Token module(?)
  **/
 function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = ']') {
   token_include();
@@ -114,4 +93,34 @@ function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = '
 
   $output = theme('table', $headers, $rows, array('class' => 'description'));
   return $output;
+}
+
+/**
+ * This is a replacement for Token's token_get_list().
+ *
+ * It is used only by theme_flag_token_help(), above.
+ *
+ * This is a duplicate of the Token's function, but with a small modification:
+ * the $type parameter is now $types, allowing for listing tokens from several
+ * categories.
+ *
+ * @todo Incorporate this feature into the Token module(?)
+ */
+function flag_token_get_list($types = array('all')) {
+  token_include();
+  $return = array();
+  foreach($types as $type) {
+    foreach (module_implements('token_list') as $module) {
+      $function = $module .'_token_list';
+      $result = $function($type);
+      if (is_array($result)) {
+        foreach ($result as $category => $tokens) {
+          foreach ($tokens as $token => $title) {
+            $return[$category][$token] = $title;
+          }
+        }
+      }
+    }
+  }
+  return $return;
 }
