@@ -134,46 +134,6 @@ function flag_content_enabled($flag, $content_type, $content_subtype = NULL) {
 }
 
 /**
- * Processes the various flag labels for display. This means token replacements
- * and language translation.
- *
- * @param $flag
- *   The flag object.
- * @param $content_type
- *   The type of content being used for token replacements. Usually 'node'.
- * @param $content_id
- *   The ID in whose context to interpret the tokens. The content will only be
- *   loaded if tokens are used. Omit to use the 'global' context.
- * @param $variables
- *   Array containing the names of the label variables to process.
- * @param $options
- *   Optional. Options to pass to token_replace().
- * @return
- *   A new flag object with the labels processed.
- */
-function flag_process_labels($flag, $content_type = NULL, $content_id = NULL, $variables = NULL, $options = array()) {
-  $flag = drupal_clone($flag);
-  if (!isset($variables)) {
-    $variables = array('flag_short', 'flag_long');
-  }
-  foreach ($variables as $primary_var) {
-    foreach (array($primary_var, 'un'. $primary_var) as $var) {
-      if (isset($flag->$var)) {
-        $flag->$var = t(filter_xss_admin($flag->$var));
-        if (strpos($flag->$var, '[') !== FALSE && module_exists('token')) {
-          if (isset($content_id) && $content_type == 'node') {
-            $object = node_load($content_id);
-            $scope = 'node';
-          }
-          $flag->$var = token_replace($flag->$var, isset($scope) ? $scope : 'global', isset($object) ? $object : NULL, '[', ']', $options);
-        }
-      }
-    }
-  }
-  return $flag;
-}
-
-/**
  * Implementation of hook_link().
  */
 function flag_link($type, $object = NULL, $teaser = FALSE) {
@@ -205,9 +165,6 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
     }
 
     $content_id = $flag->get_content_id($object);
-    // Token replacements.
-    $flag = flag_process_labels($flag, $type, $content_id, array('flag_short', 'flag_long', 'flag_message'), array('teaser' => $teaser));
-
     // The flag links are actually fully rendered theme functions.
     // The HTML attribute is set to TRUE to allow whatever the themer desires.
     $links['flag-'. $flag->name] = array(
@@ -232,25 +189,20 @@ function flag_form_alter($form_id, &$form) {
         $var = 'flag_'. $flag->name .'_default';
         $form['workflow']['flag'][$var] = array(
           '#type' => 'checkbox',
-          '#title' => $flag->flag_short,
+          '#title' => $flag->get_label('flag_short'),
+          '#description' => $flag->get_label('flag_long'),
           '#default_value' => variable_get($var .'_'. $form['#node_type']->type, 0),
           '#return_value' => 1,
-          '#description' => $flag->flag_long,
         );
       }
     }
   }
   elseif (($form_id == $form['type']['#value'] .'_node_form')) {
-    if (!$user || !$user->uid) {
+    if (!$user->uid) {
       return;
     }
 
-    if ($form['nid']['#value']) {
-      $flag_status = flag_get_user_flags('node', $form['nid']['#value']);
-    }
-    else {
-      $flag_status = array();
-    }
+    $nid = !empty($form['nid']['#value']) ? $form['nid']['#value'] : NULL;
 
     $flags = flag_get_flags('node', $form['type']['#value'], $user);
 
@@ -272,12 +224,12 @@ function flag_form_alter($form_id, &$form) {
     }
 
     foreach ($flags as $flag) {
-      $var = 'flag_'. $flag->name .'_default';
+      $ct_default = variable_get('flag_' . $flag->name . '_default_' . $form['type']['#value'], 0);
       $form['flag'][$flag->name] = array(
         '#type' => 'checkbox',
-        '#title' => $flag->flag_short,
-        '#description' => $flag->flag_long,
-        '#default_value' => empty($form['nid']['#value']) ? variable_get($var .'_'. $form['type']['#value'], 0) : isset($flag_status[$flag->name]),
+        '#title' => $flag->get_label('flag_short', $nid),
+        '#description' => $flag->get_label('flag_long', $nid),
+        '#default_value' => $nid ? $flag->is_flagged($nid) : $ct_default,
         '#return_value' => 1,
       );
     }
@@ -327,8 +279,7 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
           // Flag does not apply to this content.
           continue;
         }
-        $flag = flag_process_labels($flag, $flag->content_type, $account->uid, array('flag_short', 'flag_long', 'flag_message'));
-        $items[$flag->title] = array(
+        $items[$flag->get_title($account->uid)] = array(
           array(
             'value' => $flag->theme($flag->is_flagged($account->uid) ? 'unflag' : 'flag', $account->uid),
             'class' => 'profile-' . $flag->name,
@@ -447,7 +398,7 @@ function flag_form($name = NULL, $type = NULL) {
     if (empty($flag)) {
       drupal_goto('admin/build/flags');
     }
-    drupal_set_title(t('Edit @title flag', array('@title' => $flag->title)));
+    drupal_set_title(t('Edit @title flag', array('@title' => $flag->get_title())));
   }
 
   $form['_flag'] = array(
@@ -525,7 +476,7 @@ function flag_form($name = NULL, $type = NULL) {
     $form['token_help'] = array(
       '#title' => t('Token replacement'),
       '#type' => 'fieldset',
-      '#description' => t('The above four options may contain the following wildcard replacements. For example, "Mark Link" could be entered as "Add [title] to your flags" or "Add this [type-name] to your flags". These wildcards will be replaced with the appropriate field from the node.') . theme('token_help'),
+      '#description' => t('The above four options may contain the following wildcard replacements. For example, "Mark Link" could be entered as "Add [title] to your flags" or "Add this [type-name] to your flags". These wildcards will be replaced with the appropriate field from the node.') . theme('flag_token_help', $flag->get_labels_token_types()),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
@@ -604,7 +555,7 @@ function flag_form_submit($form_id, $form_values) {
   unset($form_values['_flag']);
   $flag->form_input($form_values);
   $flag->save();
-  drupal_set_message(t('Flag @name has been saved.', array('@name' => $flag->title)));
+  drupal_set_message(t('Flag @name has been saved.', array('@name' => $flag->get_title())));
   _flag_clear_cache();
   return 'admin/build/flags';
 }
@@ -619,10 +570,9 @@ function flag_delete_confirm($name) {
   }
 
   $form['fid'] = array('#type' => 'value', '#value' => $flag->fid);
-  $form['title'] = array('#type' => 'value', '#value' => $flag->title);
 
   return confirm_form($form,
-    t('Are you sure you want to delete %title?', array('%title' => $flag->title)),
+    t('Are you sure you want to delete %title?', array('%title' => $flag->get_title())),
     !empty($_GET['destination']) ? $_GET['destination'] : 'admin/build/flags',
     t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
@@ -635,7 +585,7 @@ function flag_delete_confirm_submit($form_id, $form_values) {
     $flag->delete();
     _flag_clear_cache();
   }
-  drupal_set_message(t('Flag @name has been deleted.', array('@name' => $form_values['title'])));
+  drupal_set_message(t('Flag @name has been deleted.', array('@name' => $flag->get_title())));
   return 'admin/build/flags';
 }
 
@@ -661,7 +611,7 @@ function _flag_clear_cache() {
  *
  * Used both for the regular callback as well as the JS version.
  */
-function flag_page($action = 'flag', $flag_name, $content_type, $content_id = '') {
+function flag_page($action = 'flag', $flag_name, $__DUMMY_NOT_USED__content_type, $content_id = '') {
   $result = flag($action, $flag_name, $content_id);
   $js = isset($_REQUEST['js']);
 
@@ -684,11 +634,7 @@ function flag_page($action = 'flag', $flag_name, $content_type, $content_id = ''
   }
   else {
     $flag = flag_get_flag($flag_name);
-    // Token replacements.
-    if ($content_type == 'node') {
-      $flag = flag_process_labels($flag, $content_type, $content_id, array('flag_message'));
-    }
-    drupal_set_message($flag->{$action .'_message'});
+    drupal_set_message($flag->get_label($action . '_message', $content_id));
     drupal_goto();
   }
 }
@@ -792,16 +738,13 @@ function flag_node_operations() {
   $operations = array();
 
   foreach ($flags as $flag) {
-    // Token replacements.
-    $flag = flag_process_labels($flag, NULL, NULL, array('flag_short'));
-
     $operations['flag_'. $flag->name] = array(
-      'label' => $flag->flag_short,
+      'label' => $flag->get_label('flag_short'),
       'callback' => 'flag_nodes',
       'callback arguments' => array('flag', $flag->name),
     );
     $operations['unflag_'. $flag->name] = array(
-      'label' => $flag->unflag_short,
+      'label' => $flag->get_label('unflag_short'),
       'callback' => 'flag_nodes',
       'callback arguments' => array('unflag', $flag->name),
     );
@@ -887,17 +830,18 @@ function template_preprocess_flag(&$variables) {
   // Some typing shotcuts:
   $flag =& $variables['flag'];
   $action = $variables['action'];
+  $content_id = $variables['content_id'];
 
   $variables['setup'] = $first_time;
   $first_time = FALSE;
-  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$flag->content_type/$variables[content_id]", drupal_get_destination()));
-  $variables['link_text'] = $flag->{$action .'_short'};
-  $variables['link_title'] = strip_tags($flag->{$action .'_long'});
+  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$flag->content_type/$content_id", drupal_get_destination()));
+  $variables['link_text'] = $flag->get_label($action . '_short', $content_id);
+  $variables['link_title'] = strip_tags($flag->get_label($action . '_long', $content_id));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
   $variables['last_action'] = ($action == 'flag' ? 'unflagged' : 'flagged');
   if ($variables['after_flagging']) {
     $inverse_action = ($action == 'flag' ? 'unflag' : 'flag');
-    $variables['message_text'] = $flag->{$inverse_action .'_message'};
+    $variables['message_text'] = $flag->get_label($inverse_action . '_message', $content_id);
   }
 }
 
@@ -1231,8 +1175,6 @@ function flag_create_link($flag_name, $content_id) {
     // Flag does not apply to this content.
     return;
   }
-
-  $flag = flag_process_labels($flag, $flag->content_type, $content_id, array('flag_short', 'flag_long', 'flag_message'));
   return $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id);
 }
 

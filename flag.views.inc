@@ -12,8 +12,6 @@
 function flag_views_tables() {
   $flags = flag_get_flags('node'); // Views 1.x supports only nodes.
   foreach ($flags as $flag) {
-    // Localize the flag title:
-    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
     $table = array(
       'name' => 'flag_content',
       'join' => array(
@@ -30,7 +28,7 @@ function flag_views_tables() {
       ),
       'fields' => array(
         'timestamp' => array(
-          'name' => t('Flag: @s Flagged Time', array('@s' => $flag->title)),
+          'name' => t('Flag: @s Flagged Time', array('@s' => $flag->get_title())),
           'sortable' => TRUE,
           'handler' => views_handler_field_dates(),
           'option' => 'string',
@@ -40,17 +38,17 @@ function flag_views_tables() {
       ),
       'filters' => array(
         'uid' => array(
-          'name' => t('Flag: @s', array('@s' => $flag->title)),
+          'name' => t('Flag: @s', array('@s' => $flag->get_title())),
           // Do not be concerned about reversal here. IS NOT NULL means flagged.
           'operator' => array('IS NOT' => 'Is Flagged By'),
           'list' => array('***CURRENT_USER***' => t('Currently Logged In User'), 'uid' => t('Any User')),
           'list-type' => 'select',
           'handler' => 'flag_filter_handler_uid',
-          'help' => t('This will filter a only nodes that have the %s flag. If using <em>Any User</em>, often the <em>Node: Distinct</em> filter will also be desired. The <em>Any User</em> filter is not necessary if combining with other flag sorts or arguments.', array('%s' => $flag->title)),
+          'help' => t('This will filter a only nodes that have the %s flag. If using <em>Any User</em>, often the <em>Node: Distinct</em> filter will also be desired. The <em>Any User</em> filter is not necessary if combining with other flag sorts or arguments.', array('%s' => $flag->get_title())),
           'fid' => $flag->fid,
         ),
         'timestamp' => array(
-          'name' => t('Flag: @s Flagged Time', array('@s' => $flag->title)),
+          'name' => t('Flag: @s Flagged Time', array('@s' => $flag->get_title())),
           'operator' => 'views_handler_operator_gtlt',
           'value' => views_handler_filter_date_value_form(),
           'handler' => 'views_handler_filter_timestamp',
@@ -61,8 +59,8 @@ function flag_views_tables() {
       ),
       'sorts' => array(
         'timestamp' => array(
-          'name' => t('Flag: @s Flagged Time', array('@s' => $flag->title)),
-          'help' => t('Sort by the time a node was flagged using the %s flag.', array('%s' => $flag->title)),
+          'name' => t('Flag: @s Flagged Time', array('@s' => $flag->get_title())),
+          'help' => t('Sort by the time a node was flagged using the %s flag.', array('%s' => $flag->get_title())),
         ),
       ),
     );
@@ -81,7 +79,7 @@ function flag_views_tables() {
       ),
       'fields' => array(
         'name' => array(
-          'name' => t('Flag: User for @s', array('@s' => $flag->title)),
+          'name' => t('Flag: User for @s', array('@s' => $flag->get_title())),
           'handler' => 'views_handler_field_username',
           'sortable' => TRUE,
           'help' => t('This will display the user who flagged the node.'),
@@ -91,8 +89,8 @@ function flag_views_tables() {
       ),
       'sorts' => array(
         'name' => array(
-          'name' => t('Flag: User for @s', array('@s' => $flag->title)),
-          'help' => t('Sort by the the name of the users who flagged the node using the %s flag. This probably makes sense only when the list is filtered for a single node; e.g., on a "Who\'s flagged this" tab.', array('%s' => $flag->title)),
+          'name' => t('Flag: User for @s', array('@s' => $flag->get_title())),
+          'help' => t('Sort by the the name of the users who flagged the node using the %s flag. This probably makes sense only when the list is filtered for a single node; e.g., on a "Who\'s flagged this" tab.', array('%s' => $flag->get_title())),
         ),
       ),
     );
@@ -133,7 +131,7 @@ function flag_views_tables() {
       ),
       'fields' => array(
         'count' => array(
-          'name' => t('Flag: Count for @s', array('@s' => $flag->title)),
+          'name' => t('Flag: Count for @s', array('@s' => $flag->get_title())),
           'sortable' => true,
           'handler' => array(
             'views_handler_field_int' => t('Display the count as an integer'),
@@ -145,7 +143,7 @@ function flag_views_tables() {
       ),
       'filters' => array(
         'count' => array(
-          'name' => t('Flag: Count for @s', array('@s' => $flag->title)),
+          'name' => t('Flag: Count for @s', array('@s' => $flag->get_title())),
           'help' => t('This will filter by the number of times that a node has been flagged.'),
           'operator' => 'views_handler_operator_gtlt',
           'option' => 'integer',
@@ -153,7 +151,7 @@ function flag_views_tables() {
       ),
       'sorts' => array(
         'count' => array(
-          'name' => t('Flag: @s Count', array('@s' => $flag->title)),
+          'name' => t('Flag: @s Count', array('@s' => $flag->get_title())),
           'help' => t('Sort by the total flag count for each node.'),
         ),
       ),
@@ -184,7 +182,7 @@ function flag_views_tables() {
       'fields' => array(
         'ops' => array(
           'field' => 'uid',
-          'name' => t('Flag: Ops for @s', array('@s' => $flag->title)),
+          'name' => t('Flag: Ops for @s', array('@s' => $flag->get_title())),
           'help' => t('Display an AJAX link to flag, or unflag, the node. Note that the operation is made on behalf of the user who <em>browses the page</em> and not the user whose name happens to appear adjacent to the link.'),
           'handler' => 'flag_field_handler_ops',
           'query_handler' => 'flag_query_handler_ops',
@@ -211,8 +209,6 @@ function flag_field_handler_ops($fieldinfo, $fielddata, $value, $data) {
     return;
   }
 
-  // Token replacements.
-  $flag = flag_process_labels($flag, 'node', $data->nid, array('flag_short', 'flag_long', 'flag_message'));
   return $flag->theme($is_flagged ? 'unflag' : 'flag', $data->nid);
 }
 
@@ -259,12 +255,10 @@ function flag_field_handler_count($fieldinfo, $fielddata, $value, $data) {
 function flag_views_arguments() {
   $flags = flag_get_flags();
   foreach ($flags as $flag) {
-    // Localize the flag title:
-    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
     $argument = array(
-      'name' => t("Flags '@s' for UID", array('@s' => $flag->title)),
+      'name' => t("Flags '@s' for UID", array('@s' => $flag->get_title())),
       'handler' => "flag_arg_uid",
-      'help' => t("This argument allows users to filter a view to nodes flagged with the '%s' flag for the specified user.", array("%s" => $flag->title)),
+      'help' => t("This argument allows users to filter a view to nodes flagged with the '%s' flag for the specified user.", array("%s" => $flag->get_title())),
       'table' => "flag_content_". $flag->name,
     );
     $arguments["flag_content_". $flag->name] = $argument;
@@ -327,14 +321,12 @@ function flag_views_default_views() {
   $flags = flag_get_flags('node'); // Views 1.x supports only nodes.
 
   foreach ($flags as $flag) {
-    // Localize the flag title:
-    $flag = flag_process_labels($flag, NULL, NULL, array('title'));
-    $menu_title = $flag->global ? drupal_ucfirst($flag->title) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->title)));
+    $menu_title = $flag->global ? drupal_ucfirst($flag->get_title()) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->get_title())));
 
     $view = new stdClass();
     $view->name = 'flags_'. $flag->name;
     $view->access = empty($flag->roles) ? array(DRUPAL_AUTHENTICATED_RID) : $flag->roles;
-    $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->title));
+    $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->get_title()));
     $view->page = TRUE;
     $view->page_title = $menu_title;
     $view->page_type = 'table';

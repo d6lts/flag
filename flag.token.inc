@@ -22,7 +22,7 @@ function flag_token_list($type = 'all') {
   if ($type == 'node' || $type == 'all') {
     $flags = flag_get_flags('node');
     foreach ($flags as $flag) {
-      $tokens['node']['flag-'. str_replace('_', '-', $flag->name) .'-count'] = t('Total flag count for flag @flag', array('@flag' => $flag->title));
+      $tokens['node']['flag-'. str_replace('_', '-', $flag->name) .'-count'] = t('Total flag count for flag @flag', array('@flag' => $flag->get_title()));
     }
   }
   return $tokens;
@@ -35,7 +35,7 @@ function flag_token_values($type, $object = NULL) {
   $values = array();
   if ($type == 'flag') {
     $values['flag-name'] = check_plain($object->name);
-    $values['flag-title'] = check_plain($object->title);
+    $values['flag-title'] = check_plain($object->get_title());
   }
   elseif ($type == 'flag-action') {
     $counts = flag_get_counts($object->content_type, $object->content_id);
