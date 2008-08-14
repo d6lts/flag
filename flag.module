@@ -300,6 +300,27 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
     case 'delete':
       // Remove flags by this user.
       db_query("DELETE FROM {flag_content} WHERE uid = %d", $account->uid);
+      break;
+    case 'view';
+      $flags = flag_get_flags('user');
+      foreach ($flags as $flag) {
+        if (!$flag->user_access()) {
+          // User has no permission to use this flag.
+          continue;
+        }
+        if (!$flag->applies_to_content_object($account)) {
+          // Flag does not apply to this content.
+          continue;
+        }
+        $flag = flag_process_labels($flag, $flag->content_type, $account->uid, array('flag_short', 'flag_long', 'flag_message'));
+        $account->content['flags'][$flag->name] = array(
+          // @todo Make this better
+          '#type' => 'item',
+          '#title' => $flag->title,
+          '#value' => $flag->theme($flag->is_flagged($account->uid) ? 'unflag' : 'flag', $account->uid),
+          '#attributes' => array('class' => 'flag-profile-' . $flag->name),
+        );
+      }
   }
 }
 
