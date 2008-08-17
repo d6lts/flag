@@ -411,6 +411,19 @@ function flag_action_unpublish($flag, $context) {
       $node->status = 0;
       node_save($node);
       break;
+    case 'user':
+      $account = user_load(array('uid' => $context['content_id']));
+      user_save($account, array('status' => 0));
+      break;
+    case 'comment':
+      // Workaround to disable Drupal's message "Your comment has been queued for moderation ..."
+      $messages = drupal_get_messages();
+      $comment = _comment_load($context['content_id']);
+      $comment->status = COMMENT_NOT_PUBLISHED;
+      comment_save((array)$comment);
+      // Write back the old messages.
+      $_SESSION['messages'] = $messages;
+      break;
   }
 }
 
@@ -446,6 +459,17 @@ function flag_action_delete($flag, $context) {
   switch ($context['content_type']) {
     case 'node':
       node_delete($context['content_id']);
+      break;
+    case 'user':
+      $account = user_load(array('uid' => $context['content_id']));
+      user_delete((array)$account, $context['content_id']);
+      break;
+    case 'comment':
+      require_once drupal_get_path('module', 'comment') . '/comment.admin.inc';
+      $comment = _comment_load($context['content_id']);
+      _comment_delete_thread($comment);
+      _comment_update_node_statistics($comment->nid);
+      cache_clear_all();
       break;
   }
 }
