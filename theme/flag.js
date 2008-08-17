@@ -69,7 +69,7 @@ if (Drupal.jsEnabled) {
           }
         },
         error: function (xmlhttp) {
-          alert('An HTTP error '+ xmlhttp.status +' occured.\n'+ element.href);
+          alert('An HTTP error '+ xmlhttp.status +' occurred.\n'+ element.href);
           // Change link back
           flipLink(element, settings);
         }
@@ -93,25 +93,21 @@ if (Drupal.jsEnabled) {
      * Returns the settings for a certain link element.
      */
     function getLinkSettings(element) {
-      // The link URL is of the form ?q=flag/unflag/bookmarks/node/23,
-      // so let's parse it to extract the flag name, the content type,
-      // and the content ID.
-      var matches = element.href.match(/flag\/(un)?flag\/(\w+)\/(\w+)\/(\d+)/);
+      // The link URL is of the form ?q=flag/unflag/bookmarks/23,
+      // so let's parse it to extract the flag name and the content ID.
+      var matches = element.href.match(/flag\/(un)?flag\/(\w+)\/(\d+)/);
       if (!matches) {
         warn("Error: Invalid flag URL '" + element.href + "'");
       }
       var flagName    = matches[2];
-      var contentType = matches[3];
-      var contentId   = matches[4];
+      var contentId   = matches[3];
 
-      var slot = contentType + '_' + contentId;
-
-      if (!Drupal.settings.flag.flags[flagName][slot]) {
+      if (!Drupal.settings.flag.flags[flagName][contentId]) {
         // Slot does not exist. Create.
-        Drupal.settings.flag.flags[flagName][slot] = {};
+        Drupal.settings.flag.flags[flagName][contentId] = {};
       }
       // Return a reference to the settings slot.
-      return Drupal.settings.flag.flags[flagName][slot];
+      return Drupal.settings.flag.flags[flagName][contentId];
     }
 
     // On load, bind the click behavior for all links on the page.

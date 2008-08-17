@@ -611,7 +611,7 @@ function _flag_clear_cache() {
  *
  * Used both for the regular callback as well as the JS version.
  */
-function flag_page($action = 'flag', $flag_name, $__DUMMY_NOT_USED__content_type, $content_id = '') {
+function flag_page($action = 'flag', $flag_name, $content_id = '') {
   $result = flag($action, $flag_name, $content_id);
   $js = isset($_REQUEST['js']);
 
@@ -684,12 +684,12 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
   if ($action == 'unflag' && $flagged) {
     $flag->_unflag($content_id, $uid);
     // Let other modules perform actions.
-    module_invoke_all('flag', 'unflag', $flag_name, $flag->content_type, $content_id, $uid);
+    module_invoke_all('flag', 'unflag', $flag_name, $content_id, $uid);
   }
   elseif ($action == 'flag' && !$flagged) {
     $flag->_flag($content_id, $uid);
     // Let other modules perform actions.
-    module_invoke_all('flag', 'flag', $flag_name, $flag->content_type, $content_id, $uid);
+    module_invoke_all('flag', 'flag', $flag_name, $content_id, $uid);
   }
 
   return TRUE;
@@ -698,17 +698,18 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
 /**
  * Implementation of hook_flag(). Trigger actions if any are available.
  */
-function flag_flag($action, $flag_name, $content_type, $content_id, $uid) {
+function flag_flag($action, $flag_name, $content_id, $uid) {
   if (_flag_have_actions_version_2()) {
+    $flag = flag_get_flag($flag_name);
 
     // TODO: Create a real class for flag actions?
     $flag_action = new stdClass();
     $flag_action->action = $action;
     $flag_action->flag = $flag_name;
-    $flag_action->content_type = $content_type;
+    $flag_action->content_type = $flag->content_type;
     $flag_action->content_id = $content_id;
 
-    switch ($content_type) {
+    switch ($flag_action->content_type) {
       case 'node':
         $node = node_load($content_id);
         $flag_action->content_title = $node->title;
@@ -716,13 +717,11 @@ function flag_flag($action, $flag_name, $content_type, $content_id, $uid) {
         break;
     }
 
-    $flag = flag_get_flag($flag_name);
     $context = (array)$flag_action;
     $aids = _actions_get_hook_aids('flag', $action);
     foreach ($aids as $aid => $action_info) {
       actions_do($aid, $flag, $context);
     }
-
   }
 }
 
@@ -834,7 +833,7 @@ function template_preprocess_flag(&$variables) {
 
   $variables['setup'] = $first_time;
   $first_time = FALSE;
-  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$flag->content_type/$content_id", drupal_get_destination()));
+  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$content_id", drupal_get_destination()));
   $variables['link_text'] = $flag->get_label($action . '_short', $content_id);
   $variables['link_title'] = strip_tags($flag->get_label($action . '_long', $content_id));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
@@ -869,7 +868,7 @@ function flag_add_extra_js(&$flag, $action, $content_id, $after_flagging) {
   if (!(isset($added_flags[$flag->name][$flag->content_type][$content_id]))) {
     $flag_html = $flag->theme('flag', $content_id, TRUE);
     $unflag_html = $flag->theme('unflag', $content_id, TRUE);
-    drupal_add_js(array('flag' => array('flags' => array($flag->name => array($flag->content_type .'_'. $content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
+    drupal_add_js(array('flag' => array('flags' => array($flag->name => array($content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
     $added_flags[$flag->name][$flag->content_type][$content_id] = TRUE;
   }
 }
