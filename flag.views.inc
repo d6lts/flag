@@ -16,7 +16,7 @@ function flag_views_data() {
   $data['flag_counts']['table']['group'] = t('Flags');
 
   $data['flag_content']['uid'] = array(
-    'title' => t('User ID'),
+    'title' => t('User'),
     'help' => t('The user that flagged an item.'),
     'relationship' => array(
       'base' => 'users',
