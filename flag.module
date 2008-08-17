@@ -495,7 +495,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#type' => 'checkbox',
     '#title' => t("Global flag"),
     '#default_value' => $flag->global,
-    '#description' => t("If checked, flag is considered 'global' and each node is either flagged or not. If unchecked, each user has his or her own flag flag."),
+    '#description' => t('If checked, flag is considered "global" and each node is either flagged or not. If unchecked, each user has individual flags on content.'),
   );
 
   $form['types'] = array(
