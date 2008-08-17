@@ -287,10 +287,26 @@ function flag_action_email_form($context) {
       '#type' => 'fieldset',
       '#title' => t('Tokens'),
       '#description' => t('The following tokens can be used in the recipients, subject, or message.'),
-      '#value' => flag_token_help(array('flag','flag-action')),
-      '#collapsible' => 1,
-      '#collapsed' => 1,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
       '#weight' => -4,
+    );
+    $form['tokens']['basic'] = array(
+      '#value' => theme('flag_token_help', array('flag', 'flag-action')),
+    );
+    $valid_token_types = array();
+    foreach (flag_fetch_definition() as $type => $info) {
+      $flag = flag_flag::factory_by_content_type($type);
+      $valid_token_types = array_merge($valid_token_types, $flag->get_labels_token_types());
+    }
+    $valid_token_types = array_unique($valid_token_types);
+    $form['tokens']['more'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('More tokens'),
+      '#description' => t("Depending on the type of the content being flagged, the following tokens can be used in the recipients, subject, or message. For example, if the content being flagged is a node, you can use any of the node tokens --but you can't use the comment tokens: they won't be recognized. Similarly, if the content being flagged is a user, you can use only the user tokens."),
+      '#value' => theme('flag_token_help', $valid_token_types),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
     );
   }
   return $form; 
@@ -299,13 +315,13 @@ function flag_action_email_form($context) {
 function flag_action_email_validate($form, &$form_state) {
   // Validate e-mail addresses.
   $errors = array();
-  $email_tokens = array('[site-mail]');
+  $email_tokens_regexp = '/^\[\S*mail\S*\]$/';
   $recipients = explode(',', $form_state['values']['recipients']);
 
   // Validate each recipient.
   foreach($recipients as $recipient) {
     $recipient = trim($recipient);
-    if (!valid_email_address($recipient) && !in_array($recipient, $email_tokens)) {
+    if (!valid_email_address($recipient) && !preg_match($email_tokens_regexp, $recipient)) {
       $errors['recipient'] = t('Please enter a valid email address or email token.');
     }
   }
@@ -335,17 +351,17 @@ function flag_action_email($flag, $context) {
     return;
   }
 
-  $language = language_default();
-  $subject = $context['subject'];
-  $message = $context['message'];
-  $recipients = $context['recipients'];
+  $language    = language_default();
+  $subject     = $context['subject'];
+  $message     = $context['message'];
+  $recipients  = $context['recipients'];
   $flag_action = (object)$context;
 
   if (module_exists('token')) {
-    global $user;
-    $recipients = token_replace_multiple($recipients, array('flag' => $flag, 'flag-action' => $flag_action, 'user' => $user));
-    $subject = token_replace_multiple($subject, array('flag' => $flag, 'flag-action' => $flag_action, 'user' => $user));
-    $message = token_replace_multiple($message, array('flag' => $flag, 'flag-action' => $flag_action, 'user' => $user));
+    $token_contexts = array('flag' => $flag, 'flag-action' => $flag_action);
+    $subject    = $flag->replace_tokens($subject, $token_contexts, $flag_action->content_id);
+    $message    = $flag->replace_tokens($message, $token_contexts, $flag_action->content_id);
+    $recipients = $flag->replace_tokens($recipients, $token_contexts, $flag_action->content_id);
   }
 
   // Remove empty recipients.

@@ -654,12 +654,12 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
   if ($action == 'unflag' && $flagged) {
     $flag->_unflag($content_id, $uid);
     // Let other modules perform actions.
-    module_invoke_all('flag', 'unflag', $flag_name, $content_id, $uid);
+    module_invoke_all('flag', 'unflag', $flag, $content_id, $account);
   }
   elseif ($action == 'flag' && !$flagged) {
     $flag->_flag($content_id, $uid);
     // Let other modules perform actions.
-    module_invoke_all('flag', 'flag', $flag_name, $content_id, $uid);
+    module_invoke_all('flag', 'flag', $flag, $content_id, $account);
   }
 
   return TRUE;
@@ -668,30 +668,19 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
 /**
  * Implementation of hook_flag(). Trigger actions if any are available.
  */
-function flag_flag($action, $flag_name, $content_id, $uid) {
+function flag_flag($action, $flag, $content_id, $account) {
   if (module_exists('trigger')) {
-    $flag = flag_get_flag($flag_name);
 
-    // TODO: Create a real class for flag actions?
-    $flag_action = new stdClass();
-    $flag_action->action = $action;
-    $flag_action->flag = $flag_name;
-    $flag_action->content_type = $flag->content_type;
-    $flag_action->content_id = $content_id;
-
-    switch ($flag->content_type) {
-      case 'node':
-        $node = node_load($content_id);
-        $flag_action->content_title = $node->title;
-        $flag_action->content_url = url('node/'. $node->nid, array('absolute' => TRUE));
-        break;
-    }
-
-    $context = (array)$flag_action;
+    $flag_action = $flag->get_flag_action($content_id);
+    $flag_action['action'] = $action;
+    $context = $flag_action;
     $aids = _trigger_get_hook_aids('flag', $action);
     foreach ($aids as $aid => $action_info) {
-      actions_do($aid, $flag, $context);
+      if ($aid) {
+        actions_do($aid, $flag, $context);
+      }
     }
+
   }
 }
 

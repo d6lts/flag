@@ -40,8 +40,8 @@ function flag_token_values($type, $object = NULL) {
   elseif ($type == 'flag-action') {
     $counts = flag_get_counts($object->content_type, $object->content_id);
     $values['flag-action'] = $object->action;
-    $values['flag-content-url'] = $object->content_url;
-    $values['flag-content-title'] = $object->content_title;
+    $values['flag-content-url'] = check_url($object->content_url);
+    $values['flag-content-title'] = check_plain($object->content_title);
     $values['flag-content-type'] = $object->content_type;
     $values['flag-content-id'] = $object->content_id;
     $values['flag-count'] = $counts[$object->flag];
@@ -57,13 +57,6 @@ function flag_token_values($type, $object = NULL) {
   }
 
   return $values;
-}
-
-/**
- * Generate token help text for form elements in nodeflag.
- */
-function flag_token_help($types = array('user','node','flag')) {
-  return theme('flag_token_help', $types);
 }
 
 /**
@@ -121,6 +114,13 @@ function flag_token_get_list($types = array('all')) {
         }
       }
     }
+  }
+  // For aesthetic reasons, we don't want the 'global' section to appear in
+  // varying places, so let's move it to the bottom.
+  if (isset($return['global'])) {
+    $global = $return['global'];
+    unset($return['global']);
+    $return['global'] = $global;
   }
   return $return;
 }
