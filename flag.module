@@ -707,6 +707,7 @@ function flag_flag($action, $flag_name, $content_id, $uid) {
     $context = $flag_action;
     $aids = _actions_get_hook_aids('flag', $action);
     foreach ($aids as $aid => $action_info) {
+      // The 'if ($aid)' is a safeguard against http://drupal.org/node/271460#comment-886564
       if ($aid) {
         actions_do($aid, $flag, $context);
       }
