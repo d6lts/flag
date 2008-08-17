@@ -386,18 +386,18 @@ class flag_flag {
     }
     $label = t($this->$label);
     if (strpos($label, '[') !== FALSE && module_exists('token')) {
-      $label = $this->_replace_tokens($label, $content_id);
+      $label = $this->replace_tokens($label, array('global' => NULL), $content_id);
     }
     return filter_xss_admin($label);
   }
 
   /**
-   * Replaces tokens in a label. This basic implementation knows about global
-   * tokens only, so derived classes should override this method to replace all
-   * token types they understand.
+   * Replaces tokens in a label. Only the 'global' token context is regognized
+   * by default, so derived classes should override this method to add all
+   * token contexts they understand.
    */  
-  function _replace_tokens($label, $content_id = NULL) {
-    return token_replace($label, 'global');
+  function replace_tokens($label, $contexts, $content_id) {
+    return token_replace_multiple($label, $contexts);
   }
   
   /**
@@ -427,7 +427,21 @@ class flag_flag {
     }
     return $titles[$this->fid][$slot];
   }
-  
+
+  /**
+   * Returns a 'flag action' object. It exists only for the sake of its
+   * informative tokens. Currently, it's utilized only for the 'mail' action.
+   *
+   * Derived classes should populate the 'content_title' and 'content_url'
+   * slots.
+   */
+  function get_flag_action($content_id) {
+    $flag_action['flag'] = $this->name;
+    $flag_action['content_type'] = $this->content_type;
+    $flag_action['content_id'] = $content_id;
+    return $flag_action;
+  }
+
   /**
    * Saves a flag to the database. It is a wrapper around update() and insert().
    */
@@ -499,9 +513,7 @@ class flag_flag {
    * For parameters docmentation, see theme_flag().
    */
   function theme($action, $content_id, $after_flagging = FALSE) {
-    // The following 'if ... else' is because I don't want to maintain two
-    // versions of this file because of 1 line of code.
-    if (function_exists('theme_get_registry')) {
+    if (!_flag_is_drupal_5()) {
       // We're running Drupal 6.
       return theme($this->theme_suggestions(), $this, $action, $content_id, $after_flagging);
     }
@@ -582,11 +594,19 @@ class flag_node extends flag_flag {
     return array('node');
   }
 
-  function _replace_tokens($label, $content_id = NULL) {
+  function replace_tokens($label, $contexts, $content_id) {
     if ($content_id && ($node = $this->load_content($content_id))) {
-      return token_replace($label, 'node', $node);
+      $contexts['node'] = $node;
     }
-    return token_replace($label, 'global');
+    return parent::replace_tokens($label, $contexts, $content_id);
+  }
+
+  function get_flag_action($content_id) {
+    $flag_action = parent::get_flag_action($content_id);
+    $node = $this->load_content($content_id);
+    $flag_action['content_title'] = $node->title;
+    $flag_action['content_url'] = _flag_url('node/' . $node->nid);
+    return $flag_action;
   }
 }
 
@@ -638,13 +658,22 @@ class flag_comment extends flag_flag  {
     return array('comment', 'node');
   }
 
-  function _replace_tokens($label, $content_id = NULL) {
+  function replace_tokens($label, $contexts, $content_id) {
     if ($content_id) {
       if (($comment = $this->load_content($content_id)) && ($node = node_load($comment->nid))) {
-        return token_replace_multiple($label, array('comment' => $comment, 'node' => $node));
+        $contexts['node'] = $node;
+        $contexts['comment'] = $comment;
       }
     }
-    return token_replace($label, 'global');
+    return parent::replace_tokens($label, $contexts, $content_id);
+  }
+
+  function get_flag_action($content_id) {
+    $flag_action = parent::get_flag_action($content_id);
+    $comment = $this->load_content($content_id);
+    $flag_action['content_title'] = $comment->subject;
+    $flag_action['content_url'] = _flag_url("node/$comment->nid/$comment->cid", "comment-$comment->cid");
+    return $flag_action;
   }
 }
 
@@ -703,11 +732,19 @@ class flag_user extends flag_flag {
     return array('user');
   }
 
-  function _replace_tokens($label, $content_id = NULL) {
+  function replace_tokens($label, $contexts, $content_id) {
     if ($content_id && ($user = $this->load_content($content_id))) {
-      return token_replace($label, 'user', $user);
+      $contexts['user'] = $user;
     }
-    return token_replace($label, 'global');
+    return parent::replace_tokens($label, $contexts, $content_id);
+  }
+
+  function get_flag_action($content_id) {
+    $flag_action = parent::get_flag_action($content_id);
+    $user = $this->load_content($content_id);
+    $flag_action['content_title'] = $user->name;
+    $flag_action['content_url'] = _flag_url('user/' . $user->uid);
+    return $flag_action;
   }
 }
 
@@ -721,5 +758,20 @@ class flag_broken extends flag_flag {
       '#value' => '<div class="error">'. t("The module providing this flag wasn't found, or this flag type, %type, isn't valid.", array('%type' => $this->content_type)) .'</div>',
     );
   }
+}
+
+// Returns TRUE if we're running under Drupal 5.
+//
+// I use this function because I don't want to maintain two versions of a file
+// just because a handful of lines of code.
+function _flag_is_drupal_5() {
+  return !function_exists('theme_get_registry');
+}
+
+// That's ugly, but duplicating this logic is uglier.
+function _flag_url($path, $fragment = NULL, $absolute = TRUE) {
+  return _flag_is_drupal_5()
+    ? url($path, NULL, $fragment, $absolute)
+    : url($path, array('absolute' => TRUE, 'fragment' => $fragment));
 }
 
