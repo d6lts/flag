@@ -99,15 +99,16 @@ Drupal.behaviors.flag = function() {
       if (!matches) {
         warn("Error: Invalid flag URL '" + element.href + "'");
       }
-      var flagName    = matches[2];
-      var contentId   = matches[3];
+      var flagName  = matches[2];
+      var contentId = matches[3];
+      var slot = 'cid_' + contentId;
 
-      if (!Drupal.settings.flag.flags[flagName][contentId]) {
+      if (!Drupal.settings.flag.flags[flagName][slot]) {
         // Slot does not exist. Create.
-        Drupal.settings.flag.flags[flagName][contentId] = {};
+        Drupal.settings.flag.flags[flagName][slot] = {};
       }
       // Return a reference to the settings slot.
-      return Drupal.settings.flag.flags[flagName][contentId];
+      return Drupal.settings.flag.flags[flagName][slot];
     }
 
     // On load, bind the click behavior for all links on the page.

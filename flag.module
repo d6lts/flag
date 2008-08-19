@@ -815,11 +815,13 @@ function flag_add_extra_js(&$flag, $action, $content_id, $after_flagging) {
   }
 
   // Add JavaScript copies of the links so we can swap them out when the user clicks.
-  if (!(isset($added_flags[$flag->name][$flag->content_type][$content_id]))) {
+  if (!(isset($added_flags[$flag->name][$content_id]))) {
     $flag_html = $flag->theme('flag', $content_id, TRUE);
     $unflag_html = $flag->theme('unflag', $content_id, TRUE);
-    drupal_add_js(array('flag' => array('flags' => array($flag->name => array($content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
-    $added_flags[$flag->name][$flag->content_type][$content_id] = TRUE;
+    // Note the 'cid_' we're prefixing to the numeric content ID. That's
+    // because numeric strings can't serve as object properties in javascript.
+    drupal_add_js(array('flag' => array('flags' => array($flag->name => array('cid_' . $content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
+    $added_flags[$flag->name][$content_id] = TRUE;
   }
 }
 
