@@ -27,12 +27,11 @@ function flag_flag_definitions() {
       'description' => t('Comments are responses to node content.'),
       'handler' => 'flag_comment',
     ),
-    // The following is only for demonstration.
-    //'user' => array(
-    //  'title' => t('Users'),
-    //  'description' => t('Users who have created accounts on your site.'),
-    //  'handler' => 'flag_user',
-    //),
+    'user' => array(
+      'title' => t('Users'),
+      'description' => t('Users who have created accounts on your site.'),
+      'handler' => 'flag_user',
+    ),
   );
 }
 
@@ -443,6 +442,38 @@ class flag_flag {
   }
 
   /**
+   * @defgroup views Views 2 integration
+   * @{
+   * Methods that can be overridden to support the Views module.
+   */
+
+  /**
+   * Returns information needed for Views integration. E.g., the Views table
+   * holding the flagged content, its primary key, and various labels. See
+   * derived classes for examples.
+   *
+   * @static
+   */
+  function get_views_info() {
+    return array();
+  }
+
+  /**
+   * Similar to applies_to_content_id() but works on a bunch of IDs. It is
+   * called in the pre_render() stage of the 'Flag links' field to find out where
+   * that link applies. The reason we do a separate DB query, and not lump this
+   * test in the Views query, is to make 'many to one' tests possible without
+   * interfering with the rows, and also to reduce the complexity of the code.
+   */
+  function applies_to_content_id_array($content_ids) {
+    return array();
+  }
+
+  /**
+   * @} End of "defgroup views".
+   */
+
+  /**
    * Saves a flag to the database. It is a wrapper around update() and insert().
    */
   function save() {
@@ -608,6 +639,29 @@ class flag_node extends flag_flag {
     $flag_action['content_url'] = _flag_url('node/' . $node->nid);
     return $flag_action;
   }
+
+  function get_views_info() {
+    return array(
+      'views table' => 'node',
+      'join field' => 'nid',
+      'title' => t('Node flag'),
+      'help' => t('Limit results to only those nodes flagged by a certain flag; Or display information about the flag set on a node.'),
+      'counter title' => t('Node flag counter'),
+      'counter help' => t('Include this to gain access to the flag counter field.'),
+    );
+  }
+
+  function applies_to_content_id_array($content_ids) {
+    $passed = array();
+    $content_ids  = implode(',', array_map('intval', $content_ids));
+    $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
+    $result = db_query("SELECT nid FROM {node} WHERE nid IN ($content_ids) AND type in ($placeholders)", $this->types);
+    while ($row = db_fetch_object($result)) {
+      $passed[$row->nid] = TRUE;
+    }
+    return $passed;
+  }
+  
 }
 
 /**
@@ -674,6 +728,28 @@ class flag_comment extends flag_flag  {
     $flag_action['content_title'] = $comment->subject;
     $flag_action['content_url'] = _flag_url("node/$comment->nid/$comment->cid", "comment-$comment->cid");
     return $flag_action;
+  }
+
+  function get_views_info() {
+    return array(
+      'views table' => 'comments',
+      'join field' => 'cid',
+      'title' => t('Comment flag'),
+      'help' => t('Limit results to only those comments flagged by a certain flag; Or display information about the flag set on a comment.'),
+      'counter title' => t('Comment flag counter'),
+      'counter help' => t('Include this to gain access to the flag counter field.'),
+    );
+  }
+
+  function applies_to_content_id_array($content_ids) {
+    $passed = array();
+    $content_ids  = implode(',', array_map('intval', $content_ids));
+    $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
+    $result = db_query("SELECT cid FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type IN ($placeholders)", $this->types);
+    while ($row = db_fetch_object($result)) {
+      $passed[$row->cid] = TRUE;
+    }
+    return $passed;
   }
 }
 
@@ -746,6 +822,30 @@ class flag_user extends flag_flag {
     $flag_action['content_url'] = _flag_url('user/' . $user->uid);
     return $flag_action;
   }
+
+  function get_views_info() {
+    return array(
+      'views table' => 'users',
+      'join field' => 'uid',
+      'title' => t('User flag'),
+      'help' => t('Limit results to only those users flagged by a certain flag; Or display information about the flag set on a user.'),
+      'counter title' => t('User flag counter'),
+      'counter help' => t('Include this to gain access to the flag counter field.'),
+    );
+  }
+
+  function applies_to_content_id_array($content_ids) {
+    // This user flag doesn't currently support subtypes so all users are
+    // applicable for flagging.
+    $passed = array();
+    foreach ($content_ids as $uid) {
+      if ($uid) { // Exclude anonymous.
+        $passed[$uid] = TRUE;
+      }
+    }
+    return $passed;
+  }
+
 }
 
 /**
