@@ -900,6 +900,13 @@ function _flag_format_plural($count, $format) {
 function flag_get_counts($content_type, $content_id, $reset = FALSE) {
   static $counts;
 
+  if ($reset) {
+    $counts = array();
+    if (!isset($content_type)) {
+      return;
+    }
+  }
+
   if (!isset($counts[$content_type][$content_id])) {
     $counts[$content_type][$content_id] = array();
     $result = db_query("SELECT f.name, fc.count FROM {flags} f LEFT JOIN {flag_counts} fc ON f.fid = fc.fid WHERE fc.content_type = '%s' AND fc.content_id = %d", $content_type, $content_id);
