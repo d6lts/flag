@@ -55,6 +55,17 @@ function flag_fetch_definition($content_type = NULL) {
 }
 
 /**
+ * Returns all flag types defined on the system.
+ */
+function flag_get_types() {
+  static $types;
+  if (!isset($types)) {
+    $types = array_keys(flag_fetch_definition());
+  }
+  return $types;
+}
+
+/**
  * Instantiates a new flag handler. A flag handler is more commonly know as "a
  * flag". A factory method usually populates this empty flag with settings
  * loaded from the database.
