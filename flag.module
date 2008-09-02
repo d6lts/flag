@@ -647,7 +647,11 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
     // Flag does not apply to this content.
     return FALSE;
   }
-  
+
+  // Clear the counters cache; We don't want code running after us to report
+  // wrong counts.
+  flag_get_counts(NULL, NULL, TRUE);
+
   // Perform the flagging or unflagging of this flag.
   $uid = $flag->global ? 0 : $account->uid;
   $flagged = $flag->_is_flagged($content_id, $uid);
