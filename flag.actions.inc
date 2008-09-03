@@ -256,6 +256,10 @@ function flag_action_form_submit($form, &$form_state) {
 
 function flag_action_email_form($context) {
   $form = flag_action_form($context);
+  
+  if (!module_exists('token')) {
+    form_set_error('', t('You don\'t have the <a href="http://drupal.org/project/token">Token</a> module installed. Tokens are little pieces of information that can be embedded in text, including emails, and are mandatory for using this action. Unless you install the <a href="http://drupal.org/project/token">Token</a> module, <strong>you won\'t be able to save this form.</strong>'));
+  }
 
   $form['flags']['#title'] = t('Send when any of the following flags are over the threshold');
   $form['threshold']['#field_prefix'] = t('Send an e-mail after content has been flagged');
