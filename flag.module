@@ -364,6 +364,14 @@ function flag_add_form() {
     '#options' => $types,
   );
 
+  $form['drupal-5-warning'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#title' => t('Important note concerning the limitation of Views 1.x'),
+    '#description' => t('<p>You\'re using Drupal 5.</p><p>This module utilizes <a href="http://drupal.org/project/views">Views</a> to produce lists of flagged content. Since you\'re using Drupal 5, you will be using Views 1.x.</p><p>Since Views 1.x can only produce lists of <em>nodes</em>, you won\'t be able to produce lists of flagged <em>users</em> (or of flagged <em>comments</em>) with it. Therefore, while this module lets you flag users and comments, you may not find this feature useful. We have <a href="http://drupal.org/node/303589">a handbook page explaining the limitations of the Drupal 5 version of this module</a>.</p>'),
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
