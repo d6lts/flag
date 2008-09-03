@@ -20,7 +20,6 @@ function flag_views_data() {
     'help' => t('The user that flagged an item.'),
     'relationship' => array(
       'base' => 'users',
-      'field' => 'uid',
       'handler' => 'views_handler_relationship',
       'label' => t('Flag user'),
     ),
@@ -99,13 +98,13 @@ function flag_views_data_alter(&$data) {
       'group' => t('Flags'),
       'title' => $info['title'],
       'help' => $info['help'],
-      'real field' => $info['join field'],
       'relationship' => array(
         'flag type' => $flag_type,
         'handler' => 'flag_handler_relationship_content',
         'label' => t('flag'),
         'base' => 'flag_content',
         'base field' => 'content_id',
+        'relationship field' => $info['join field'],
       ),
     );
   
@@ -114,13 +113,13 @@ function flag_views_data_alter(&$data) {
       'group' => t('Flags'),
       'title' => $info['counter title'],
       'help' => $info['counter help'],
-      'real field' => $info['join field'],
       'relationship' => array(
         'flag type' => $flag_type,
         'handler' => 'flag_handler_relationship_counts',
         'label' => t('counter'),
         'base' => 'flag_counts',
         'base field' => 'content_id',
+        'relationship field' => $info['join field'],
       ),
     );
   }
@@ -228,39 +227,19 @@ class flag_handler_relationship_content extends views_handler_relationship {
    */
   function query() {
     $flag = flag_get_flag($this->options['flag']);
-
-    $this->ensure_my_table();
-
-    $join = new views_join();
-    $join->definition = array(
-      'table' => $this->definition['base'],
-      'field' => $this->definition['base field'],
-      'left_table' => $this->table_alias,
-      'left_field' => $this->real_field,
-    );
-    if (!empty($this->options['required'])) {
-      $join->definition['type'] = 'INNER';
-    }
-    $join->definition['extra'] = array(
-      array(
-        'field' => 'fid',
-        'value' => $flag->fid,
-        'numeric' => TRUE,
-      ),
+    $this->definition['extra'][] = array(
+      'field' => 'fid',
+      'value' => $flag->fid,
+      'numeric' => TRUE,
     );
     if ($this->options['user_scope'] == 'current' && !$flag->global) {
-      $join->definition['extra'][] = array(
+      $this->definition['extra'][] = array(
         'field' => 'uid',
         'value' => '***CURRENT_USER***',
         'numeric' => TRUE,
       );
     }
-    $join->construct();
-    $join->adjusted = TRUE;
-
-    $alias = $join->definition['table'] . '_' . $join->definition['left_table'];
-
-    $this->alias = $this->query->add_relationship($alias, $join, 'flag_content', $this->relationship);
+    parent::query();
   }
 }
 
@@ -302,41 +281,25 @@ class flag_handler_relationship_counts extends views_handler_relationship {
    */
   function query() {
     $flag = flag_get_flag($this->options['flag']);
-
-    $this->ensure_my_table();
-
-    $join = new views_join();
-    $join->definition = array(
-      'table' => $this->definition['base'],
-      'field' => $this->definition['base field'],
-      'left_table' => $this->table_alias,
-      'left_field' => $this->real_field,
-    );
-    $join->definition['extra'] = array(
-      array(
-        'field' => 'fid',
-        'value' => $flag->fid,
-        'numeric' => TRUE,
-      ),
+    $this->definition['extra'][] = array(
+      'field' => 'fid',
+      'value' => $flag->fid,
+      'numeric' => TRUE,
     );
     if (!empty($this->options['required'])) {
-      $join->definition['type'] = 'INNER';
-      // Unfortunately, we may have zeros in our table,
-      // so we filter them out.
-      // @todo Make sure this doesn't happen, and remove this code.
-      $join->definition['extra'][] = array(
+      // Unfortunately, we may have zeros in our table, so having
+      // parent::query() do INNER JOIN doesn't suffice. We need to filter these
+      // zeros out.
+      // @todo Make sure zero records aren't written in the first place, and
+      // remove this code.
+      $this->definition['extra'][] = array(
         'field' => 'count',
         'operator' => '>',
         'value' => '0',
         'numeric' => TRUE,
       );
     }
-    $join->construct();
-    $join->adjusted = TRUE;
-
-    $alias = $join->definition['table'] . '_' . $join->definition['left_table'];
-
-    $this->alias = $this->query->add_relationship($alias, $join, 'flag_counts', $this->relationship);
+    parent::query();
   }
 }
 
