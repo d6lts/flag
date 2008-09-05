@@ -2,7 +2,7 @@
 
 You may want to visit the handbook of this module, at:
 
-  http://drupal.org/node/296915
+  http://drupal.org/handbook/modules/flag
 
 The Flag module is a flexible flagging system whose primary goal is
 to give all the control to the administrator. Using this module, the
