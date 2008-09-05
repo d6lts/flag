@@ -606,6 +606,7 @@ class flag_node extends flag_flag {
       '#type' => 'checkbox',
       '#title' => t('Display checkbox on node edit form'),
       '#default_value' => $this->show_on_form,
+      '#description' => t('If you elect to have a checkbox on the node edit form, you may specify its initial state in the settings form <a href="@content-types-url">for each content type</a>.', array('@content-types-url' => url('admin/content/types'))),
     );
   }
 

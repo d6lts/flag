@@ -3,6 +3,10 @@
 Theming instructions
 ====================
 
+You may want to visit the Theming Guide of this module, at:
+
+  http://drupal.org/node/295346
+
 Template file
 -------------
 In order to customize flag theming:
