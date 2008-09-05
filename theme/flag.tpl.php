@@ -42,7 +42,7 @@
   flag_add_extra_js($flag, $action, $content_id, $after_flagging);
 ?>
 <span class="flag-wrapper flag-<?php echo $flag_name_css; ?>">
-  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="flag <?php echo $action; ?>-action <?php echo $after_flagging ? $last_action : ''; ?>"><?php echo strip_tags($link_text); ?></a>
+  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="flag <?php echo $action; ?>-action <?php echo $after_flagging ? $last_action : ''; ?>"><?php echo $link_text; ?></a>
   <?php if ($after_flagging): ?>
     <span class="flag-message flag-<?php echo $last_action; ?>-message">
       <?php echo $message_text; ?>

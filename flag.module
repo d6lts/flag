@@ -841,7 +841,7 @@ function template_preprocess_flag(&$variables) {
   $variables['setup'] = $first_time;
   $first_time = FALSE;
   $variables['link_href'] = check_url(url("flag/$action/$flag->name/$content_id", drupal_get_destination()));
-  $variables['link_text'] = $flag->get_label($action . '_short', $content_id);
+  $variables['link_text'] = strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
   $variables['link_title'] = strip_tags($flag->get_label($action . '_long', $content_id));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
   $variables['last_action'] = ($action == 'flag' ? 'unflagged' : 'flagged');
