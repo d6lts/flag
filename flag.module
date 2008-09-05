@@ -405,7 +405,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#type' => 'textfield',
     '#title' => t('Title'),
     '#default_value' => $flag->title,
-    '#description' => t('A short, descriptive title for this flag. It will be used in administrative interfaces to refer to this flag. Some examples could be <em>Bookmarks</em>, <em>Favorites</em>, or <em>Offensive</em>.'),
+    '#description' => t('A short, descriptive title for this flag. It will be used in administrative interfaces to refer to this flag, and in page titles and menu items of some <a href="@insite-views-url">views</a> this module provides (theses are customizable, though). Some examples could be <em>Bookmarks</em>, <em>Favorites</em>, or <em>Offensive</em>.', array('@insite-views-url' => url('admin/build/views'))),
     '#maxlength' => 255,
     '#required' => TRUE,
   );
@@ -458,9 +458,14 @@ function flag_form(&$form_state, $name, $type = NULL) {
     $form['token_help'] = array(
       '#title' => t('Token replacement'),
       '#type' => 'fieldset',
-      '#description' => t('The above four options may contain the following wildcard replacements. For example, "Mark Link" could be entered as "Add [title] to your flags" or "Add this [type-name] to your flags". These wildcards will be replaced with the appropriate field from the node.') . theme('flag_token_help', $flag->get_labels_token_types()),
+      '#description' => t('The above six options may contain the following wildcard replacements. For example, "Mark Link" could be entered as "Add [title] to your flags" or "Add this [type-name] to your flags". These wildcards will be replaced with the appropriate field from the node.') . theme('flag_token_help', $flag->get_labels_token_types()),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+    );
+  }
+  else {
+    $form['token_help'] = array(
+      '#value' => '<em>' . t('Note: You don\'t have the <a href="@token-url">Token</a> module installed. If you have it installed, and enabled, you\'ll be able to embed tokens in the six labels above.', array('@token-url' => 'http://drupal.org/project/token')) . '</em>',
     );
   }
 
@@ -492,7 +497,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
   $form['display'] = array(
     '#type' => 'fieldset',
     '#title' => t('Display options'),
-    '#description' => t('Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here.'),
+    '#description' => t('Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here. It is legitimate to have none of the following checkboxes ticked, if, for some reason, you wish <a href="@placement-url">to place the the links on the page yourself</a>.', array('@placement-url' => 'http://drupal.org/node/295383')),
     '#tree' => FALSE,
   );
 
