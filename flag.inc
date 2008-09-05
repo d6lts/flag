@@ -446,10 +446,24 @@ class flag_flag {
    * slots.
    */
   function get_flag_action($content_id) {
-    $flag_action['flag'] = $this->name;
-    $flag_action['content_type'] = $this->content_type;
-    $flag_action['content_id'] = $content_id;
+    $flag_action = new stdClass();
+    $flag_action->flag = $this->name;
+    $flag_action->content_type = $this->content_type;
+    $flag_action->content_id = $content_id;
     return $flag_action;
+  }
+
+  /**
+   * Returns an array of all actions that are executable with this flag.
+   */
+  function get_valid_actions() {
+    $actions = module_invoke_all('action_info');
+    foreach ($actions as $callback => $action) {
+      if ($action['type'] != $this->content_type && !isset($action['hooks'][$this->content_type])) {
+        unset($actions[$callback]);
+      }
+    }
+    return $actions;
   }
 
   /**
@@ -647,9 +661,19 @@ class flag_node extends flag_flag {
   function get_flag_action($content_id) {
     $flag_action = parent::get_flag_action($content_id);
     $node = $this->load_content($content_id);
-    $flag_action['content_title'] = $node->title;
-    $flag_action['content_url'] = _flag_url('node/' . $node->nid);
+    $flag_action->content_title = $node->title;
+    $flag_action->content_url = _flag_url('node/' . $node->nid);
     return $flag_action;
+  }
+
+  function get_valid_actions() {
+    $actions = module_invoke_all('action_info');
+    foreach ($actions as $callback => $action) {
+      if ($action['type'] != 'node' && !isset($action['hooks']['nodeapi'])) {
+        unset($actions[$callback]);
+      }
+    }
+    return $actions;
   }
 
   function get_views_info() {
@@ -737,8 +761,8 @@ class flag_comment extends flag_flag  {
   function get_flag_action($content_id) {
     $flag_action = parent::get_flag_action($content_id);
     $comment = $this->load_content($content_id);
-    $flag_action['content_title'] = $comment->subject;
-    $flag_action['content_url'] = _flag_url("node/$comment->nid/$comment->cid", "comment-$comment->cid");
+    $flag_action->content_title = $comment->subject;
+    $flag_action->content_url = _flag_url("node/$comment->nid/$comment->cid", "comment-$comment->cid");
     return $flag_action;
   }
 
@@ -830,8 +854,8 @@ class flag_user extends flag_flag {
   function get_flag_action($content_id) {
     $flag_action = parent::get_flag_action($content_id);
     $user = $this->load_content($content_id);
-    $flag_action['content_title'] = $user->name;
-    $flag_action['content_url'] = _flag_url('user/' . $user->uid);
+    $flag_action->content_title = $user->name;
+    $flag_action->content_url = _flag_url('user/' . $user->uid);
     return $flag_action;
   }
 

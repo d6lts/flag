@@ -1,0 +1,40 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_install().
+ */
+function flag_actions_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query("CREATE TABLE {flag_actions} (
+        aid int(11) NOT NULL auto_increment,
+        fid smallint(6) default NULL,
+        event varchar(255) default NULL,
+        threshold smallint(6) default NULL,
+        callback varchar(255) NOT NULL default '',
+        parameters longtext NOT NULL,
+        PRIMARY KEY (aid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      break;
+    case 'mysqli':
+      db_query("CREATE TABLE {flag_actions} (
+        aid integer NOT NULL auto_increment,
+        fid smallint default NULL,
+        event varchar(255) default NULL,
+        threshold smallint default NULL,
+        callback varchar(255) NOT NULL default '',
+        parameters text NOT NULL,
+        PRIMARY KEY (aid)
+      )");
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function flag_actions_uninstall() {
+  db_query("DROP TABLE {flag_actions}");
+}

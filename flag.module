@@ -53,24 +53,7 @@ function flag_menu($may_cache) {
     );
   }
 
-  if (_flag_have_actions_version_2()) {
-    $items[] = array(
-      'path' => 'admin/build/flags/actions',
-      'title' => t('Actions'),
-      'callback' => 'flag_actions_page',
-      'access' => user_access('administer actions'),
-      'type' => MENU_LOCAL_TASK,
-    );
-  }
-
   return $items;
-}
-
-/**
- * We only support Actions 2.x. Not Actions 1.x. 
- */
-function _flag_have_actions_version_2() {
-  return module_exists('actions') && function_exists('_actions_get_hook_aids');
 }
 
 /**
@@ -716,12 +699,12 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
  * Implementation of hook_flag(). Trigger actions if any are available.
  */
 function flag_flag($action, $flag, $content_id, $account) {
-  if (_flag_have_actions_version_2()) {
+  if (module_exists('actions') && function_exists('_actions_get_hook_aids')) {
 
     $flag_action = $flag->get_flag_action($content_id);
-    $flag_action['action'] = $action;
-    $context = $flag_action;
-    $aids = _actions_get_hook_aids('flag', $action);
+    $flag_action->action = $action;
+    $context = (array)$flag_action;
+    $aids = _actions_get_hook_aids($action, $action);
     foreach ($aids as $aid => $action_info) {
       // The 'if ($aid)' is a safeguard against http://drupal.org/node/271460#comment-886564
       if ($aid) {
