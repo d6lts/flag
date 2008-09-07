@@ -18,7 +18,7 @@ function flag_actions_install() {
         PRIMARY KEY (aid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
       break;
-    case 'mysqli':
+    case 'pgsql':
       db_query("CREATE TABLE {flag_actions} (
         aid integer NOT NULL auto_increment,
         fid smallint default NULL,
