@@ -38,3 +38,13 @@ function flag_actions_install() {
 function flag_actions_uninstall() {
   db_query("DROP TABLE {flag_actions}");
 }
+
+/**
+ * We don't support Actions 1.x.
+ */
+function flag_actions_enable() {
+  if (db_table_exists('actions_registry')) {
+    drupal_set_message(t('The <em>Flag actions</em> module requires <a href="@actions-url">Actions 2.x</a>; You have Actions 1.x.', array('@actions-url' => 'http://drupal.org/project/actions')), 'error');
+    module_disable(array('flag_actions'));
+  }
+}
