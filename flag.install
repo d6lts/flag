@@ -133,11 +133,6 @@ function flag_install() {
 
   if ($success) {
     drupal_set_message(t('Flag module installed tables successfully.'));
-    // Because of a bug in Drupal 5, hook_requirements() isn't effective in the
-    // installation phase, so we duplicate its test here:
-    if (_flag_have_actions_version_1()) {
-      drupal_set_message(t("Note: The Flag module supports the Actions module in its version 2.x only. You are using Actions 1.x and you won't be able to enjoy Flag's actions support."));
-    }
   }
   else {
     drupal_set_message(t('The installation of Flag module failed.'), 'error');
@@ -160,34 +155,4 @@ function flag_uninstall() {
   }
 
   drupal_set_message(t('Flag has been uninstalled.'));
-}
-
-/**
- * Implementation of hook_requirements().
- *
- * We notify the administrator, when she visits the status report page, about use
- * of old Actions module.
- *
- * Note: Contrary to what the documentation says, Drupal 5 seems not to use this
- * hook in the installation phase. A bug probably. So we duplicate this test in
- * hook_install as well.
- */
-function flag_requirements($phase) {
-  $requirements = array();
-  $t = get_t();
-
-  if (_flag_have_actions_version_1()) {
-    $requirements['flag_actions']['title'] = $t('Actions support for the Flag module');
-    $requirements['flag_actions']['severity'] = REQUIREMENT_INFO;
-    $requirements['flag_actions']['description'] = $t("Note: The Flag module supports the Actions module in its version 2.x only. You are using Actions 1.x and you won't be able to enjoy Flag's actions support.");
-  }
-
-  return $requirements;
-}
-
-/**
- * Detect use of the Actions module in its old 1.x version. We don't support it.
- */
-function _flag_have_actions_version_1() {
-  return module_exists('actions') && !function_exists('_actions_get_hook_aids');
 }
