@@ -332,6 +332,7 @@ function flag_actions_form($form_state, $aid = NULL, $flag_name = NULL) {
   elseif (!isset($action)) {
     $actions = $flag->get_valid_actions();
     $action = (object)$actions[$callback];
+    $action->parameters = array();
     $action->event = 'flag';
     $action->threshold = 10;
     drupal_set_title(t('Add "@action" action to the @title flag', array('@action' => $action->description, '@title' => $flag->get_title())));
