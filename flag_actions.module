@@ -136,9 +136,9 @@ function flag_actions_delete_action($aid) {
 function flag_actions_do($event, $flag, $content_id, $account) {
   $actions = flag_actions_get_actions($flag->name);
 
-  $counts = flag_get_counts($flag->content_type, $content_id);
-  $count = $counts[$flag->name];
   $flag_action = $flag->get_flag_action($content_id);
+  $flag_action->action = $event;
+  $flag_action->count = $count = $flag->get_count($content_id);
   $object = $flag->load_content($content_id);
   $node_changed = FALSE;
   foreach ($actions as $aid => $action) {

@@ -300,7 +300,8 @@ class flag_flag {
   /**
    * Returns TRUE if a certain user has flagged this content.
    *
-   * This function uses a cache to save on SQL queries.
+   * Thanks to using a cache, inquiring several different flags about the same
+   * item results in only one SQL query.
    *
    * @param $uid
    *   Optional. The user ID whose flags we're checking. If none given, the
@@ -372,6 +373,26 @@ class flag_flag {
     if (!db_affected_rows()) {
       db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count) VALUES (%d, '%s', %d, %d)", $this->fid, $this->content_type, $content_id, $count);
     }
+  }
+
+  /**
+   * Returns the number of times an item is flagged.
+   *
+   * Thanks to using a cache, inquiring several different flags about the same
+   * item results in only one SQL query.
+   */
+  function get_count($content_id) {
+    $counts = flag_get_counts($this->content_type, $content_id);
+    return isset($counts[$this->name]) ? $counts[$this->name] : 0;
+  }
+
+  /**
+   * Returns the number of items a user has flagged.
+   *
+   * For global flags, pass '0' as the user ID.
+   */
+  function get_user_count($uid) {
+    return db_result(db_query('SELECT COUNT(*) FROM {flag_content} WHERE fid = %d AND uid = %d', $this->fid, $uid));
   }
 
   /**
