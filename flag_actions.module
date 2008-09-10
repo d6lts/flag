@@ -159,6 +159,7 @@ function flag_actions_do($event, $flag, $content_id, $account) {
     if (($action->event == $event && $action->event == 'flag' && $count == $action->threshold) || ($action->event == $event && $action->event == 'unflag' && $count == $action->threshold - 1)) {
       $context = $action->parameters;
       $context['callback'] = $action->callback;
+      $context['hook'] = 'flag';
       $context['type'] = $action->type;
       $context['account'] = $account;
       $context['flag'] = $flag;
