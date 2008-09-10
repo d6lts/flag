@@ -38,21 +38,17 @@ function flag_token_values($type, $object = NULL) {
     $values['flag-title'] = check_plain($object->get_title());
   }
   elseif ($type == 'flag-action') {
-    $counts = flag_get_counts($object->content_type, $object->content_id);
     $values['flag-action'] = $object->action;
     $values['flag-content-url'] = check_url($object->content_url);
     $values['flag-content-title'] = check_plain($object->content_title);
     $values['flag-content-type'] = $object->content_type;
     $values['flag-content-id'] = $object->content_id;
-    $values['flag-count'] = $counts[$object->flag];
+    $values['flag-count'] = $object->count;
   }
   elseif ($type == 'node') {
-    $values = array();
-    $counts = flag_get_counts('node', $object->nid);
     $flags = flag_get_flags('node');
     foreach ($flags as $flag) {
-      $count = isset($counts[$flag->name]) ? $counts[$flag->name] : 0;
-      $values['flag-'. str_replace('_', '-', $flag->name) .'-count'] = $count;
+      $values['flag-'. str_replace('_', '-', $flag->name) .'-count'] = $flag->get_count($object->nid);
     }
   }
 
