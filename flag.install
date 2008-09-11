@@ -165,7 +165,7 @@ function flag_uninstall() {
 function flag_update_5000() {
   $ret = array();
   // This conditional ensures we have Actions 2.x, not Actions 1.x.
-  if (db_table_exists('actions') && !db_table_exists('actions_registry')) {
+  if (db_table_exists('actions_assignments') || db_table_exists('trigger_assignments')) {
 
     // Step 1: Find all actions we need to delete.
 
