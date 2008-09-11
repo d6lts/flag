@@ -163,6 +163,7 @@ function flag_uninstall() {
  * Note: To ease maintenance, this code is compatible with both D5 and D6.
  */
 function flag_update_5000() {
+  $ret = array();
   // This conditional ensures we have Actions 2.x, not Actions 1.x.
   if (db_table_exists('actions') && !db_table_exists('actions_registry')) {
 
@@ -173,6 +174,19 @@ function flag_update_5000() {
     $res = db_query("SELECT aid FROM {actions} WHERE callback IN ('flag_action_email', 'flag_action_delete', 'flag_action_unpublish', 'flag_action_moderate')");
     while ($row = db_fetch_object($res)) {
       $aids[] = $row->aid;
+    }
+
+    if (!$aids) {
+      $ret[] = array(
+        'success' => TRUE,
+        'query' => t('No old actions to remove.'),
+      );
+    }
+    else {
+      $ret[] = array(
+        'success' => TRUE,
+        'query' => t('I\'ll be removing the following actions: @aids', array('@aids' => implode(', ', $aids))),
+      );
     }
 
     // Step 2: Delete them through API.
@@ -190,7 +204,7 @@ function flag_update_5000() {
     foreach ($aids as $aid) {
       foreach (array('actions', 'actions_assignments', 'trigger_assignments') as $table) {
         if (db_table_exists($table)) {
-          db_query("DELETE FROM {{$table}} WHERE aid = '%s'", $aid);
+          $ret[]= _flag_update_sql("DELETE FROM {{$table}} WHERE aid = '%s'", $aid);
         }
       }
     }
@@ -201,12 +215,29 @@ function flag_update_5000() {
 
     foreach (array('actions_assignments', 'trigger_assignments') as $table) {
       if (db_table_exists($table)) {
-        db_query("DELETE FROM {{$table}} WHERE hook = 'flag' AND aid = ''", $aid);
+        $ret[] = _flag_update_sql("DELETE FROM {{$table}} WHERE hook = 'flag' AND aid = ''");
       }
     }
   }
+  else {
+    $ret[] = array(
+      'success' => TRUE,
+      'query' => t('Cleanup of Actions tables is unneeded.'),
+    );
+  }
 
-  // We don't use update_sql(), as it doesn't support placeholders, so we have
-  // nothing to report back. That's unfortunate.
-  return array();
+  return $ret;
 }
+
+// This is a replacement for update_sql(). The latter doesn't support placeholders.
+function _flag_update_sql($sql) {
+  $args = func_get_args();
+  array_shift($args);
+  $result = db_query($sql, $args);
+  // Users are going to see '%s' and '%d' in the report and they're going to
+  // think there's a bug. So lets replace the placeholders with something less
+  // suspicious.
+  $sql = strtr($sql, array('%s' => '***', '%d' => '***'));
+  return array('success' => $result !== FALSE, 'query' => check_plain($sql));
+}
+
