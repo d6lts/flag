@@ -475,6 +475,12 @@ class flag_flag {
   }
 
   /**
+   * @defgroup actions Actions integration
+   * @{
+   * Methods that can be overridden to support Actions.
+   */
+
+  /**
    * Returns an array of all actions that are executable with this flag.
    */
   function get_valid_actions() {
@@ -486,6 +492,27 @@ class flag_flag {
     }
     return $actions;
   }
+
+  /**
+   * Returns objects the action may possibly need. This method should return at
+   * least the 'primary' object the action operates on.
+   *
+   * This method is needed because get_valid_actions() returns actions that
+   * don't necessarily operate on an object of a type this flag manages. For
+   * example, flagging a comment may trigger an 'Unpublish post' action on a
+   * node; So the comment flag needs to tell the action about some node.
+   *
+   * Derived classes must implement this.
+   *
+   * @abstract
+   */
+  function get_relevant_action_objects($content_id) {
+    return array();
+  }
+
+  /**
+   * @} End of "defgroup actions".
+   */
 
   /**
    * @defgroup views Views 2 integration
@@ -697,6 +724,12 @@ class flag_node extends flag_flag {
     return $actions;
   }
 
+  function get_relevant_action_objects($content_id) {
+    return array(
+      'node' => $this->load_content($content_id),
+    );
+  }
+
   function get_views_info() {
     return array(
       'views table' => 'node',
@@ -785,6 +818,14 @@ class flag_comment extends flag_flag  {
     $flag_action->content_title = $comment->subject;
     $flag_action->content_url = _flag_url("node/$comment->nid/$comment->cid", "comment-$comment->cid");
     return $flag_action;
+  }
+
+  function get_relevant_action_objects($content_id) {
+    $comment = $this->load_content($content_id);
+    return array(
+      'comment' => $comment,
+      'node' => node_load($comment->nid),
+    );
   }
 
   function get_views_info() {
@@ -878,6 +919,12 @@ class flag_user extends flag_flag {
     $flag_action->content_title = $user->name;
     $flag_action->content_url = _flag_url('user/' . $user->uid);
     return $flag_action;
+  }
+
+  function get_relevant_action_objects($content_id) {
+    return array(
+      'user' => $this->load_content($content_id),
+    );
   }
 
   function get_views_info() {
