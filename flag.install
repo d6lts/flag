@@ -260,7 +260,7 @@ function flag_update_6000() {
   //
   // At the beginning we had only db_table_exists() checks here. However, it
   // turned out that module_exists() fails when the $db_prefix string contains
-  // a dot. So the module_exists() and function_exists() are backup.
+  // a dot. So module_exists() and function_exists() are added, as backup.
   if (module_exists('trigger') || function_exists('_actions_get_hook_aids') || db_table_exists('actions_assignments') || db_table_exists('trigger_assignments')) {
 
     // Step 1: Find all actions we need to delete.
