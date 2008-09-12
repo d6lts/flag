@@ -257,10 +257,11 @@ function flag_schema() {
 function flag_update_6000() {
   $ret = array();
   // This conditional ensures we have Actions 2.x, not Actions 1.x.
-  // The module_exists() check seems unneeded, and rightfully so. It serves as
-  // a backup: db_table_exists() fails when the $db_prefix string contains a
-  // dot.
-  if (module_exists('trigger') || db_table_exists('actions_assignments') || db_table_exists('trigger_assignments')) {
+  //
+  // At the beginning we had only db_table_exists() checks here. However, it
+  // turned out that module_exists() fails when the $db_prefix string contains
+  // a dot. So the module_exists() and function_exists() are backup.
+  if (module_exists('trigger') || function_exists('_actions_get_hook_aids') || db_table_exists('actions_assignments') || db_table_exists('trigger_assignments')) {
 
     // Step 1: Find all actions we need to delete.
 
