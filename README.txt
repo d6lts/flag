@@ -8,43 +8,48 @@ The Flag module is a flexible flagging system whose primary goal is
 to give all the control to the administrator. Using this module, the
 site administrator can provide an arbitrary number of 'flags'.
 
-A flag is really just a boolean toggle that is set on a node.
-Flags may be per-user, meaning that each user can flag a node
-individually or not, or global, meaning that the node is either flagged
-or it is not flagged, and any user who changes that changes it for everyone.
-In this way, additional flags (similar to published and sticky) can be put on 
-nodes and dealt with by the system however the administration likes.
+A flag is really just a boolean toggle that is set on a node, comment,
+or user. Flags may be per-user, meaning that each user can flag an item
+individually, or global, meaning that the item is either flagged or it
+is not flagged, and any user who changes that changes it for everyone.
 
-Each flag allows the administrator to choose the 'flag this'
-text, and whether that appears for the node teaser as well as the
-full node view.
+In this way, additional flags (similar to 'published' and 'sticky') can 
+be put on nodes, or other items, and dealt with by the system however 
+the administration likes.
+
+Each flag allows the administrator to choose the 'flag this' text, and
+the place where the user interface for flagging the item will appear
+(For example: for nodes, whether a flagging link appears on the node
+teaser as well on the full node view).
 
 Each flag can be restricted to use only by certain roles. Each
 flag provides data to the Views module, and provides a default
-view to list 'my bookmarks'. These default views are somewhat crude,
+view to list 'My bookmarks'. These default views are somewhat crude,
 but are easily tailored to whatever the system administrator would like
 it to do. 
 
-Each flag also provides an 'argument type' to the Views module that
-can be used to allow a user to view other people's flagged content. This
-isn't turned on by default anywhere, though, and the administrator
-will need to construct a view in order to take advantage of it.
+Each flag also provides an 'argument' to the Views module that can be 
+used to allow a user to view other people's flagged content. This isn't 
+turned on by default anywhere, though, and the administrator will need 
+to construct a view in order to take advantage of it.
 
-The module will come installed with a simple flag called "bookmark" and a
-simple view for 'my bookmarks'. This is a default view provided by the Flag
-module, but can be customized to fit the needs of your site. To customize
-this view, go to admin/build/views and find the 'flags_1' view. Click
-the 'Add' action to customize the view. Once saved, the new version of the
-view will be used rather than the one provided by Flag.
+The module will come installed with a simple flag called "bookmarks" and 
+a simple view for 'My bookmarks'. This is a default view provided by the 
+Flag module, but can be customized to fit the needs of your site. To 
+customize this view, go to admin/build/views and find the 
+'flags_bookmarks' view. Click the 'Add' action to customize the view. 
+Once saved, the new version of the view will be used rather than the one 
+provided by Flag.
 
 Besides editing the default view that comes with the module, Flag
 provides many views filters, fields, and sort criteria to make all sorts of
-displays possible relating to the number of times a node has been flagged.
+displays possible relating to the number of times an item has been flagged.
 
 This module was formerly known as Views Bookmark.
 
-Originally written by Earl Miles. New features and maintenance
-by Nathan Haug and mystery man Mooffie.
+Ongoing development by Nathan Haug and mystery man Mooffie.
+
+Originally written by Earl Miles.
 
 Recommended Modules
 -------------------
