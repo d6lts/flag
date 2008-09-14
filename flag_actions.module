@@ -506,6 +506,18 @@ function flag_actions_delete_form_submit($form_id, $form_values) {
   return 'admin/build/flags/actions';
 }
 
+function flag_actions_system_send_email_action_form(&$form, &$flag, $context) {
+  $form['flag_tip'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tip'),
+    '#description' => module_exists('token_actions')
+      ? t('The "Send tokenized e-mail" action is preferable to the "Send e-mail" action you are now using. It provides you with many more tokens to use. This is especially useful when flagging users and comments.')
+      : t('You may wish to enable the <em>Token actions</em> module, which is shipped with the <a href="@token-url">Token</a> module. That module provides a "Send tokenized e-mail" action, which is similar to the "Send e-mail" action you are now using, except it provides you with many more tokens to use. This is especially useful when flagging users and comments.', array('@token-url' => 'http://drupal.org/project/token')),
+    '#weight' => -1,
+  );
+  return $form;
+}
+
 function flag_actions_token_actions_send_email_action_form(&$form, &$flag, $context) {
   if (!isset($context['recipient'])) {
     $form['recipient']['#default_value'] = '[site-mail]';
