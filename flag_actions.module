@@ -82,7 +82,6 @@ function flag_actions_get_actions($flag_name = NULL, $reset = FALSE) {
     $flag_actions = array();
     $result = db_query("SELECT a.*, f.name as flag FROM {flag_actions} a INNER JOIN flags f ON a.fid = f.fid");
     while ($action = db_fetch_object($result)) {
-      $action->parameters = unserialize($action->parameters);
       if (!isset($actions[$action->callback])) {
         $actions[$action->callback] = array(
           'description' => t('Missing action "@action-callback". Module providing it was either uninstalled or disabled.', array('@action-callback' => $action->callback)),
@@ -91,6 +90,7 @@ function flag_actions_get_actions($flag_name = NULL, $reset = FALSE) {
           'missing' => TRUE,
         );
       }
+      $action->parameters = unserialize($action->parameters);
       $action->description = $actions[$action->callback]['description'];
       $action->configurable = $actions[$action->callback]['configurable'];
       $action->behavior = isset($actions[$action->callback]['behavior']) ? $actions[$action->callback]['behavior'] : array();

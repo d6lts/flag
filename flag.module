@@ -745,7 +745,7 @@ function flag_flag($action, $flag, $content_id, $account) {
 function flag_node_operations() {
   global $user;
 
-  $flags = flag_get_flags(NULL, NULL, $user);
+  $flags = flag_get_flags('node', NULL, $user);
   $operations = array();
 
   foreach ($flags as $flag) {
