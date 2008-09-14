@@ -231,13 +231,42 @@ class flag_flag {
   }
 
   /**
-   * Loads, possibly from some cache, a content object this flag works with.
+   * Fetches, possibly from some cache, a content object this flag works with.
+   */
+  function fetch_content($content_id, $object_to_remember = NULL) {
+    static $cache = array();
+    if (isset($object_to_remember)) {
+      $cache[$content_id] = $object_to_remember;
+    }
+    if (!array_key_exists($content_id, $cache)) {
+      $content = $this->_load_content($content_id);
+      $cache[$content_id] = $content ? $content : NULL;
+    }
+    return $cache[$content_id];
+  }
+
+  /**
+   * Loads a content object this flag works with.
    * Derived classes must implement this.
    *
    * @abstract
+   * @private
+   * @static
    */
-  function load_content($content_id) {
+  function _load_content($content_id) {
     return NULL;
+  }
+
+  /**
+   * Stores some object in fetch_content()'s cache, so subsequenet calls to
+   * fetch_content() return it.
+   *
+   * This is needed because otherwise fetch_object() loads the object from the
+   * database (by calling _load_content()), whereas sometimes we want to fetch
+   * an object that hasn't yet been saved to the database. See flag_nodeapi().
+   */
+  function remember_content($content_id, $object) {
+    $this->fetch_content($content_id, $object);
   }
 
   /**
@@ -258,7 +287,7 @@ class flag_flag {
    * this function: call applies_to_content_object() directly.
    */
   function applies_to_content_id($content_id) {
-    return $this->applies_to_content_object($this->load_content($content_id));
+    return $this->applies_to_content_object($this->fetch_content($content_id));
   }
   
   /**
@@ -672,9 +701,8 @@ class flag_node extends flag_flag {
     );
   }
 
-  function load_content($content_id) {
-    $node = is_numeric($content_id) ? node_load($content_id) : NULL;
-    return $node ? $node : NULL;
+  function _load_content($content_id) {
+    return is_numeric($content_id) ? node_load($content_id) : NULL;
   }
 
   function applies_to_content_object($node) {
@@ -700,7 +728,7 @@ class flag_node extends flag_flag {
   }
 
   function replace_tokens($label, $contexts, $content_id) {
-    if ($content_id && ($node = $this->load_content($content_id))) {
+    if ($content_id && ($node = $this->fetch_content($content_id))) {
       $contexts['node'] = $node;
     }
     return parent::replace_tokens($label, $contexts, $content_id);
@@ -708,7 +736,7 @@ class flag_node extends flag_flag {
 
   function get_flag_action($content_id) {
     $flag_action = parent::get_flag_action($content_id);
-    $node = $this->load_content($content_id);
+    $node = $this->fetch_content($content_id);
     $flag_action->content_title = $node->title;
     $flag_action->content_url = _flag_url('node/' . $node->nid);
     return $flag_action;
@@ -726,7 +754,7 @@ class flag_node extends flag_flag {
 
   function get_relevant_action_objects($content_id) {
     return array(
-      'node' => $this->load_content($content_id),
+      'node' => $this->fetch_content($content_id),
     );
   }
 
@@ -773,14 +801,8 @@ class flag_comment extends flag_flag  {
     );
   }
 
-  function load_content($content_id) {
-    // The Comment module doesn't do caching, so we manage a cache ourselves.
-    static $comments = array();
-    if (!array_key_exists($content_id, $comments)) {
-      $comment = _comment_load($content_id);
-      $comments[$content_id] = $comment ? $comment : NULL;
-    }
-    return $comments[$content_id];
+  function _load_content($content_id) {
+    return _comment_load($content_id);
   }
 
   function applies_to_content_object($comment) {
@@ -804,7 +826,7 @@ class flag_comment extends flag_flag  {
 
   function replace_tokens($label, $contexts, $content_id) {
     if ($content_id) {
-      if (($comment = $this->load_content($content_id)) && ($node = node_load($comment->nid))) {
+      if (($comment = $this->fetch_content($content_id)) && ($node = node_load($comment->nid))) {
         $contexts['node'] = $node;
         $contexts['comment'] = $comment;
       }
@@ -814,14 +836,14 @@ class flag_comment extends flag_flag  {
 
   function get_flag_action($content_id) {
     $flag_action = parent::get_flag_action($content_id);
-    $comment = $this->load_content($content_id);
+    $comment = $this->fetch_content($content_id);
     $flag_action->content_title = $comment->subject;
     $flag_action->content_url = _flag_url("node/$comment->nid/$comment->cid", "comment-$comment->cid");
     return $flag_action;
   }
 
   function get_relevant_action_objects($content_id) {
-    $comment = $this->load_content($content_id);
+    $comment = $this->fetch_content($content_id);
     return array(
       'comment' => $comment,
       'node' => node_load($comment->nid),
@@ -875,14 +897,8 @@ class flag_user extends flag_flag {
     );
   }
 
-  function load_content($content_id) {
-    // The User module doesn't do caching, so we manage a cache ourselves.
-    static $users = array();
-    if (!array_key_exists($content_id, $users)) {
-      $user = user_load(array('uid' => $content_id));
-      $users[$content_id] = $user ? $user : NULL;
-    }
-    return $users[$content_id];
+  function _load_content($content_id) {
+    return user_load(array('uid' => $content_id));
   }
 
   function applies_to_content_object($user) {
@@ -907,7 +923,7 @@ class flag_user extends flag_flag {
   }
 
   function replace_tokens($label, $contexts, $content_id) {
-    if ($content_id && ($user = $this->load_content($content_id))) {
+    if ($content_id && ($user = $this->fetch_content($content_id))) {
       $contexts['user'] = $user;
     }
     return parent::replace_tokens($label, $contexts, $content_id);
@@ -915,7 +931,7 @@ class flag_user extends flag_flag {
 
   function get_flag_action($content_id) {
     $flag_action = parent::get_flag_action($content_id);
-    $user = $this->load_content($content_id);
+    $user = $this->fetch_content($content_id);
     $flag_action->content_title = $user->name;
     $flag_action->content_url = _flag_url('user/' . $user->uid);
     return $flag_action;
@@ -923,7 +939,7 @@ class flag_user extends flag_flag {
 
   function get_relevant_action_objects($content_id) {
     return array(
-      'user' => $this->load_content($content_id),
+      'user' => $this->fetch_content($content_id),
     );
   }
 
