@@ -83,10 +83,19 @@ function flag_actions_get_actions($flag_name = NULL, $reset = FALSE) {
     $result = db_query("SELECT a.*, f.name as flag FROM {flag_actions} a INNER JOIN flags f ON a.fid = f.fid");
     while ($action = db_fetch_object($result)) {
       $action->parameters = unserialize($action->parameters);
+      if (!isset($actions[$action->callback])) {
+        $actions[$action->callback] = array(
+          'description' => t('Missing action "@action-callback". Module providing it was either uninstalled or disabled.', array('@action-callback' => $action->callback)),
+          'configurable' => FALSE,
+          'type' => 'node',
+          'missing' => TRUE,
+        );
+      }
       $action->description = $actions[$action->callback]['description'];
       $action->configurable = $actions[$action->callback]['configurable'];
       $action->behavior = isset($actions[$action->callback]['behavior']) ? $actions[$action->callback]['behavior'] : array();
       $action->type = $actions[$action->callback]['type'];
+      $action->missing = !empty($actions[$action->callback]['missing']);
 
       $flag_actions[$action->aid] = $action;
     }
@@ -160,7 +169,10 @@ function flag_actions_do($event, $flag, $content_id, $account) {
   $relevant_objects = $flag->get_relevant_action_objects($content_id);
   $node_changed = FALSE;
   foreach ($actions as $aid => $action) {
-    if (($action->event == $event && $action->event == 'flag' && $count == $action->threshold) || ($action->event == $event && $action->event == 'unflag' && $count == $action->threshold - 1)) {
+    $threshold = ($action->event == $event) &&
+                (($action->event == 'flag'   && $count == $action->threshold) ||
+                 ($action->event == 'unflag' && $count == $action->threshold - 1));
+    if ($threshold && !$action->missing) {
       $context = $action->parameters;
       $context['callback'] = $action->callback;
       // We're setting 'hook' to something, to prevent PHP warnings by actions
@@ -223,7 +235,7 @@ function theme_flag_actions_page($actions, $add_action_form) {
     $row = array();
     $row[] = $flag->get_title();
     $row[] = ($action->event == 'flag' ? '≥ ' : '< ') . $action->threshold;
-    $row[] = $action->description;
+    $row[] = empty($action->missing) ? $action->description : '<div class="error">' . $action->description . '</div>';
     $row[] = l(t('edit'), 'admin/build/flags/actions/configure/'. $action->aid);
     $row[] = l(t('delete'), 'admin/build/flags/actions/delete/'. $action->aid);
     $rows[] = $row;
@@ -412,7 +424,7 @@ function flag_actions_form($form_state, $aid = NULL, $flag_name = NULL) {
 
   $flag_actions_form = 'flag_actions_'. $callback .'_form';
   if (function_exists($flag_actions_form)) {
-    $flag_actions_form($form, $flag, $edit);
+    $flag_actions_form($form, $flag, isset($edit) ? $edit : array());
   }
 
   $form['submit'] = array(
