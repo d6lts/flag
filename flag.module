@@ -232,8 +232,18 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
     case 'update':
     case 'insert':
       // Response to the flag checkboxes added to the form in flag_form_alter().
+      $remembered = FALSE;
       if (isset($node->flag)) {
         foreach ($node->flag as $name => $state) {
+          $flag = flag_get_flag($name);
+          // Flagging may trigger actions. We want actions to get the current
+          // node, not a stale database-loaded one:
+          if (!$remembered) {
+            $flag->remember_content($node->nid, $node);
+            // Actions may modify a node, and we don't want to overwrite this
+            // modification:
+            $remembered = TRUE;
+          }
           flag($state ? 'flag' : 'unflag', $name, $node->nid);
         }
       }
