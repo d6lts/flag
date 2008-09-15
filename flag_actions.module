@@ -80,7 +80,7 @@ function flag_actions_get_actions($flag_name = NULL, $reset = FALSE) {
   // Retrieve the list of user-defined flag actions.
   if (!isset($flag_actions) || $reset) {
     $flag_actions = array();
-    $result = db_query("SELECT a.*, f.name as flag FROM {flag_actions} a INNER JOIN flags f ON a.fid = f.fid");
+    $result = db_query("SELECT a.*, f.name as flag FROM {flag_actions} a INNER JOIN {flags} f ON a.fid = f.fid");
     while ($action = db_fetch_object($result)) {
       if (!isset($actions[$action->callback])) {
         $actions[$action->callback] = array(

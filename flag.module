@@ -170,17 +170,17 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
           '#return_value' => 1,
         );
       }
+    }
 
-      if (isset($form['workflow']['flag'])) {
-        $form['workflow']['flag'] += array(
-          '#type' => 'item',
-          '#title' => t('Default flags'),
-          '#description' => t('Above are the <a href="@flag-url">flags</a> you elected to show on the node editing form. You may specify their initial state here.', array('@flag-url' => url('admin/build/flags'))),
-          // Make the spacing a bit more compact:
-          '#prefix' => '<div class="form-checkboxes">',
-          '#suffix' => '</div>',
-        );
-      }
+    if (isset($form['workflow']['flag'])) {
+      $form['workflow']['flag'] += array(
+        '#type' => 'item',
+        '#title' => t('Default flags'),
+        '#description' => t('Above are the <a href="@flag-url">flags</a> you elected to show on the node editing form. You may specify their initial state here.', array('@flag-url' => url('admin/build/flags'))),
+        // Make the spacing a bit more compact:
+        '#prefix' => '<div class="form-checkboxes">',
+        '#suffix' => '</div>',
+      );
     }
   }
   elseif (isset($form['type']) && isset($form['#node'])
