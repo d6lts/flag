@@ -658,63 +658,20 @@ function flag_page($action = 'flag', $flag_name, $content_id = '') {
 }
 
 /**
- * Action for flagging or unflagging a piece of content.
+ * Flags, on unflags, an item.
  *
+ * @param $account
+ *   The user on whose behalf to flag. Leave empty for the current user.
  * @return
  *   FALSE if some error occured (e.g., user has no permission, flag isn't
- *   applicable, etc.), TRUE otherwise.
- *
- * @todo There's no reason not to turn this function into a method of the
- * flag object; More so that this function uses 'private' methods of this flag
- * object.
+ *   applicable to the item, etc.), TRUE otherwise.
  */
 function flag($action, $flag_name, $content_id, $account = NULL) {
-  if (!isset($account)) {
-    global $user;
-    $account = $user;
-  }
-  if (!$account) {
-    return FALSE;
-  }
-
-  if (!$account->uid) {
-    // Anonymous users can't create flags with this system.
-    return FALSE;
-  }
-  
-  $flag = flag_get_flag($flag_name);
-  if (!$flag) {
+  if (!($flag = flag_get_flag($flag_name))) {
     // Flag does not exist.
     return FALSE;
   }
-  if (!$flag->user_access($account)) {
-    // User has no permission to use this flag.
-    return FALSE;
-  }
-  if (!$flag->applies_to_content_id($content_id)) {
-    // Flag does not apply to this content.
-    return FALSE;
-  }
-
-  // Clear the counters cache; We don't want code running after us to report
-  // wrong counts.
-  flag_get_counts(NULL, NULL, TRUE);
-
-  // Perform the flagging or unflagging of this flag.
-  $uid = $flag->global ? 0 : $account->uid;
-  $flagged = $flag->_is_flagged($content_id, $uid);
-  if ($action == 'unflag' && $flagged) {
-    $flag->_unflag($content_id, $uid);
-    // Let other modules perform actions.
-    module_invoke_all('flag', 'unflag', $flag, $content_id, $account);
-  }
-  elseif ($action == 'flag' && !$flagged) {
-    $flag->_flag($content_id, $uid);
-    // Let other modules perform actions.
-    module_invoke_all('flag', 'flag', $flag, $content_id, $account);
-  }
-
-  return TRUE;
+  return $flag->flag($action, $content_id, $account);
 }
 
 /**

@@ -319,11 +319,66 @@ class flag_flag {
    */
   function user_access($account = NULL) {
     if (!isset($account)) {
-      global $user;
-      $account = $user;
+      $account = $GLOBALS['user'];
     }
     $matched_roles = array_intersect($this->roles, array_keys($account->roles));
     return !empty($matched_roles) || empty($this->roles) || $account->uid == 1;
+  }
+
+  /**
+   * Flags, on unflags, an item.
+   *
+   * @param $account
+   *   The user on whose behalf to flag. Leave empty for the current user.
+   * @return
+   *   FALSE if some error occured (e.g., user has no permission, flag isn't
+   *   applicable to the item, etc.), TRUE otherwise.
+   */
+  function flag($action, $content_id, $account = NULL) {
+    if (!isset($account)) {
+      $account = $GLOBALS['user'];
+    }
+    if (!$account) {
+      return FALSE;
+    }
+
+    if (!$account->uid) {
+      // Anonymous users can't flag with this system. For now.
+      //
+      // @todo This is legacy code. $flag->user_access() should handle this.
+      // This will also make it posible to have flags that do support anonymous
+      // users.
+      return FALSE;
+    }
+    
+    if (!$this->user_access($account)) {
+      // User has no permission to use this flag.
+      return FALSE;
+    }
+    if (!$this->applies_to_content_id($content_id)) {
+      // Flag does not apply to this content.
+      return FALSE;
+    }
+
+    // Clear the counters cache; We don't want code running after us to report
+    // wrong counts.
+    flag_get_counts(NULL, NULL, TRUE);
+
+    // Perform the flagging or unflagging of this flag.
+    $uid = $this->global ? 0 : $account->uid;
+    $flagged = $this->_is_flagged($content_id, $uid);
+    if ($action == 'unflag' && $flagged) {
+      $this->_unflag($content_id, $uid);
+      // Let other modules perform actions.
+      module_invoke_all('flag', 'unflag', $this, $content_id, $account);
+    }
+    elseif ($action == 'flag' && !$flagged) {
+      $this->_flag($content_id, $uid);
+      // Let other modules perform actions.
+      module_invoke_all('flag', 'flag', $this, $content_id, $account);
+    }
+
+    return TRUE;
   }
 
   /**
