@@ -328,6 +328,10 @@ class flag_flag {
   /**
    * Flags, on unflags, an item.
    *
+   * @param $action
+   *   Either 'flag' or 'unflag'.
+   * @param $content_id
+   *   The ID of the item to flag or unflag.
    * @param $account
    *   The user on whose behalf to flag. Leave empty for the current user.
    * @return
