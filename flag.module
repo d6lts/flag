@@ -73,6 +73,16 @@ function flag_init() {
 }
 
 /**
+ * Implementation of hook_views_api().
+ */
+function flag_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'flag') . '/includes',
+  );
+}
+
+/**
  * Implementation of hook_perm().
  */
 function flag_perm() {
