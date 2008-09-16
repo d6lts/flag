@@ -8,7 +8,7 @@ function flag_install() {
   // If Views Bookmark is available, skip the install and do an upgrade instead.
   if (strpos($GLOBALS['db_type'], 'mysql') === 0) {
     include_once(drupal_get_path('module', 'flag') .'/flag.module');
-    include_once(drupal_get_path('module', 'flag') .'/flag.views_bookmark.inc');
+    include_once(drupal_get_path('module', 'flag') .'/includes/flag.views_bookmark.inc');
     if (flag_views_bookmark_update_needed()) {
       flag_views_bookmark_update();
       return;

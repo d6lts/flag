@@ -70,13 +70,13 @@ function flag_init() {
 
     $path = drupal_get_path('module', 'flag');
     if (module_exists('views')) {
-      include_once $path .'/flag.views.inc';
+      include_once $path .'/includes/flag.views.inc';
     }
     if (module_exists('actions')) {
       include_once $path .'/flag.actions.inc';
     }
     if (module_exists('token')) {
-      include_once $path .'/flag.token.inc';
+      include_once $path .'/includes/flag.token.inc';
     }
   }
 }
