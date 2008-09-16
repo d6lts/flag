@@ -43,7 +43,7 @@ function flag_actions_uninstall() {
  * We don't support Actions 1.x.
  */
 function flag_actions_enable() {
-  if (db_table_exists('actions_registry')) {
+  if (drupal_get_installed_schema_version('actions', TRUE) < 10) {
     drupal_set_message(t("The <em>Flag actions</em> module supports the <a href='@actions-url'>Actions module in its version 2.x</a> only. You are using Actions 1.x and you won't be able to enjoy Flag's actions support.", array('@actions-url' => 'http://drupal.org/project/actions')), 'error');
     module_disable(array('flag_actions'));
   }
