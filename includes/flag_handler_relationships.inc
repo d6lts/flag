@@ -33,7 +33,7 @@ class flag_handler_relationship_content extends views_handler_relationship {
     );
 
     $form['required']['#title'] = t('Include only flagged content');
-    $form['required']['#description'] = t('If checked, only content that has this flag will be included. Leave unchecked if needing to display lists of specifically unflagged content.');
+    $form['required']['#description'] = t('If checked, only content that has this flag will be included.<!-- Leave unchecked if needing to display lists of specifically unflagged content.-->');
 
     if (!$form['flag']['#options']) {
       $form = array(
