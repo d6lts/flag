@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Actions support for the Flag module.
+ */
+
+/**
  * Implementation of hook_flag(). Trigger actions if any are available.
  */
 function flag_actions_flag($event, $flag, $content_id, $account) {
