@@ -1,7 +1,10 @@
 <?php
+// $Id$
 
 /**
  * Handler to filter for content that has not been flagged.
+ *
+ * @ingroup views
  */
 class flag_handler_filter_flagged extends views_handler_filter_boolean_operator {
   function options(&$options) {

@@ -1,7 +1,10 @@
 <?php
+// $Id$
 
 /**
  * Specialized relationship handler associating flags and content.
+ *
+ * @ingroup views
  */
 class flag_handler_relationship_content extends views_handler_relationship {
   
@@ -80,6 +83,8 @@ class flag_handler_relationship_content extends views_handler_relationship {
 
 /**
  * Specialized relationship handler associating flag counts and content.
+ *
+ * @ingroup views
  */
 class flag_handler_relationship_counts extends views_handler_relationship {
 

@@ -1,6 +1,11 @@
 <?php
 // $Id$
 
+/**
+ * @file
+ * The Flag module.
+ */
+
 include_once dirname(__FILE__) .'/flag.inc';
 
 /**

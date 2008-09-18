@@ -1,7 +1,10 @@
 <?php
+// $Id$
 
 /**
  * Views field handler for the Flag operations links (flag/unflag).
+ *
+ * @ingroup views
  */
 class flag_handler_field_ops extends views_handler_field {
 
