@@ -33,7 +33,7 @@ class flag_handler_relationship_content extends views_handler_relationship {
     );
 
     $form['required']['#title'] = t('Include only flagged content');
-    $form['required']['#description'] = t('If checked, only content that has this flag will be included.<!-- Leave unchecked if needing to display lists of specifically unflagged content.-->');
+    $form['required']['#description'] = t('If checked, only content that has this flag will be included. Leave unchecked to include all content; or, in combination with the <em>Flagged</em> filter, <a href="http://drupal.org/node/299335">to limit the results to specifically unflagged content</a>.');
 
     if (!$form['flag']['#options']) {
       $form = array(
