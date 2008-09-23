@@ -644,7 +644,7 @@ function _flag_clear_cache() {
  *
  * Used both for the regular callback as well as the JS version.
  */
-function flag_page($action = 'flag', $flag_name, $content_id = '') {
+function flag_page($action, $flag_name, $content_id) {
   $result = flag($action, $flag_name, $content_id);
   $js = isset($_REQUEST['js']);
 
