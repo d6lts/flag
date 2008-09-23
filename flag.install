@@ -68,10 +68,10 @@ function flag_install() {
         content_type varchar(32) default '',
         name varchar(32) default '',
         title varchar(255) default '',
-        flag varchar(255) default '',
+        flag_short varchar(255) default '',
         flag_long varchar(255) default '',
         flag_message varchar(255) default '',
-        unflag varchar(255) default '',
+        unflag_short varchar(255) default '',
         unflag_long varchar(255) default '',
         unflag_message varchar(255) default '',
         roles varchar(255) default '',
@@ -80,19 +80,20 @@ function flag_install() {
         PRIMARY KEY (fid)
       )");
       db_query("ALTER TABLE {flags} ADD CONSTRAINT {flags}_name_key UNIQUE (name)");
+      db_query("CREATE SEQUENCE {flags}_fid_seq");
       db_query("CREATE TABLE {flag_content} (
         fid smallint NOT NULL default '0',
         uid int NOT NULL default '0',
         content_type varchar(32) default '',
         content_id int NOT NULL default '0',
         timestamp int NOT NULL default '0',
-        PRIMARY KEY (fid, uid, content_type, content_id)
+        PRIMARY KEY (fid, content_type, content_id, uid)
       )");
       db_query('CREATE INDEX {flag_content}_content_type_content_id_idx ON {flag_content} (content_type, content_id)');
       db_query('CREATE INDEX {flag_content}_content_type_uid_idx ON {flag_content} (content_type, uid)');
       db_query("CREATE TABLE {flag_types} (
         fid int NOT NULL default '0',
-        node_type varchar(32) NOT NULL default ''
+        type varchar(32) NOT NULL default ''
       )");
       db_query('CREATE INDEX {flag_types}_fid_idx ON {flag_types} (fid)');
       db_query("CREATE TABLE {flag_counts} (
@@ -102,6 +103,8 @@ function flag_install() {
         count int NOT NULL default '0',
         PRIMARY KEY (fid, content_type, content_id)
       )");
+      db_query('CREATE INDEX {flag_counts}_fid_content_type_idx ON {flag_content} (fid, content_type)');
+      db_query('CREATE INDEX {flag_counts}_content_type_content_id_idx ON {flag_content} (content_type, content_id)');
       $success = TRUE;
       break;
   }
@@ -147,9 +150,17 @@ function flag_uninstall() {
   db_query('DROP TABLE {flag_content}');
   db_query('DROP TABLE {flag_types}');
   db_query('DROP TABLE {flag_counts}');
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
   db_query('DELETE FROM {sequences} WHERE name = "{flags}_fid"');
+      break;
+    case 'pgsql':
+      db_query("DROP SEQUENCE {flags}_fid_seq");
+      break;
+  }
 
-  $result = db_query('SELECT name FROM {variable} WHERE name LIKE "flag_%"');
+  $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'flag_%'");
   while ($row = db_fetch_object($result)) {
     variable_del($row->name);
   }

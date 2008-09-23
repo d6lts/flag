@@ -20,7 +20,7 @@ function flag_actions_install() {
       break;
     case 'pgsql':
       db_query("CREATE TABLE {flag_actions} (
-        aid integer NOT NULL auto_increment,
+        aid serial,
         fid smallint default NULL,
         event varchar(255) default NULL,
         threshold smallint default NULL,
