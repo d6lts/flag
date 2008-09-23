@@ -46,7 +46,7 @@ function flag_install() {
  */
 function flag_uninstall() {
   drupal_uninstall_schema('flag');
-  $result = db_query('SELECT name FROM {variable} WHERE name LIKE "flag_%"');
+  $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'flag_%'");
   while ($row = db_fetch_object($result)) {
     variable_del($row->name);
   }
