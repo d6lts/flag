@@ -5,6 +5,13 @@
  * Implementation of hook_install().
  */
 function flag_install() {
+  
+  if (_flag_flag_content_installed()) {
+    // Prevent clash with the "Flag content" module. The flag_enable() hook will
+    // print the error message.
+    return;
+  }
+
   // If Views Bookmark is available, skip the install and do an upgrade instead.
   if (strpos($GLOBALS['db_type'], 'mysql') === 0) {
     include_once(drupal_get_path('module', 'flag') .'/flag.module');
@@ -166,6 +173,38 @@ function flag_uninstall() {
   }
 
   drupal_set_message(t('Flag has been uninstalled.'));
+}
+
+/**
+ * Returns TRUE if the "Flag content" module, which we aren't compatible with,
+ * is installed.
+ */
+function _flag_flag_content_installed() {
+  $version = @drupal_get_installed_schema_version('flag_content', TRUE);
+  return (isset($version) && $version != SCHEMA_UNINSTALLED);
+}
+
+function _flag_flag_content_message() {
+  $t = get_t();
+  return $t("You are trying to install the <em>Flag</em> module. However, you have the <em>\"Flag content\"</em> module installed, and these two modules aren't compatible (because they happen to use a database table by the same name). To install the <em>Flag</em> module, you'll first have to disable and then <a href='@uninstall-url'>uninstall</a> the <em>\"Flag content\"</em> module.", array('@uninstall-url' => url('admin/build/modules/uninstall')));
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * We uninstall ourselves if the "Flag content" module is installed.
+ */
+function flag_enable() {
+  if (_flag_flag_content_installed()) {
+    drupal_set_message(_flag_flag_content_message(), 'error');
+    // Do some bookkeeping:
+    module_disable(array('flag'));
+    // Now, we need to uninstall ourselves, because we want our hook_install()
+    // to run next time. However, we don't use drupal_uninstall_module(),
+    // because then flag_uninstall() will run and complain about non-existing
+    // tables.
+    drupal_set_installed_schema_version('flag', SCHEMA_UNINSTALLED);
+  }
 }
 
 /**
