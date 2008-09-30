@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Flag actions install file.
+ */
+
+/**
  * Implementation of hook_install().
  */
 function flag_actions_install() {
