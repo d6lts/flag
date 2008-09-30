@@ -142,10 +142,10 @@ function flag_install() {
   }
 
   if ($success) {
-    drupal_set_message(t('Flag module installed tables successfully.'));
+    drupal_set_message(st('Flag module installed tables successfully.'));
   }
   else {
-    drupal_set_message(t('The installation of Flag module failed.'), 'error');
+    drupal_set_message(st('The installation of Flag module failed.'), 'error');
   }
 }
 
@@ -241,7 +241,7 @@ function flag_update_5000() {
     else {
       $ret[] = array(
         'success' => TRUE,
-        'query' => t('I\'ll be removing the following actions: @aids', array('@aids' => implode(', ', $aids))),
+        'query' => t('Deleting the following actions: @aids', array('@aids' => implode(', ', $aids))),
       );
     }
 

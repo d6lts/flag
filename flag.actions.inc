@@ -1,4 +1,11 @@
 <?php
+// $Id$
+
+/**
+ * @file
+ * Hooks for flag actions.
+ */
+
 /**
  * Implementation of hook_hook_info().
  */
