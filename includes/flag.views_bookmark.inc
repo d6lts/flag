@@ -18,7 +18,7 @@ function flag_views_bookmark_update_needed() {
  * Perform all pieces of the update.
  */
 function flag_views_bookmark_update() {
-  drupal_set_message('Migrating Views Bookmark to Flag module. More information about the changes between Views Bookmark and Flag may be found on the <a href="http://drupal.org/node/268269">upgrading handbook page</a>.');
+  drupal_set_message(t('Migrating Views Bookmark to Flag module. More information about the changes between Views Bookmark and Flag may be found on the <a href="http://drupal.org/node/268269">upgrading handbook page</a>.'));
 
   // Update Views Bookmark and Remove current Flag tables.
   flag_views_bookmark_update_prepare();
@@ -29,7 +29,7 @@ function flag_views_bookmark_update() {
   // Update views.
   flag_views_bookmark_update_views();
 
-  drupal_set_message('The Flag module has been installed, replacing Views Bookmark. Views Bookmark has been disabled, please remove it from your installation.');
+  drupal_set_message(t('The Flag module has been installed, replacing Views Bookmark. Views Bookmark has been disabled, please remove it from your installation.'));
 }
 
 /**
