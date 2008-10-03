@@ -1134,7 +1134,7 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
       $flagged_content[$uid]['all'][$content_type] = TRUE;
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0)", $content_type, $uid);
       while ($flag = db_fetch_object($result)) {
-        $flagged_content[$uid][$content_type]['all'][$flags[$flag->fid]->name] = $flag;
+        $flagged_content[$uid][$content_type]['all'][$flags[$flag->fid]->name][$flag->content_id] = $flag;
       }
     }
     return $flagged_content[$uid][$content_type]['all'];
