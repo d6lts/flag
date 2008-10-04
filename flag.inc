@@ -821,6 +821,7 @@ class flag_node extends flag_flag {
     return array(
       'views table' => 'node',
       'join field' => 'nid',
+      'title field' => 'title',
       'title' => t('Node flag'),
       'help' => t('Limit results to only those nodes flagged by a certain flag; Or display information about the flag set on a node.'),
       'counter title' => t('Node flag counter'),
@@ -913,6 +914,7 @@ class flag_comment extends flag_flag  {
     return array(
       'views table' => 'comments',
       'join field' => 'cid',
+      'title field' => 'subject',
       'title' => t('Comment flag'),
       'help' => t('Limit results to only those comments flagged by a certain flag; Or display information about the flag set on a comment.'),
       'counter title' => t('Comment flag counter'),
@@ -1006,6 +1008,7 @@ class flag_user extends flag_flag {
     return array(
       'views table' => 'users',
       'join field' => 'uid',
+      'title field' => 'name',
       'title' => t('User flag'),
       'help' => t('Limit results to only those users flagged by a certain flag; Or display information about the flag set on a user.'),
       'counter title' => t('User flag counter'),

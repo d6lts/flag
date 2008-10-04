@@ -23,11 +23,18 @@ function flag_views_handlers() {
         'parent' => 'views_handler_relationship',
         'file' => 'flag_handler_relationships.inc',
       ),
+      'flag_handler_relationship_user_content' => array(
+        'parent' => 'views_handler_relationship',
+        'file' => 'flag_handler_relationships.inc',
+      ),
       'flag_handler_field_ops' => array(
         'parent' => 'views_handler_field',
       ),
       'flag_handler_filter_flagged' => array(
         'parent' => 'views_handler_filter_boolean_operator',
+      ),
+      'flag_handler_argument_content_id' => array(
+        'parent' => 'views_handler_argument_numeric',
       ),
     ),
   );
@@ -68,6 +75,15 @@ function flag_views_data() {
     'argument' => array(
       'handler' => 'views_handler_argument_date',
     ),
+  );
+
+  // Argument for content ID, used for "Who's flagged this" views.
+  $data['flag_content']['content_id'] = array(
+    'title' => t('Content ID'),
+    'help' => t('The unique ID of the object that has been flagged.'),
+    'argument' => array(
+      'handler' => 'flag_handler_argument_content_id',
+    )
   );
 
   // Specialized is null/is not null filter.
@@ -151,6 +167,19 @@ function flag_views_data_alter(&$data) {
     );
   }
 
+  // Add a relationship for the user that flagged any type of content.
+  $data['users']['flag_user_content_rel'] = array(
+    'group' => t('Flags'),
+    'title' => t("User's flagged content"),
+    'help' => t('Limit results to users that have flagged certain content.'),
+    'relationship' => array(
+      'base' => 'flag_content',
+      'base field' => 'uid',
+      'relationship field' => 'uid',
+      'handler' => 'flag_handler_relationship_user_content',
+      'label' => t('user flagged content'),
+    ),
+  );
 }
 
 /**
