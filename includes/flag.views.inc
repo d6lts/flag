@@ -41,6 +41,30 @@ function flag_views_handlers() {
 }
 
 /**
+ * Implementation of hook_views_plugins
+ */
+function flag_views_plugins() {
+  return array(
+    'argument validator' => array(
+      'flag_flaggable_node' => array(
+        'title' => t('Flaggable node'),
+        'flag type' => 'node',
+        'handler' => 'flag_plugin_argument_validate_flaggability',
+        'path' => drupal_get_path('module', 'flag') . '/includes',
+      ),
+      'flag_flaggable_user' => array(
+        'title' => t('Flaggable user'),
+        'flag type' => 'user',
+        'handler' => 'flag_plugin_argument_validate_flaggability',
+        'path' => drupal_get_path('module', 'flag') . '/includes',
+      ),
+      // A comment validator won't be very useful. Moreover, having it will
+      // contribute to the argument object's $options polution, so let's skip
+      // it.
+    ),
+  );
+}
+/**
  * Implementation of hook_views_data().
  */
 function flag_views_data() {
