@@ -644,25 +644,38 @@ function _flag_clear_cache() {
  *
  * Used both for the regular callback as well as the JS version.
  */
-function flag_page($action, $flag_name, $content_id) {
-  $result = flag($action, $flag_name, $content_id);
+function flag_page($action, $flag_name, $content_id, $token) {
   $js = isset($_REQUEST['js']);
 
-  if (!$result) {
+  // Check the flag token, then perform the flagging.
+  if (!flag_check_token($token, $content_id)) {
+    $error = t('Bad token. You seem to have followed an invalid link.');
+  }
+  else {
+    $result = flag($action, $flag_name, $content_id);
+    if (!$result) {
+      $error = t('You are not allowed to flag, or unflag, this content.');
+    }
+  }
+
+  // If an error was received, set a message and exit.
+  if (isset($error)) {
     if ($js) {
       drupal_set_header('Content-Type: text/javascript; charset=utf-8');
       print drupal_to_js(array(
         'status' => FALSE,
-        'errorMessage' => t('You are not allowed to flag, or unflag, this content.'),
+        'errorMessage' => $error,
       ));
       exit;
     }
     else {
+      drupal_set_message($error);
       drupal_access_denied();
       return;
     }
   }
 
+  // If successful, return data according to the request type.
   if ($js) {
     drupal_set_header('Content-Type: text/javascript; charset=utf-8');
     $flag = flag_get_flag($flag_name);
@@ -811,7 +824,8 @@ function template_preprocess_flag(&$variables) {
 
   $variables['setup'] = $first_time;
   $first_time = FALSE;
-  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$content_id", array('query' => drupal_get_destination())));
+  $token = flag_get_token($content_id);
+  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$content_id/$token", array('query' => drupal_get_destination())));
   $variables['link_text'] = strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
   $variables['link_title'] = strip_tags($flag->get_label($action . '_long', $content_id));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
@@ -1098,3 +1112,16 @@ function flag_create_link($flag_name, $content_id) {
   return $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id);
 }
 
+/**
+ * Get a private token used to protect links from spoofing - CSRF.
+ */
+function flag_get_token($nid) {
+  return drupal_get_token($nid);
+}
+
+/**
+ * Check to see if a token value matches the specified node.
+ */
+function flag_check_token($token, $seed) {
+  return drupal_get_token($seed) == $token;
+}
