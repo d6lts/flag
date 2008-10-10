@@ -33,16 +33,14 @@
  * NOTE: This template spaces out the <span> tags for clarity only. When doing some
  * advanced theming you may have to remove all the whitespace.
  */
-?>
-<?php
+
   if ($setup) {
     drupal_add_css(drupal_get_path('module', 'flag') .'/theme/flag.css');
     drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
   }
-  flag_add_extra_js($flag, $action, $content_id, $after_flagging);
 ?>
 <span class="flag-wrapper flag-<?php echo $flag_name_css; ?>">
-  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="flag <?php echo $action; ?>-action <?php echo $after_flagging ? $last_action : ''; ?>"><?php echo $link_text; ?></a>
+  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="flag <?php echo $action; ?>-action <?php echo $after_flagging ? $last_action : ''; ?>"><?php echo $link_text; ?></a><span class="flag-throbber">&nbsp;</span>
   <?php if ($after_flagging): ?>
     <span class="flag-message flag-<?php echo $last_action; ?>-message">
       <?php echo $message_text; ?>
