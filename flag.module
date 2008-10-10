@@ -671,7 +671,10 @@ function flag_page($action, $flag_name, $content_id) {
   if (!$result) {
     if ($js) {
       drupal_set_header('Content-Type: text/javascript; charset=utf-8');
-      print drupal_to_js(array('status' => FALSE));
+      print drupal_to_js(array(
+        'status' => FALSE,
+        'errorMessage' => t('You are not allowed to flag, or unflag, this content.'),
+      ));
       exit;
     }
     else {
@@ -682,7 +685,11 @@ function flag_page($action, $flag_name, $content_id) {
 
   if ($js) {
     drupal_set_header('Content-Type: text/javascript; charset=utf-8');
-    print drupal_to_js(array('status' => TRUE));
+    $flag = flag_get_flag($flag_name);
+    print drupal_to_js(array(
+      'status' => TRUE,
+      'newLink' => $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id, TRUE),
+    ));
     exit;
   }
   else {
@@ -845,37 +852,6 @@ function template_preprocess_flag(&$variables) {
   if ($variables['after_flagging']) {
     $inverse_action = ($action == 'flag' ? 'unflag' : 'flag');
     $variables['message_text'] = $flag->get_label($inverse_action . '_message', $content_id);
-  }
-}
-
-/**
- * Helper function for adding extra JavaScript behaviour to the page. (The
- * basic JavaScript file is added in flag.tpl.php.)
- */
-function flag_add_extra_js(&$flag, $action, $content_id, $after_flagging) {
-  static $added_flags, $js_added;
-
-  if ($after_flagging) {
-    // Since flag.tpl.php calls this function, and since we ourselves trigger
-    // flag.tpl.php here (when we do $flag->theme(), to generate the links to
-    // store in some JS array), we need to guard against recursion:
-    return;
-  }
-
-  // Add initial JS/CSS to the page.
-  if (!isset($js_added)) {
-    drupal_add_js(array('flag' => array('cleanUrl' => variable_get('clean_url', 0))), 'setting');
-    $js_added = TRUE;
-  }
-
-  // Add JavaScript copies of the links so we can swap them out when the user clicks.
-  if (!(isset($added_flags[$flag->name][$content_id]))) {
-    $flag_html = $flag->theme('flag', $content_id, TRUE);
-    $unflag_html = $flag->theme('unflag', $content_id, TRUE);
-    // Note the 'cid_' we're prefixing to the numeric content ID. That's
-    // because numeric strings can't serve as object properties in javascript.
-    drupal_add_js(array('flag' => array('flags' => array($flag->name => array('cid_' . $content_id => array('flag' => $flag_html, 'unflag' => $unflag_html))))), 'setting');
-    $added_flags[$flag->name][$content_id] = TRUE;
   }
 }
 
