@@ -102,16 +102,7 @@ class flag_flag {
 
   // Various non-serialized properties of the flag, corresponding directly to
   // database columns.
-  //
-  // It's a pity they're here. They should be serialized and treated just
-  // like 'options'.
   var $title = '';
-  var $flag_short = '';
-  var $flag_long = '';
-  var $flag_message = '';
-  var $unflag_short = '';
-  var $unflag_long = '';
-  var $unflag_message = '';
   var $roles = array(DRUPAL_AUTHENTICATED_RID);
   var $global = FALSE;
   // The sub-types, e.g. node types, this flag applies to.
@@ -172,6 +163,12 @@ class flag_flag {
    */ 
   function default_options() {
     return array(
+      'flag_short' => '',
+      'flag_long' => '',
+      'flag_message' => '',
+      'unflag_short' => '',
+      'unflag_long' => '',
+      'unflag_message' => '',
     );
   }
 
@@ -650,7 +647,7 @@ class flag_flag {
    * Saves an existing flag to the database. Better use save().
    */
   function update() {
-    db_query("UPDATE {flags} SET name = '%s', title = '%s', flag_short = '%s', flag_long = '%s', flag_message = '%s', unflag_short = '%s', unflag_long = '%s', unflag_message = '%s', roles = '%s', global = %d, options = '%s' WHERE fid = %d", $this->name, $this->title, $this->flag_short, $this->flag_long, $this->flag_message, $this->unflag_short, $this->unflag_long, $this->unflag_message, implode(',', $this->roles), $this->global, $this->get_serialized_options(), $this->fid);
+    db_query("UPDATE {flags} SET name = '%s', title = '%s', roles = '%s', global = %d, options = '%s' WHERE fid = %d", $this->name, $this->title, implode(',', $this->roles), $this->global, $this->get_serialized_options(), $this->fid);
     db_query("DELETE FROM {flag_types} WHERE fid = %d", $this->fid);
     foreach ($this->types as $type) {
       db_query("INSERT INTO {flag_types} (fid, type) VALUES (%d, '%s')", $this->fid, $type);
@@ -663,13 +660,13 @@ class flag_flag {
   function insert() {
     if (function_exists('db_last_insert_id')) {
       // Drupal 6. We have a 'serial' primary key.
-      db_query("INSERT INTO {flags} (content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $this->content_type, $this->name, $this->title, $this->flag_short, $this->flag_long, $this->flag_message, $this->unflag_short, $this->unflag_long, $this->unflag_message, implode(',', $this->roles), $this->global, $this->get_serialized_options());
+      db_query("INSERT INTO {flags} (content_type, name, title, roles, global, options) VALUES ('%s', '%s', '%s', '%s', %d, '%s')", $this->content_type, $this->name, $this->title, implode(',', $this->roles), $this->global, $this->get_serialized_options());
       $this->fid = db_last_insert_id('flags', 'fid');
     }
     else {
       // Drupal 5. We have an 'integer' primary key.
       $this->fid = db_next_id('{flags}_fid');
-      db_query("INSERT INTO {flags} (fid, content_type, name, title, flag_short, flag_long, flag_message, unflag_short, unflag_long, unflag_message, roles, global, options) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s')", $this->fid, $this->content_type, $this->name, $this->title, $this->flag_short, $this->flag_long, $this->flag_message, $this->unflag_short, $this->unflag_long, $this->unflag_message, implode(',', $this->roles), $this->global, $this->get_serialized_options());
+      db_query("INSERT INTO {flags} (fid, content_type, name, title, roles, global, options) VALUES (%d, '%s', '%s', '%s', '%s', %d, '%s')", $this->fid, $this->content_type, $this->name, $this->title, implode(',', $this->roles), $this->global, $this->get_serialized_options());
     }
     foreach ($this->types as $type) {
       db_query("INSERT INTO {flag_types} (fid, type) VALUES (%d, '%s')", $this->fid, $type);
@@ -733,11 +730,13 @@ class flag_flag {
  */
 class flag_node extends flag_flag {
   function default_options() {
-    return array(
+    $options = parent::default_options();
+    $options += array(
       'show_on_page' => TRUE,
       'show_on_teaser' => TRUE,
       'show_on_form' => FALSE,
     );
+    return $options;
   }
   
   function options_form(&$form) {
@@ -847,9 +846,11 @@ class flag_node extends flag_flag {
  */
 class flag_comment extends flag_flag  {
   function default_options() {
-    return array(
+    $options = parent::default_options();
+    $options += array(
       'show_on_comment' => TRUE,
     );
+    return $options;
   }
   
   function options_form(&$form) {
@@ -939,9 +940,11 @@ class flag_comment extends flag_flag  {
  */
 class flag_user extends flag_flag {
   function default_options() {
-    return array(
+    $options = parent::default_options();
+    $options += array(
       'show_on_profile' => TRUE,
     );
+    return $options;
   }
   
   function options_form(&$form) {
