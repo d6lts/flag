@@ -83,12 +83,6 @@ function flag_views_bookmark_update_tables() {
   $ret[] = update_sql("ALTER TABLE {views_bookmark_nodetypes} CHANGE COLUMN vbid fid smallint unsigned NOT NULL default '0'");
   $ret[] = update_sql("ALTER TABLE {views_bookmark_nodetypes} CHANGE COLUMN type type varchar(32) NOT NULL default ''");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN vbid fid smallint unsigned NOT NULL default '0'");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN mark flag_short varchar(255) default ''");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN mark_long flag_long varchar(255) default ''");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN mark_message flag_message varchar(255) default ''");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN unmark unflag_short varchar(255) default ''");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN unmark_long unflag_long varchar(255) default ''");
-  $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN unmark_message unflag_message varchar(255) default ''");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} CHANGE COLUMN global global tinyint default 0");
 
   // Add columns.
@@ -99,9 +93,15 @@ function flag_views_bookmark_update_tables() {
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD options text default NULL");
 
   // Move options.
-  $result = db_query("SELECT fid, show_on_form, teaser FROM {views_bookmarks}");
+  $result = db_query("SELECT * FROM {views_bookmarks}");
   while ($bookmark = db_fetch_object($result)) {
     $options = array(
+      'flag_short' => $bookmark->mark,
+      'flag_long' => $bookmark->mark_long,
+      'flag_message' => $bookmark->mark_message,
+      'unflag_short' => $bookmark->unmark,
+      'unflag_long' => $bookmark->unmark_long,
+      'unflag_message' => $bookmark->unmark_message,
       'show_on_form' => $bookmark->show_on_form,
       'show_on_teaser' => $bookmark->teaser,
       'show_on_page' => 1,
@@ -110,6 +110,12 @@ function flag_views_bookmark_update_tables() {
   }
 
   // Delete columns.
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN mark");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN mark_long");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN mark_message");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN unmark");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN unmark_long");
+  $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN unmark_message");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN show_on_form");
   $ret[] = update_sql("ALTER TABLE {views_bookmarks} DROP COLUMN teaser");
 
@@ -163,6 +169,7 @@ function flag_views_bookmark_update_views() {
   $ret = array();
   // Ensure views is available.
   include_once(drupal_get_path('module', 'views') .'/views.module');
+  include_once(drupal_get_path('module', 'flag') .'/flag.inc');
   // Load the cache to ensure _views_get_default_views() is available.
   if (function_exists('views_load_cache')) {
     views_invalidate_cache();
