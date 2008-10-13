@@ -244,12 +244,3 @@ function flag_views_flag_default($content_type) {
 
   return $default_flag[$content_type];
 }
-
-// 2008-09-16:
-// A hack to make our Views support work with the pre-RC2 version of Views.
-// @todo Remove this when we decide we don't want this.
-if (!function_exists('views_discover_handlers')) {
-  foreach (array('flag_handler_field_ops.inc', 'flag_handler_filter_flagged.inc', 'flag_handler_relationships.inc', 'flag_handler_argument_content_id.inc', 'flag_plugin_argument_validate_flaggability.inc') as $file) {
-    include_once dirname(__FILE__) . '/' . $file;
-  }
-}

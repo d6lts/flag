@@ -364,6 +364,11 @@ function flag_admin_page() {
 
   $output .= '<p>' . t('To learn about the various ways to use flags, please check out <a href="@handbook-url">the handbook</a>.', array('@handbook-url' => 'http://drupal.org/handbook/modules/flag')) . '</p>';
 
+  // @todo Remove this warning when we feel it's not needed.
+  if (module_exists('views') && !function_exists('views_api_version')) {
+    drupal_set_message(t('Error: You have the <em>Views</em> module installed, but you are using a very old version of it, which this module does not support. You must <a href="@views-url">download</a> and install a newer version of the Views module if you wish to see and construct lists of flagged content.', array('@views-url' => url('http://drupal.org/project/views'))), 'error');
+  }
+
   return $output;
 }
 
