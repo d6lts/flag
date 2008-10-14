@@ -350,12 +350,12 @@ function flag_update_6001() {
       db_query("UPDATE {flags} SET options = '%s' WHERE fid = %d", serialize($options), $flag->fid);
     }
   
-    db_drop_field(&$ret, 'flags', 'flag_short');
-    db_drop_field(&$ret, 'flags', 'flag_long');
-    db_drop_field(&$ret, 'flags', 'flag_message');
-    db_drop_field(&$ret, 'flags', 'unflag_short');
-    db_drop_field(&$ret, 'flags', 'unflag_long');
-    db_drop_field(&$ret, 'flags', 'unflag_message');
+    db_drop_field($ret, 'flags', 'flag_short');
+    db_drop_field($ret, 'flags', 'flag_long');
+    db_drop_field($ret, 'flags', 'flag_message');
+    db_drop_field($ret, 'flags', 'unflag_short');
+    db_drop_field($ret, 'flags', 'unflag_long');
+    db_drop_field($ret, 'flags', 'unflag_message');
   }
   return $ret;
 }
