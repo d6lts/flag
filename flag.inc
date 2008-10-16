@@ -331,11 +331,13 @@ class flag_flag {
    *   The ID of the item to flag or unflag.
    * @param $account
    *   The user on whose behalf to flag. Leave empty for the current user.
+   * @param $skip_permission_check
+   *   Flag the item even if the $account user don't have permission to do so.
    * @return
    *   FALSE if some error occured (e.g., user has no permission, flag isn't
    *   applicable to the item, etc.), TRUE otherwise.
    */
-  function flag($action, $content_id, $account = NULL) {
+  function flag($action, $content_id, $account = NULL, $skip_permission_check = FALSE) {
     if (!isset($account)) {
       $account = $GLOBALS['user'];
     }
@@ -352,7 +354,7 @@ class flag_flag {
       return FALSE;
     }
     
-    if (!$this->user_access($account)) {
+    if (!$skip_permission_check && !$this->user_access($account)) {
       // User has no permission to use this flag.
       return FALSE;
     }
