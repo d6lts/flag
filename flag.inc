@@ -331,11 +331,13 @@ class flag_flag {
    *   The ID of the item to flag or unflag.
    * @param $account
    *   The user on whose behalf to flag. Leave empty for the current user.
+   * @param $skip_permission_check
+   *   Flag the item even if the $account user don't have permission to do so.
    * @return
    *   FALSE if some error occured (e.g., user has no permission, flag isn't
    *   applicable to the item, etc.), TRUE otherwise.
    */
-  function flag($action, $content_id, $account = NULL) {
+  function flag($action, $content_id, $account = NULL, $skip_permission_check = FALSE) {
     if (!isset($account)) {
       $account = $GLOBALS['user'];
     }
@@ -352,7 +354,7 @@ class flag_flag {
       return FALSE;
     }
     
-    if (!$this->user_access($account)) {
+    if (!$skip_permission_check && !$this->user_access($account)) {
       // User has no permission to use this flag.
       return FALSE;
     }
@@ -820,6 +822,7 @@ class flag_node extends flag_flag {
     return array(
       'views table' => 'node',
       'join field' => 'nid',
+      'title field' => 'title',
       'title' => t('Node flag'),
       'help' => t('Limit results to only those nodes flagged by a certain flag; Or display information about the flag set on a node.'),
       'counter title' => t('Node flag counter'),
@@ -914,6 +917,7 @@ class flag_comment extends flag_flag  {
     return array(
       'views table' => 'comments',
       'join field' => 'cid',
+      'title field' => 'subject',
       'title' => t('Comment flag'),
       'help' => t('Limit results to only those comments flagged by a certain flag; Or display information about the flag set on a comment.'),
       'counter title' => t('Comment flag counter'),
@@ -1009,6 +1013,7 @@ class flag_user extends flag_flag {
     return array(
       'views table' => 'users',
       'join field' => 'uid',
+      'title field' => 'name',
       'title' => t('User flag'),
       'help' => t('Limit results to only those users flagged by a certain flag; Or display information about the flag set on a user.'),
       'counter title' => t('User flag counter'),
