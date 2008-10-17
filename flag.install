@@ -241,7 +241,7 @@ function flag_schema() {
     ),
     'primary key' => array('fid', 'content_type', 'content_id'),
     'indexes' => array(
-      'fid_content_type' => array('fid, content_type'),
+      'fid_content_type' => array('fid', 'content_type'),
       'content_type_content_id' => array('content_type', 'content_id'),
     ),
   );
