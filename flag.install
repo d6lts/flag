@@ -289,7 +289,17 @@ function flag_update_5000() {
 function flag_update_5001() {
   $ret = array();
 
-  if (db_column_exists('flags', 'flag_short')) {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $flag_short_column_exists = (bool) db_fetch_object(db_query("SHOW COLUMNS FROM {flags} LIKE 'flag_short'"));
+      break;
+    case 'pgsql':
+      $flag_short_column_exists = (bool) db_result(db_query("SELECT COUNT(pg_attribute.attname) FROM pg_class, pg_attribute WHERE pg_attribute.attrelid = pg_class.oid AND pg_class.relname = '{flags}' AND attname = 'flag_short'"));
+      break;
+  }
+
+  if ($flag_short_column_exists) {
     $result = db_query("SELECT * FROM {flags}");
     while ($flag = db_fetch_object($result)) {
       $options = unserialize($flag->options);
@@ -301,13 +311,13 @@ function flag_update_5001() {
       $options['unflag_message'] = $flag->unflag_message;
       db_query("UPDATE {flags} SET options = '%s' WHERE fid = %d", serialize($options), $flag->fid);
     }
-  
-    db_drop_field(&$ret, 'flags', 'flag_short');
-    db_drop_field(&$ret, 'flags', 'flag_long');
-    db_drop_field(&$ret, 'flags', 'flag_message');
-    db_drop_field(&$ret, 'flags', 'unflag_short');
-    db_drop_field(&$ret, 'flags', 'unflag_long');
-    db_drop_field(&$ret, 'flags', 'unflag_message');
+
+    $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN flag_short');
+    $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN flag_long');
+    $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN flag_message');
+    $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN unflag_short');
+    $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN unflag_long');
+    $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN unflag_message');
   }
   return $ret;
 }
