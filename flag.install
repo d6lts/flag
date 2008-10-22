@@ -69,7 +69,7 @@ function flag_requirements($phase) {
   $requirements = array();
   $t = get_t();
   if ($phase == 'install') {
-    if (_flag_flag_content_installed()) {
+    if (!defined('MAINTENANCE_MODE') && _flag_flag_content_installed()) {
       $requirements['flag_content_clash']['title'] = $t('Flag');
       $requirements['flag_content_clash']['severity'] = REQUIREMENT_ERROR;
       $requirements['flag_content_clash']['description'] = _flag_flag_content_message();
