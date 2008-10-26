@@ -250,7 +250,7 @@ function _flag_views_user_default_views(&$views) {
     ));
 
     $handler->override_option('access', array(
-      'type' => 'none',
+      'type' => 'role',
       'role' => drupal_map_assoc($flag->roles),
       'perm' => '',
     ));
