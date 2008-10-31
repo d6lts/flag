@@ -19,10 +19,12 @@ function flag_token_list($type = 'all') {
     $tokens['flag-action']['flag-content-id'] = t('The ID of content being flagged, may be a nid or cid.');
     $tokens['flag-action']['flag-count'] = t('The current count total for this flag.');
   }
-  if ($type == 'node' || $type == 'all') {
-    $flags = flag_get_flags('node');
-    foreach ($flags as $flag) {
-      $tokens['node']['flag-'. str_replace('_', '-', $flag->name) .'-count'] = t('Total flag count for flag @flag', array('@flag' => $flag->get_title()));
+  foreach (flag_get_types() as $flag_type) {
+    if ($type == $flag_type || $type == 'all') {
+      $flags = flag_get_flags($flag_type);
+      foreach ($flags as $flag) {
+        $tokens[$flag_type]['flag-'. str_replace('_', '-', $flag->name) .'-count'] = t('Total flag count for flag @flag', array('@flag' => $flag->get_title()));
+      }
     }
   }
   return $tokens;
@@ -45,13 +47,12 @@ function flag_token_values($type, $object = NULL) {
     $values['flag-content-id'] = $object->content_id;
     $values['flag-count'] = $object->count;
   }
-  elseif ($type == 'node') {
-    $flags = flag_get_flags('node');
+  if (in_array($type, flag_get_types())) {
+    $flags = flag_get_flags($type);
     foreach ($flags as $flag) {
-      $values['flag-'. str_replace('_', '-', $flag->name) .'-count'] = $flag->get_count($object->nid);
+      $values['flag-'. str_replace('_', '-', $flag->name) .'-count'] = $flag->get_count($flag->get_content_id($object));
     }
   }
-
   return $values;
 }
 
