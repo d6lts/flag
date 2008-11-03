@@ -810,7 +810,8 @@ function theme_flag($flag, $action, $content_id, $after_flagging = FALSE) {
     'content_id' => $content_id,
     'after_flagging' => $after_flagging,
   );
-  template_preprocess_flag($variables);
+  flag_template_preprocess('flag', $variables);
+
   extract($variables);
   ob_start();
   include $template;
@@ -887,7 +888,7 @@ function flag_phptemplate_adapter($flag, $action, $content_id, $after_flagging =
     'content_id' => $content_id,
     'after_flagging' => $after_flagging,
   );
-  template_preprocess_flag($variables);
+  flag_template_preprocess('flag', $variables);
 
   // Prepare an array of suggested templates to try.
   $suggestions = array();
@@ -902,6 +903,29 @@ function flag_phptemplate_adapter($flag, $action, $content_id, $after_flagging =
   // Finally, handle Drupal 5's jQuery bug. See explanation in theme_flag().
   $output = strtr($output, "\r\n", '  ');
   return $output;
+}
+
+/**
+ * Call module flag preprocess functions for Drupal 5.
+ *
+ * The preprocess functions for themes and phptemplate can be done in
+ * _phptemplate_variables(), but this adds preprocessing to modules that don't
+ * have this access in Drupal 5.
+ *
+ * @param $hook
+ *   The name of the template file hook whose variables are being preprocessed.
+ * @param $variables
+ *   The existing variables that will be passed to the template file.
+ */
+function flag_template_preprocess($hook, &$variables) {
+  if (function_exists('template_preprocess_'. $hook)) {
+    $function = 'template_preprocess_'. $hook;
+    $function($variables);
+  }
+  foreach (module_implements('preprocess_'. $hook) as $module) {
+    $function = $module .'_preprocess_'. $hook;
+    $function($variables);
+  }
 }
 
 /**
