@@ -209,9 +209,9 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
     $flags = flag_get_flags('node', $form['type']['#value'], $user);
 
     // Filter out flags which need to be included on the node form.
-    foreach ($flags as $fid => $flag) {
+    foreach ($flags as $name => $flag) {
       if (!$flag->show_on_form) {
-        unset($flags[$fid]);
+        unset($flags[$name]);
       }
     }
 
@@ -896,6 +896,17 @@ function _flag_format_plural($count, $format) {
   }
 }
 
+/**
+ * Return an array of flag names keyed by fid.
+ */
+function _flag_get_flag_names() {
+  $flags = flag_get_flags();
+  $flag_names = array();
+  foreach ($flags as $flag) {
+    $flag_names[$flag->fid] = $flag->name;
+  }
+  return $flag_names;
+}
 
 // ---------------------------------------------------------------------------
 // Non-Views public API
@@ -944,12 +955,12 @@ function flag_get_counts($content_type, $content_id, $reset = FALSE) {
  */
 function flag_get_flag($name = NULL, $fid = NULL) {
   $flags = flag_get_flags();
-  if (isset($fid)) {
-    return $flags[$fid];
+  if (isset($name)) {
+    return $flags[$name];
   }
-  elseif (isset($name)) {
+  elseif (isset($fid)) {
     foreach ($flags as $flag) {
-      if ($flag->name == $name) {
+      if ($flag->fid == $fid) {
         return $flag;
       }
     }
@@ -978,16 +989,16 @@ function flag_get_flag($name = NULL, $fid = NULL) {
 function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account = NULL, $reset = FALSE) {
   static $flags;
 
-  // Retreive a list of all flags, regardless of the parameters.
+  // Retrieve a list of all flags, regardless of the parameters.
   if (!isset($flags) || $reset) {
     $flags = array();
     $result = db_query("SELECT f.*, fn.type FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
     while ($row = db_fetch_object($result)) {
-      if (!isset($flags[$row->fid])) {
-        $flags[$row->fid] = flag_flag::factory($row);
+      if (!isset($flags[$row->name])) {
+        $flags[$row->name] = flag_flag::factory($row);
       }
       else {
-        $flags[$row->fid]->types[] = $row->type;
+        $flags[$row->name]->types[] = $row->type;
       }
     }
   }
@@ -997,18 +1008,18 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
 
   // Filter out flags based on type and subtype.
   if (isset($content_type) || isset($content_subtype)) {
-    foreach ($filtered_flags as $fid => $flag) {
+    foreach ($filtered_flags as $name => $flag) {
       if (!flag_content_enabled($flag, $content_type, $content_subtype)) {
-        unset($filtered_flags[$fid]);
+        unset($filtered_flags[$name]);
       }
     }
   }
 
   // Filter out flags based on account permissions.
   if (isset($account) && $account->uid != 1) {
-    foreach ($filtered_flags as $fid => $flag) {
+    foreach ($filtered_flags as $name => $flag) {
       if (!flag_access($flag, $account)) {
-        unset($filtered_flags[$fid]);
+        unset($filtered_flags[$name]);
       }
     }
   }
@@ -1045,11 +1056,11 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
 
   if (isset($content_id)) {
     if (!isset($flagged_content[$uid][$content_type][$content_id]) || $reset) {
-      $flags = flag_get_flags($content_type);
+      $flag_names = _flag_get_flag_names();
       $flagged_content[$uid][$content_type][$content_id] = array();
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d AND (uid = %d OR uid = 0)", $content_type, $content_id, $uid);
-      while ($flag = db_fetch_object($result)) {
-        $flagged_content[$uid][$content_type][$content_id][$flags[$flag->fid]->name] = $flag;
+      while ($flag_content = db_fetch_object($result)) {
+        $flagged_content[$uid][$content_type][$content_id][$flag_names[$flag_content->fid]] = $flag_content;
       }
     }
     return $flagged_content[$uid][$content_type][$content_id];
@@ -1057,11 +1068,11 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
 
   else {
     if (!isset($flagged_content[$uid]['all'][$content_type]) || $reset) {
-      $flags = flag_get_flags($content_type);
+      $flag_names = _flag_get_flag_names();
       $flagged_content[$uid]['all'][$content_type] = TRUE;
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0)", $content_type, $uid);
-      while ($flag = db_fetch_object($result)) {
-        $flagged_content[$uid][$content_type]['all'][$flags[$flag->fid]->name][$flag->content_id] = $flag;
+      while ($flag_content = db_fetch_object($result)) {
+        $flagged_content[$uid][$content_type]['all'][$flag_names[$flag_content->fid]][$flag_content->content_id] = $flag_content;
       }
     }
     return $flagged_content[$uid][$content_type]['all'];
@@ -1076,10 +1087,10 @@ function flag_get_content_flags($content_type, $content_id, $reset = FALSE) {
   static $content_flags;
 
   if (!isset($content_flags[$content_type][$content_id]) || $reset) {
-    $flags = flag_get_flags($content_type);
+    $flag_names = _flag_get_flag_names();
     $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d ORDER BY timestamp DESC", $content_type, $content_id);
-    while ($flag = db_fetch_object($result)) {
-      $content_flags[$content_type][$content_id]['users'][$flag->uid][$flags[$flag->fid]->name] = $flag;
+    while ($flag_content = db_fetch_object($result)) {
+      $content_flags[$content_type][$content_id]['users'][$flag_content->uid][$flag_names[$flag_content->fid]] = $flag_content;
     }
   }
 

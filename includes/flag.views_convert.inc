@@ -14,7 +14,6 @@
  */
 function flag_views_convert($display, $type, &$view, $field, $id) {
   static $flag_name;
-  $flags = flag_get_flags();
 
   // First, replace any sign of views_bookmark with flag's Views 1 equivelant.
   $key_search = array(
@@ -26,8 +25,8 @@ function flag_views_convert($display, $type, &$view, $field, $id) {
   foreach ($field as $property => $value) {
     foreach ($key_search as $search => $replace) {
       if (!empty($value) && is_string($value) && preg_match('/'. $search .'/', $value, $matches)) {
-        $fid = $matches[1];
-        $replace = $replace . $flags[$fid]->name;
+        $flag = flag_get_flag(NULL, $matches[1]);
+        $replace = $replace . $flag->name;
         $field[$property] = preg_replace('/'. $search .'/', $replace, $value);
       }
     }
