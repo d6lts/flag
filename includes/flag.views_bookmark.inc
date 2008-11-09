@@ -42,7 +42,6 @@ function flag_views_bookmark_update_prepare() {
   // Ensure the Flag tables are not installed.
   if (db_table_exists('flags')) {
     // Remove Flag tables if already present.
-    include_once(drupal_get_path('module', 'flag') .'/flag.install');
     flag_uninstall();
   }
 
