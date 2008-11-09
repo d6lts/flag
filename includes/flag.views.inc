@@ -299,8 +299,9 @@ function flag_arg_uid($op, &$query, $argtype, $arg = '') {
       $joininfo = $table_data[$table]['join'];
       $joininfo['extra']['uid'] = $uid;
 
-      $query->add_table($table, true, 1, $joininfo);
-      $query->add_where("$table.uid IS NOT NULL");
+      $tn = $query->add_table($table, true, 1, $joininfo);
+      $tname = $query->get_table_name($table, $tn);
+      $query->add_where("$tname.uid IS NOT NULL");
       break;
     case 'link':
       $name = ($query->name ? $query->name : variable_get('anonymous', t('Anonymous')));
