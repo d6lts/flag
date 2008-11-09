@@ -67,13 +67,8 @@ function flag_menu($may_cache) {
 function flag_init() {
   // Only load for non-cached pages.
   if (function_exists('drupal_set_content')) {
-    // We always load 'flag.inc', here and in .install, in the same method: using
-    // dirname(), not drupal_get_path(). That's because if we use different methods we
-    // might end up with slighly different paths, and PHP4 doesn't do pathname
-    // normalization before it checks whether a file has been included already.
-    include_once dirname(__FILE__) .'/flag.inc';
-
     $path = drupal_get_path('module', 'flag');
+    include_once $path .'/flag.inc';
     if (module_exists('views')) {
       include_once $path .'/includes/flag.views.inc';
     }

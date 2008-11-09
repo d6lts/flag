@@ -42,7 +42,6 @@ function flag_views_bookmark_update_prepare() {
   // Ensure the Flag tables are not installed.
   if (db_table_exists('flags')) {
     // Remove Flag tables if already present.
-    include_once(drupal_get_path('module', 'flag') .'/flag.install');
     flag_uninstall();
   }
 
@@ -169,7 +168,6 @@ function flag_views_bookmark_update_views() {
   $ret = array();
   // Ensure views is available.
   include_once(drupal_get_path('module', 'views') .'/views.module');
-  include_once(drupal_get_path('module', 'flag') .'/flag.inc');
   // Load the cache to ensure _views_get_default_views() is available.
   if (function_exists('views_load_cache')) {
     views_invalidate_cache();

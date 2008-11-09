@@ -12,9 +12,16 @@ function flag_install() {
     return;
   }
 
+  // Load the flag API in case we want to use it when installing.
+  include_once(drupal_get_path('module', 'flag') .'/flag.module');
+  // Explicitly loading 'flag.inc' is needed only for the D5 version. And this
+  // isn't needed for code in hook_update_nnn because update.php calls our
+  // module's hook_init() (indirectly, by doing a full bootstrap), which
+  // already loads 'flag.inc'.
+  include_once(drupal_get_path('module', 'flag') .'/flag.inc');
+
   // If Views Bookmark is available, skip the install and do an upgrade instead.
   if (strpos($GLOBALS['db_type'], 'mysql') === 0) {
-    include_once(drupal_get_path('module', 'flag') .'/flag.module');
     include_once(drupal_get_path('module', 'flag') .'/includes/flag.views_bookmark.inc');
     if (flag_views_bookmark_update_needed()) {
       flag_views_bookmark_update();
@@ -103,12 +110,6 @@ function flag_install() {
       $success = TRUE;
       break;
   }
-
-  // Future code in this hook may wish to utilize the flag API, so we make sure
-  // it's fully loaded. This is only needed for the D5 version. This isn't needed
-  // for code in hook_update because update.php calls our module's hook_init(),
-  // which already loads 'flag.inc'.
-  include_once dirname(__FILE__) .'/flag.inc';
 
   if ($success) {
     // Insert a starting record.
