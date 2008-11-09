@@ -176,8 +176,6 @@ function flag_views_bookmark_update_views() {
     views_load_cache();
   }
 
-  // Get list of available flags.
-  $flags = flag_get_flags();
   $key_search = array(
     '^views_bookmark_ops_([0-9]+)' => 'flag_ops_',
     '^views_bookmark_nodes_([0-9]+)' => 'flag_content_',
@@ -199,8 +197,8 @@ function flag_views_bookmark_update_views() {
           foreach ($key_search as $search => $replace) {
             $matches = array();
             if (!empty($value) && is_string($value) && preg_match('/'. $search .'/', $value, $matches)) {
-              $fid = $matches[1];
-              $replace = $replace . $flags[$fid]->name;
+              $flag = flag_get_flag(NULL, $matches[1]);
+              $replace = $replace . $flag->name;
               $view->{$view_portion}[$delta][$config] = preg_replace('/'. $search .'/', $replace, $value);
               $view_changed = TRUE;
             }
@@ -226,8 +224,8 @@ function flag_views_bookmark_update_views() {
         foreach ($key_search as $search => $replace) {
           $matches = array();
           if (!empty($value) && is_string($value) && preg_match('/'. $search .'/', $value, $matches)) {
-            $fid = $matches[1];
-            $replace = $replace . $flags[$fid]->name;
+            $flag = flag_get_flag(NULL, $matches[1]);
+            $replace = $replace . $flag->name;
             $view->{$view_portion}[$delta][$config] = preg_replace('/'. $search .'/', $replace, $value);
             $default_views_warnings[] = t('%name needs the %id @portion updated.', array('%name' => $view->name, '%id' => $value, '@portion' => $view_portion));
           }
