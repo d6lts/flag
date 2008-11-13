@@ -133,9 +133,8 @@ function flag_views_bookmark_update_tables() {
   $ret[] = update_sql("ALTER TABLE {flags} ADD PRIMARY KEY (fid)");
   $ret[] = update_sql("ALTER TABLE {flag_types} ADD INDEX (fid)");
   $ret[] = update_sql("ALTER TABLE {flag_counts} ADD PRIMARY KEY (fid, content_type, content_id)");
-  $ret[] = update_sql("ALTER TABLE {flag_content} ADD INDEX fid_content_type (fid, content_type)");
-  $ret[] = update_sql("ALTER TABLE {flag_content} ADD INDEX content_type_cotnent_id (content_type, content_id)");
-  $ret[] = update_sql("ALTER TABLE {flag_content} ADD PRIMARY KEY (fid, content_type, content_id, uid)");
+  $ret[] = update_sql("ALTER TABLE {flag_content} ADD fcid int unsigned NOT NULL auto_increment FIRST, ADD PRIMARY KEY (fcid)");
+  $ret[] = update_sql("ALTER TABLE {flag_content} ADD UNIQUE INDEX fid_content_type_content_id_uid (fid, content_type, content_id, uid)");
   $ret[] = update_sql("ALTER TABLE {flag_content} ADD INDEX content_type_content_id (content_type, content_id)");
   $ret[] = update_sql("ALTER TABLE {flag_content} ADD INDEX content_type_uid (content_type, uid)");
 

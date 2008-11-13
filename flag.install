@@ -5,7 +5,7 @@
  * Implementation of hook_install().
  */
 function flag_install() {
-  
+
   if (_flag_flag_content_installed()) {
     // Prevent clash with the "Flag content" module. The flag_enable() hook will
     // print the error message.
@@ -44,12 +44,14 @@ function flag_install() {
         UNIQUE KEY (name)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
       db_query("CREATE TABLE {flag_content} (
+        fcid int unsigned NOT NULL auto_increment,
         fid smallint unsigned NOT NULL default '0',
         uid int(10) unsigned NOT NULL default '0',
         content_type varchar(32) default '',
         content_id int(10) unsigned NOT NULL default '0',
         timestamp int(11) unsigned NOT NULL default '0',
-        PRIMARY KEY (fid, content_type, content_id, uid),
+        PRIMARY KEY (fcid),
+        UNIQUE INDEX fid_content_type_content_id_uid (fid, content_type, content_id, uid),
         INDEX content_type_content_id (content_type, content_id),
         INDEX content_type_uid (content_type, uid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
@@ -84,13 +86,15 @@ function flag_install() {
       db_query("ALTER TABLE {flags} ADD CONSTRAINT {flags}_name_key UNIQUE (name)");
       db_query("CREATE SEQUENCE {flags}_fid_seq");
       db_query("CREATE TABLE {flag_content} (
+        fcid serial,
         fid smallint NOT NULL default '0',
         uid int NOT NULL default '0',
         content_type varchar(32) default '',
         content_id int NOT NULL default '0',
         timestamp int NOT NULL default '0',
-        PRIMARY KEY (fid, content_type, content_id, uid)
+        PRIMARY KEY (fcid)
       )");
+      db_query('ALTER TABLE {flag_content} ADD CONSTRAINT {flag_content}_fid_content_type_content_id_uid_key UNIQUE (fid, content_type, content_id, uid)');
       db_query('CREATE INDEX {flag_content}_content_type_content_id_idx ON {flag_content} (content_type, content_id)');
       db_query('CREATE INDEX {flag_content}_content_type_uid_idx ON {flag_content} (content_type, uid)');
       db_query("CREATE TABLE {flag_types} (
@@ -327,6 +331,31 @@ function flag_update_5001() {
     $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN unflag_short');
     $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN unflag_long');
     $ret[] = update_sql('ALTER TABLE {flags} DROP COLUMN unflag_message');
+  }
+  return $ret;
+}
+
+/**
+ * Add a 'serial' primary key, fcid, to the flag_content table.
+ */
+function flag_update_5002() {
+  $ret = array();
+
+  if (!_flag_column_exists('flag_content', 'fcid')) {
+    switch ($GLOBALS['db_type']) {
+      case 'mysql':
+      case 'mysqli':
+        $ret[] = update_sql('ALTER TABLE {flag_content} DROP PRIMARY KEY');
+        $ret[] = update_sql('ALTER TABLE {flag_content} ADD fcid int unsigned NOT NULL auto_increment FIRST, ADD PRIMARY KEY (fcid)');
+        $ret[] = update_sql('ALTER TABLE {flag_content} ADD UNIQUE INDEX fid_content_type_content_id_uid (fid, content_type, content_id, uid)');
+        break;
+      case 'pgsql':
+        $ret[] = update_sql('ALTER TABLE {flag_content} DROP CONSTRAINT {flag_content}_pkey');
+        db_add_column($ret, 'flag_content', 'fcid', 'serial');
+        $ret[] = update_sql('ALTER TABLE {flag_content} ADD PRIMARY KEY (fcid)');
+        $ret[] = update_sql('ALTER TABLE {flag_content} ADD CONSTRAINT {flag_content}_fid_content_type_content_id_uid_key UNIQUE (fid, content_type, content_id, uid)');
+        break;
+    }
   }
   return $ret;
 }
