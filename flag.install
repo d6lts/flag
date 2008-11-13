@@ -112,28 +112,28 @@ function flag_install() {
   }
 
   if ($success) {
-    // Insert a starting record.
-    // Note that UI strings in the following SQL, e.g. "Bookmark this", aren't
-    // wrapped in t() and that's intentional: they are passed to t() later,
-    // thus allowing for multilingual sites.
-    $options = array(
+    // Install a demonstration flag.
+    $flag = flag_flag::factory_by_content_type('node');
+    $configuration = array(
+      'name' => 'bookmarks',
+      'global' => 0,
       'show_on_page' => 1,
       'show_on_teaser' => 1,
       'show_on_form' => 1,
+      // The following UI labels aren't wrapped in t() because they are written
+      // to the DB in English. They are passed to t() later, thus allowing for
+      // multilingual sites.
+      'title' => 'Bookmarks',
       'flag_short' => 'Bookmark this',
       'flag_long' => 'Add this post to your bookmarks',
       'flag_message' => 'This post has been added to your bookmarks',
       'unflag_short' => 'Unbookmark this',
       'unflag_long' => 'Remove this post from your bookmarks',
       'unflag_message' => 'This post has been removed from your bookmarks',
+      'types' => array('story', 'forum', 'blog'),
     );
-    db_query("INSERT INTO {flags} (fid, content_type, name, title, roles, global, options) VALUES (1, 'node', 'bookmarks', 'Bookmarks', '2', 0, '%s')", serialize($options));
-    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'story')");
-    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'forum')");
-    db_query("INSERT INTO {flag_types} (fid, type) VALUES (1, 'blog')");
-
-    // Bump up the counter so next fid is, at least, '2'.
-    db_next_id('{flags}_fid');
+    $flag->form_input($configuration);
+    $flag->save();
   }
 
   if ($success) {
