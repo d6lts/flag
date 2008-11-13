@@ -42,6 +42,11 @@ function flag_fetch_definition($content_type = NULL) {
   static $cache;
   if (!isset($cache)) {
     $cache = module_invoke_all('flag_definitions');
+    if (!isset($cache['node'])) {
+      // We want our API to be available in hook_install, but our module is not
+      // enabled by then, so let's load our implementation directly:
+      $cache += flag_flag_definitions();
+    }
   }
 
   if (isset($content_type)) {
