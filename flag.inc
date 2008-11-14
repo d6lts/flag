@@ -125,7 +125,7 @@ class flag_flag {
    *
    * @static
    */
-  function factory($row) {
+  function factory_by_row($row) {
     $flag = flag_create_handler($row->content_type);
 
     // Lump all data unto the object...

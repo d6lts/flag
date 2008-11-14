@@ -1249,7 +1249,7 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
     $result = db_query("SELECT f.*, fn.type FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
     while ($row = db_fetch_object($result)) {
       if (!isset($flags[$row->name])) {
-        $flags[$row->name] = flag_flag::factory($row);
+        $flags[$row->name] = flag_flag::factory_by_row($row);
       }
       else {
         $flags[$row->name]->types[] = $row->type;
