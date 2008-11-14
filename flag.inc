@@ -745,12 +745,27 @@ class flag_node extends flag_flag {
       'show_on_page' => TRUE,
       'show_on_teaser' => TRUE,
       'show_on_form' => FALSE,
+      'i18n' => 0,
     );
     return $options;
   }
   
   function options_form(&$form) {
     parent::options_form($form);
+    // Note there isn't a translation helpers module in Drupal 5,
+    // this feature is essentially Drupal 6 only.
+    $form['i18n'] = array(
+      '#type' => 'radios',
+      '#title' => t('Internationalization'),
+      '#options' => array(
+        '1' => t('Flag translations of content as a group'),
+        '0' => t('Flag each translation of content separately'),
+      ),
+      '#default_value' => $this->i18n,
+      '#description' => t('Flagging translations as a group effectively allows users to flag the original piece of content regardless of the translation they are viewing. Changing this setting will <strong>not</strong> update content that has been flagged already.'),
+      '#access' => module_exists('translation_helpers'),
+      '#weight' => 5,
+    );
     $form['display']['show_on_teaser'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link on node teaser'),
@@ -784,11 +799,40 @@ class flag_node extends flag_flag {
     return $node->nid;
   }
 
+  /**
+   * Adjust the Content ID to find the translation parent if i18n-enabled.
+   *
+   * @param $content_id
+   *   The nid for the content.
+   * @return
+   *   The tnid if available, the nid otherwise.
+   */
+  function get_translation_id($content_id) {
+    if ($this->i18n) {
+      $node = $this->fetch_content($content_id);
+      if (!empty($node->tnid)) {
+        $content_id = $node->tnid;
+      }
+    }
+    return $content_id;
+  }
+
   function uses_hook_link($teaser) {
     if ($teaser && $this->show_on_teaser || !$teaser && $this->show_on_page) {
       return TRUE;
     }
     return FALSE;
+  }
+
+  function flag($action, $content_id, $account = NULL, $skip_permission_check = FALSE) {
+    $content_id = $this->get_translation_id($content_id);
+    return parent::flag($action, $content_id, $account, $skip_permission_check);
+  }
+
+
+  function is_flagged($content_id, $uid = NULL) {
+    $content_id = $this->get_translation_id($content_id);
+    return parent::is_flagged($content_id, $uid);
   }
 
   function get_labels_token_types() {
