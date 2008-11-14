@@ -91,7 +91,7 @@ Drupal.flagLink = function(context) {
     return false;
   }
 
-  $('a.flag:not(.flag-processed)').addClass('flag-processed').click(flagClick);
+  $('a.flag-link-toggle:not(.flag-processed)').addClass('flag-processed').click(flagClick);
 };
 
 

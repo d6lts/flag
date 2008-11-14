@@ -34,6 +34,22 @@ class flag_handler_field_ops extends views_handler_field {
     }
   }
 
+  function options(&$options) {
+    parent::options($options);
+    $options['link_type'] = '';
+  }
+
+  function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
+
+    $form['link_type'] = array(
+      '#type' => 'radios',
+      '#title' => t('Link type'),
+      '#options' => array('' => t('Use flag link settings')) + _flag_link_type_options(),
+      '#default_value' => $this->options['link_type'],
+    );
+  }
+
   /**
    * Override base ::query(). The purpose here is to make it possible for the
    * render() method to know two things: what's the content ID, and whether
@@ -110,7 +126,10 @@ class flag_handler_field_ops extends views_handler_field {
       // Flag does not apply to this content.
       return;
     }
-    
+
+    if (!empty($this->options['link_type'])) {
+      $flag->link_type = $this->options['link_type'];
+    }
     return $flag->theme($is_flagged ? 'unflag' : 'flag', $content_id);
   }
 }
