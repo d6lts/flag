@@ -308,8 +308,28 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
       }
       break;
     case 'delete':
-      db_query("DELETE FROM {flag_content} WHERE content_type = 'node' AND content_id = %d", $node->nid);
-      db_query("DELETE FROM {flag_counts} WHERE content_type = 'node' AND content_id = %d", $node->nid);
+      foreach (flag_get_flags('node') as $flag) {
+        // If the flag is being tracked by translation set and the node is part
+        // of a translation set, don't delete the flagging record.
+        // Instead, data will be updated in the 'translation_change' op, below.
+        if (!$flag->i18n || empty($node->tnid)) {
+          db_query("DELETE FROM {flag_content} WHERE fid = %d AND content_id = %d", $flag->fid, $node->nid);
+          db_query("DELETE FROM {flag_counts} WHERE fid = %d AND content_id = %d", $flag->fid, $node->nid);
+        }
+      }
+      break;
+    case 'translation_change':
+      if (isset($node->translation_change)) {
+        // If there is only one node remaining, track by nid rather than tnid.
+        // Otherwise, use the new tnid.
+        $content_id = $node->translation_change['new_tnid'] == 0 ? $node->translation_change['remaining_nid'] : $node->translation_change['new_tnid'];
+        foreach (flag_get_flags('node') as $flag) {
+          if ($flag->i18n) {
+            db_query("UPDATE {flag_content} SET content_id = %d WHERE fid = %d AND content_id = %d", $content_id, $flag->fid, $node->translation_change['old_tnid']);
+            db_query("UPDATE {flag_counts} SET content_id = %d WHERE fid = %d AND content_id = %d", $content_id, $flag->fid, $node->translation_change['old_tnid']);
+          }
+        }
+      }
       break;
   }
 }
@@ -590,6 +610,14 @@ function flag_form(&$form_state, $name, $type = NULL) {
     );
   }
 
+  $form['global'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Global flag'),
+    '#default_value' => $flag->global,
+    '#description' => t('If checked, flag is considered "global" and each node is either flagged or not. If unchecked, each user has individual flags on content.'),
+    '#weight' => 1,
+  );
+
   $form['roles'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Roles that may use this flag'),
@@ -597,13 +625,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#default_value' => $flag->roles,
     '#required' => TRUE,
     '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
-  );
-
-  $form['global'] = array(
-    '#type' => 'checkbox',
-    '#title' => t("Global flag"),
-    '#default_value' => $flag->global,
-    '#description' => t('If checked, flag is considered "global" and each node is either flagged or not. If unchecked, each user has individual flags on content.'),
+    '#weight' => 5,
   );
 
   $form['types'] = array(
@@ -612,7 +634,8 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#options' => node_get_types('names'),
     '#default_value' => $flag->types,
     '#description' => t('Check any node types that this flag may be used on. You must check at least one node type.'),
-    '#required' => TRUE
+    '#required' => TRUE,
+    '#weight' => 10,
   );
 
   $form['display'] = array(
@@ -620,6 +643,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#title' => t('Display options'),
     '#description' => t('Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here. It is legitimate to have none of the following checkboxes ticked, if, for some reason, you wish <a href="@placement-url">to place the the links on the page yourself</a>.', array('@placement-url' => 'http://drupal.org/node/295383')),
     '#tree' => FALSE,
+    '#weight' => 20,
   );
 
   $form['display']['link_type'] = array(

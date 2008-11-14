@@ -80,6 +80,12 @@ function flag_requirements($phase) {
       $requirements['flag_content_clash']['description'] = _flag_flag_content_message();
     }
   }
+
+  if (module_exists('translation') && !module_exists('translation_helpers')) {
+    $requirements['flag_translation']['title'] = $t('Flag');
+    $requirements['flag_translation']['severity'] = REQUIREMENT_ERROR;
+    $requirements['flag_translation']['description'] = $t('To have the flag module work with translations, you need to install and enable the <a href="http://drupal.org/project/translation_helpers">Translation helpers</a> module.');
+  }
   return $requirements;
 }
 
