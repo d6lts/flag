@@ -187,6 +187,10 @@ function flag_views_tables() {
           'handler' => 'flag_field_handler_ops',
           'query_handler' => 'flag_query_handler_ops',
           'fid' => $flag->fid,
+          'option' => array(
+             '#type' => 'select',
+             '#options' => array('' => t('Use flag link settings')) + _flag_link_type_options(),
+          ),
         ),
       ),
     );
@@ -207,6 +211,10 @@ function flag_field_handler_ops($fieldinfo, $fielddata, $value, $data) {
   if (!flag_access($flag) || !flag_content_enabled($flag, 'node', $type)) {
     // Flag does not apply to this user or node type.
     return;
+  }
+
+  if ($fielddata['options'] != '') {
+    $flag->link_type = $fielddata['options'];
   }
 
   return $flag->theme($is_flagged ? 'unflag' : 'flag', $data->nid);

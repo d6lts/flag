@@ -28,7 +28,8 @@ function flag_menu($may_cache) {
       'access' => user_access('administer flags'),
       'type' => MENU_CALLBACK,
     );
-    $items[] = array('path' => 'admin/build/flags/delete',
+    $items[] = array(
+      'path' => 'admin/build/flags/delete',
       'title' => t('Delete flags'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('flag_delete_confirm'),
@@ -50,9 +51,18 @@ function flag_menu($may_cache) {
       'access' => user_access('administer flags'),
       'type' => MENU_LOCAL_TASK,
     );
-    $items[] = array('path' => 'flag',
+    $items[] = array(
+      'path' => 'flag',
       'title' => t('Flag'),
       'callback' => 'flag_page',
+      'access' => user_access('access content'),
+      'type' => MENU_CALLBACK,
+    );
+    $items[] = array(
+      'path' => 'flag/confirm',
+      'title' => t('Flag confirm'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('flag_confirm'),
       'access' => user_access('access content'),
       'type' => MENU_CALLBACK,
     );
@@ -161,6 +171,42 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
   }
 }
 /**
+ * Implementation of hook_flag_link().
+ *
+ * When Flag uses a link type provided by this module, it will call this
+ * implementation of hook_flag_link(). It returns a single link's attributes,
+ * using the same structure as hook_link(). Note that "title" is provided by
+ * the Flag configuration if not specified here.
+ *
+ * @param $flag
+ *   The full flag object of for the flag link being generated.
+ * @param $action
+ *   The action this link will perform. Either 'flag' or 'unflag'.
+ * @param $content_id
+ *   The ID of the node, comment, user, or other object being flagged.
+ * @return
+ *   An array defining properties of the link.
+ */
+function flag_flag_link(&$flag, $action, $content_id) {
+  $token = flag_get_token($content_id);
+  return array(
+    'href' => "flag/". ($flag->link_type == 'confirm' ? 'confirm/' : '') ."$action/$flag->name/$content_id",
+    'query' => drupal_get_destination() .'&token='. $token,
+  );
+}
+
+/**
+ * Implementation of hook_flag_link_types().
+ */
+function flag_flag_link_types() {
+  return array(
+    'toggle' => t('JavaScript toggle'),
+    'normal' => t('Normal link'),
+    'confirm' => t('Confirmation form'),
+  );
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function flag_form_alter($form_id, &$form) {
@@ -190,7 +236,8 @@ function flag_form_alter($form_id, &$form) {
       );
     }
   }
-  elseif (($form_id == $form['type']['#value'] .'_node_form')) {
+  elseif (isset($form['type']) && isset($form['#node'])
+      && ($form_id == $form['type']['#value'] .'_node_form')) {
     if (!$user->uid) {
       return;
     }
@@ -486,11 +533,18 @@ function flag_form($name = NULL, $type = NULL) {
     '#description' => t('The description of the "flag this" link. Usually displayed on mouseover.'),
   );
 
+  $form['flag_confirmation'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Flag confirmation message'),
+    '#default_value' => $flag->flag_confirmation,
+    '#description' => t('Message displayed if the user has clicked the "flag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to flag this content?"'),
+  );
+
   $form['flag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Flagged message'),
     '#default_value' => $flag->flag_message,
-    '#description' => t('Message displayed when the user has clicked the "flag this" link. If javascript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
+    '#description' => t('Message displayed after flagging content. If JavaScript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
   );
 
   $form['unflag_short'] = array(
@@ -508,11 +562,18 @@ function flag_form($name = NULL, $type = NULL) {
     '#description' => t('The description of the "unflag this" link. Usually displayed on mouseover.'),
   );
 
+  $form['unflag_confirmation'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Unflag confirmation message'),
+    '#default_value' => $flag->unflag_confirmation,
+    '#description' => t('Message displayed if the user has clicked the "unflag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to unflag this content?"'),
+  );
+
   $form['unflag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflagged message'),
     '#default_value' => $flag->unflag_message,
-    '#description' => t('Message displayed when the user has clicked the "unflag this" link. If javascript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
+    '#description' => t('Message displayed after content has been unflagged. If JavaScript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
   );
 
   if (module_exists('token')) {
@@ -562,6 +623,14 @@ function flag_form($name = NULL, $type = NULL) {
     '#tree' => FALSE,
   );
 
+  $form['display']['link_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Link type'),
+    '#options' => _flag_link_type_options(),
+    '#default_value' => $flag->link_type,
+    '#weight' => 2,
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -586,6 +655,15 @@ function flag_form_validate($form_id, $form_values, $form) {
   foreach (element_children($form) as $field) {
     if ($form[$field]['#type'] == 'checkboxes' && $form[$field]['#required'] && !array_filter($form_values[$field])) {
       form_error($form[$field], t('!name field is required.', array('!name' => $form[$field]['#title'])));
+    }
+  }
+
+  if ($form_values['link_type'] == 'confirm') {
+    if (empty($form_values['flag_confirmation'])) {
+      form_set_error('flag_confirmation', t('A flag confirmation message is required when using the confirmation link type.'));
+    }
+    if (empty($form_values['unflag_confirmation'])) {
+      form_set_error('unflag_confirmation', t('An unflag confirmation message is required when using the confirmation link type.'));
     }
   }
 
@@ -659,8 +737,9 @@ function _flag_clear_cache() {
  *
  * Used both for the regular callback as well as the JS version.
  */
-function flag_page($action, $flag_name, $content_id, $token) {
+function flag_page($action, $flag_name, $content_id) {
   $js = isset($_REQUEST['js']);
+  $token = $_REQUEST['token'];
 
   // Check the flag token, then perform the flagging.
   if (!flag_check_token($token, $content_id)) {
@@ -694,6 +773,7 @@ function flag_page($action, $flag_name, $content_id, $token) {
   if ($js) {
     drupal_set_header('Content-Type: text/javascript; charset=utf-8');
     $flag = flag_get_flag($flag_name);
+    $flag->link_type = 'toggle';
     print drupal_to_js(array(
       'status' => TRUE,
       'newLink' => $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id, TRUE),
@@ -705,6 +785,37 @@ function flag_page($action, $flag_name, $content_id, $token) {
     drupal_set_message($flag->get_label($action . '_message', $content_id));
     drupal_goto();
   }
+}
+
+/**
+ * Form for confirming the (un)flagging of a piece of content.
+ */
+function flag_confirm($action = 'flag', $flag_name, $content_id = '') {
+  $form = array();
+
+  $form['action'] = array(
+    '#type' => 'value',
+    '#value' => $action,
+  );
+  $form['flag_name'] = array(
+    '#type' => 'value',
+    '#value' => $flag_name,
+  );
+  $form['content_id'] = array(
+    '#type' => 'value',
+    '#value' => $content_id,
+  );
+
+  $flag = flag_get_flag($flag_name);
+  $question = $flag->get_label($action .'_confirmation', $content_id);
+  $path = isset($_GET['destination']) ? $_GET['destination'] : '<front>';
+  $yes = $flag->get_label($action .'_short', $content_id);
+
+  return confirm_form($form, $question, $path, '', $yes);
+}
+
+function flag_confirm_submit($form_id, $form_values) {
+  flag_page($form_values['action'], $form_values['flag_name'], $form_values['content_id']);
 }
 
 /**
@@ -851,18 +962,43 @@ function template_preprocess_flag(&$variables) {
   $action = $variables['action'];
   $content_id = $variables['content_id'];
 
-  $variables['setup'] = $first_time;
-  $first_time = FALSE;
-  $token = flag_get_token($content_id);
-  $variables['link_href'] = check_url(url("flag/$action/$flag->name/$content_id/$token", drupal_get_destination()));
-  $variables['link_text'] = strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
-  $variables['link_title'] = strip_tags($flag->get_label($action . '_long', $content_id));
+  // Generate the link URL.
+  $link_types = flag_get_link_types();
+  $link_type_module = $link_types[$flag->link_type]['module'];
+  $link = module_invoke($link_type_module, 'flag_link', $flag, $action, $content_id);
+  if (isset($link['title']) && empty($link['html'])) {
+    $link['title'] = check_plain($link['title']);
+  }
+
+  if ($flag->link_type == 'toggle' && $first_time) {
+    $variables['setup'] = $first_time;
+    $first_time = FALSE;
+  }
+  else {
+    $variables['setup'] = FALSE;
+  }
+
+  $variables['link_href'] = url($link['href'], $link['query'], $link['fragment']);
+  $variables['link_text'] = isset($link['title']) ? $link['title'] : strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
+  $variables['link_title'] = isset($link['attributes']['title']) ? $link['attributes']['title'] : strip_tags($flag->get_label($action . '_long', $content_id));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
   $variables['last_action'] = ($action == 'flag' ? 'unflagged' : 'flagged');
+  $variables['flag_classes_array'] = array();
+  $variables['flag_classes_array'][] = 'flag';
+  $variables['flag_classes_array'][] = $variables['action'] .'-action';
+  $variables['flag_classes_array'][] = 'flag-link-'. $flag->link_type;
+
+  if (isset($link['attributes']['class'])) {
+    $variables['flag_classes_array'][] = $link['attributes']['class'];
+  }
+
   if ($variables['after_flagging']) {
     $inverse_action = ($action == 'flag' ? 'unflag' : 'flag');
     $variables['message_text'] = $flag->get_label($inverse_action . '_message', $content_id);
+    $variables['flag_classes_array'][] = $variables['last_action'];
   }
+
+  $variables['flag_classes'] = implode(' ', $variables['flag_classes_array']);
 }
 
 /**
@@ -988,6 +1124,18 @@ function _flag_get_flag_names() {
     $flag_names[$flag->fid] = $flag->name;
   }
   return $flag_names;
+}
+
+/**
+ * Return an array of flag link types suitable for a select list or radios.
+ */
+function _flag_link_type_options() {
+  $options = array();
+  $types = flag_get_link_types();
+  foreach ($types as $type_name => $type) {
+    $options[$type_name] = $type['title'];
+  }
+  return $options;
 }
 
 // ---------------------------------------------------------------------------
@@ -1208,6 +1356,28 @@ function flag_create_link($flag_name, $content_id) {
     return;
   }
   return $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id);
+}
+
+/**
+ * Return an array of link types provided by modules.
+ */
+function flag_get_link_types($reset = FALSE) {
+  static $link_types;
+
+  if (!isset($link_types) || $reset) {
+    $link_types = array();
+    foreach (module_implements('flag_link_types') as $module) {
+      $module_types = module_invoke($module, 'flag_link_types');
+      foreach ($module_types as $type_name => $type_title) {
+        $link_types[$type_name] = array(
+          'module' => $module,
+          'title' => $type_title,
+        );
+      }
+    }
+  }
+
+  return $link_types;
 }
 
 /**

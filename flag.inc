@@ -171,9 +171,12 @@ class flag_flag {
       'flag_short' => '',
       'flag_long' => '',
       'flag_message' => '',
+      'flag_confirmation' => '',
       'unflag_short' => '',
       'unflag_long' => '',
       'unflag_message' => '',
+      'unflag_confirmation' => '',
+      'link_type' => 'toggle',
     );
   }
 

@@ -12,6 +12,7 @@
  *   following variables don't suffice.
  * - $flag_name_css: The flag name, with all "_" replaced with "-". For use in 'class'
  *   attributes.
+ * - $flag_classes: A space-separated list of CSS classes that should be applied to the link.
  *
  * - $action: The action the link is about to carry out, either "flag" or "unflag".
  * - $last_action: The action, as a passive English verb, either "flagged" or 
@@ -40,7 +41,7 @@
   }
 ?>
 <span class="flag-wrapper flag-<?php echo $flag_name_css; ?>">
-  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="flag <?php echo $action; ?>-action <?php echo $after_flagging ? $last_action : ''; ?>"><?php echo $link_text; ?></a><span class="flag-throbber">&nbsp;</span>
+  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="<?php print $flag_classes ?>"><?php echo $link_text; ?></a><span class="flag-throbber">&nbsp;</span>
   <?php if ($after_flagging): ?>
     <span class="flag-message flag-<?php echo $last_action; ?>-message">
       <?php echo $message_text; ?>
