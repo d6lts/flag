@@ -1128,7 +1128,9 @@ function flag_get_counts($content_type, $content_id, $reset = FALSE) {
 function flag_get_flag($name = NULL, $fid = NULL) {
   $flags = flag_get_flags();
   if (isset($name)) {
-    return $flags[$name];
+    if (isset($flags[$name])) {
+      return $flags[$name];
+    }
   }
   elseif (isset($fid)) {
     foreach ($flags as $flag) {
