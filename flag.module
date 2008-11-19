@@ -196,7 +196,7 @@ function flag_flag_link(&$flag, $action, $content_id) {
   $token = flag_get_token($content_id);
   return array(
     'href' => "flag/". ($flag->link_type == 'confirm' ? 'confirm/' : '') ."$action/$flag->name/$content_id",
-    'query' => drupal_get_destination() .'&token='. $token,
+    'query' => drupal_get_destination() . ($flag->link_type == 'confirm' ? '' : '&token='. $token),
   );
 }
 
@@ -829,7 +829,18 @@ function flag_confirm(&$form_state, $action = 'flag', $flag_name, $content_id = 
 }
 
 function flag_confirm_submit(&$form, &$form_state) {
-  flag_page($form_state['values']['action'], $form_state['values']['flag_name'], $form_state['values']['content_id']);
+  $action = $form_state['values']['action'];
+  $flag_name = $form_state['values']['flag_name'];
+  $content_id = $form_state['values']['content_id'];
+
+  $result = flag($action, $flag_name, $content_id);
+  if (!$result) {
+    drupal_set_message(t('You are not allowed to flag, or unflag, this content.'));
+  }
+  else {
+    $flag = flag_get_flag($flag_name);
+    drupal_set_message($flag->get_label($action . '_message', $content_id));
+  }
 }
 
 /**
