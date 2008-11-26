@@ -405,7 +405,33 @@ function flag_admin_page() {
     );
   }
 
-  $output .= theme('table', array(t('Flag'), t('Flag type'), t('Roles'), t('Node types'), t('Global?'), t('Operations')), $rows);
+  $header = array(t('Flag'), t('Flag type'), t('Roles'), t('Node types'), t('Global?'), t('Operations'));
+  $output .= theme('table', $header, $rows);
+
+  // Build a list of disabled, module-based flags.
+  $default_flags = flag_get_default_flags(TRUE);
+
+  $rows = array();
+  foreach ($default_flags as $name => $flag) {
+    if (!isset($flags[$name])) {
+      $ops = theme('links', array(
+        'flags_enable' =>  array('title' => t('enable'), 'href' => "admin/build/flags/edit/". $flag->name),
+      ));
+
+      $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles));
+      $rows[] = array(
+        $flag->name,
+        $flag->module,
+        $flag->content_type,
+        $ops,
+      );
+    }
+  }
+
+  if (!empty($rows)) {
+    $header = array(t('Disabled Flags'), t('Module'), t('Flag type'), t('Operations'));
+    $output .= theme('table', $header, $rows);
+  }
 
   if (!module_exists('views')) {
     $output .= '<p>' . t('The <a href="@views-url">Views</a> module is not installed, or not enabled. It is recommended that you install the Views module to be able to easily produce lists of flagged content.', array('@views-url' => url('http://drupal.org/project/views'))) . '</p>';
@@ -506,7 +532,14 @@ function flag_form($name = NULL, $type = NULL) {
     // Editing an existing flag.
     $flag = flag_get_flag($name);
     if (empty($flag)) {
-      drupal_goto('admin/build/flags');
+      // Check if we're overriding a default flag.
+      $default_flags = flag_get_default_flags(TRUE);
+      if (isset($default_flags[$name])) {
+        $flag = $default_flags[$name];
+      }
+      else {
+        drupal_goto('admin/build/flags');
+      }
     }
     drupal_set_title(t('Edit @title flag', array('@title' => $flag->get_title())));
   }
@@ -523,6 +556,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#description' => t('The machine-name for this flag. It may be up to 32 characters long and my only contain lowercase letters, underscores, and numbers. It will be used in URLs and in all API calls.'),
     '#maxlength' => 32,
     '#required' => TRUE,
+    '#access' => empty($flag->locked['name']),
   );
 
   if (!empty($flag->fid)) {
@@ -536,6 +570,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#description' => t('A short, descriptive title for this flag. It will be used in administrative interfaces to refer to this flag, and in page titles and menu items of some <a href="@insite-views-url">views</a> this module provides (theses are customizable, though). Some examples could be <em>Bookmarks</em>, <em>Favorites</em>, or <em>Offensive</em>.', array('@insite-views-url' => url('admin/build/views'))),
     '#maxlength' => 255,
     '#required' => TRUE,
+    '#access' => empty($flag->locked['title']),
   );
 
   $form['flag_short'] = array(
@@ -544,6 +579,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#default_value' => $flag->flag_short,
     '#description' => t('The text for the "flag this" link for this flag.'),
     '#required' => TRUE,
+    '#access' => empty($flag->locked['flag_short']),
   );
 
   $form['flag_long'] = array(
@@ -551,6 +587,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#title' => t('Flag link description'),
     '#default_value' => $flag->flag_long,
     '#description' => t('The description of the "flag this" link. Usually displayed on mouseover.'),
+    '#access' => empty($flag->locked['flag_long']),
   );
 
   $form['flag_confirmation'] = array(
@@ -558,6 +595,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#title' => t('Flag confirmation message'),
     '#default_value' => $flag->flag_confirmation,
     '#description' => t('Message displayed if the user has clicked the "flag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to flag this content?"'),
+    '#access' => empty($flag->locked['flag_confirmation']),
   );
 
   $form['flag_message'] = array(
@@ -565,6 +603,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#title' => t('Flagged message'),
     '#default_value' => $flag->flag_message,
     '#description' => t('Message displayed after flagging content. If JavaScript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
+    '#access' => empty($flag->locked['flag_message']),
   );
 
   $form['unflag_short'] = array(
@@ -573,6 +612,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#default_value' => $flag->unflag_short,
     '#description' => t('The text for the "unflag this" link for this flag.'),
     '#required' => TRUE,
+    '#access' => empty($flag->locked['unflag_short']),
   );
 
   $form['unflag_long'] = array(
@@ -580,6 +620,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#title' => t('Unflag link description'),
     '#default_value' => $flag->unflag_long,
     '#description' => t('The description of the "unflag this" link. Usually displayed on mouseover.'),
+    '#access' => empty($flag->locked['unflag_long']),
   );
 
   $form['unflag_confirmation'] = array(
@@ -587,6 +628,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#title' => t('Unflag confirmation message'),
     '#default_value' => $flag->unflag_confirmation,
     '#description' => t('Message displayed if the user has clicked the "unflag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to unflag this content?"'),
+    '#access' => empty($flag->locked['unflag_confirmation']),
   );
 
   $form['unflag_message'] = array(
@@ -594,6 +636,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#title' => t('Unflagged message'),
     '#default_value' => $flag->unflag_message,
     '#description' => t('Message displayed after content has been unflagged. If JavaScript is enabled, it will be displayed below the link. If not, it will be displayed in the message area.'),
+    '#access' => empty($flag->locked['unflag_message']),
   );
 
   if (module_exists('token')) {
@@ -617,6 +660,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#default_value' => $flag->global,
     '#description' => t('If checked, flag is considered "global" and each node is either flagged or not. If unchecked, each user has individual flags on content.'),
     '#weight' => 1,
+    '#access' => empty($flag->locked['global']),
   );
 
   $form['roles'] = array(
@@ -627,7 +671,13 @@ function flag_form($name = NULL, $type = NULL) {
     '#required' => TRUE,
     '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
     '#weight' => 5,
+    '#access' => empty($flag->locked['roles']),
   );
+
+  // Disabled access breaks checkboxes unless #value is hard coded.
+  if (!empty($flag->locked['roles'])) {
+    $form['roles']['#value'] = $flag->roles;
+  }
 
   $form['types'] = array(
     '#type' => 'checkboxes',
@@ -637,7 +687,13 @@ function flag_form($name = NULL, $type = NULL) {
     '#description' => t('Check any node types that this flag may be used on. You must check at least one node type.'),
     '#required' => TRUE,
     '#weight' => 10,
+    '#access' => empty($flag->locked['types']),
   );
+
+  // Disabled access breaks checkboxes unless #value is hard coded.
+  if (!empty($flag->locked['types'])) {
+    $form['types']['#value'] = $flag->types;
+  }
 
   $form['display'] = array(
     '#type' => 'fieldset',
@@ -653,6 +709,7 @@ function flag_form($name = NULL, $type = NULL) {
     '#options' => _flag_link_type_options(),
     '#default_value' => $flag->link_type,
     '#weight' => 2,
+    '#access' => empty($flag->locked['link_type']),
   );
 
   $form['submit'] = array(
@@ -705,6 +762,7 @@ function flag_form_submit($form_id, $form_values) {
   unset($form_values['_flag']);
   $flag->form_input($form_values);
   $flag->save();
+  $flag->enable();
   drupal_set_message(t('Flag @name has been saved.', array('@name' => $flag->get_title())));
   _flag_clear_cache();
   return 'admin/build/flags';
@@ -724,7 +782,7 @@ function flag_delete_confirm($name) {
   return confirm_form($form,
     t('Are you sure you want to delete %title?', array('%title' => $flag->get_title())),
     !empty($_GET['destination']) ? $_GET['destination'] : 'admin/build/flags',
-    t('This action cannot be undone.'),
+    isset($flag->module) ? t('This flag is provided by the @module module. It will loose any customizations and be disabled.', array('@module' => node_get_types('name', $flag->module))) : t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
   );
 }
@@ -733,6 +791,7 @@ function flag_delete_confirm_submit($form_id, $form_values) {
   $flag = flag_get_flag(NULL, $form_values['fid']);
   if ($form_values['confirm']) {
     $flag->delete();
+    $flag->disable();
     _flag_clear_cache();
   }
   drupal_set_message(t('Flag @name has been deleted.', array('@name' => $flag->get_title())));
@@ -1259,6 +1318,8 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
   // Retrieve a list of all flags, regardless of the parameters.
   if (!isset($flags) || $reset) {
     $flags = array();
+
+    // Database flags.
     $result = db_query("SELECT f.*, fn.type FROM {flags} f LEFT JOIN {flag_types} fn ON fn.fid = f.fid");
     while ($row = db_fetch_object($result)) {
       if (!isset($flags[$row->name])) {
@@ -1266,6 +1327,29 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
       }
       else {
         $flags[$row->name]->types[] = $row->type;
+      }
+    }
+
+    // Add code-based flags provided by modules.
+    $default_flags = flag_get_default_flags();
+    foreach ($default_flags as $name => $default_flag) {
+      // Insert new enabled flags into the database to give them an FID.
+      if ($default_flag->status && !isset($flags[$name])) {
+        $default_flag->save();
+        $flags[$name] = $default_flag;
+      }
+
+      if (isset($flags[$name])) {
+        // Ensure overridden flags are associated with their parent module.
+        $flags[$name]->module = $default_flag->module;
+
+        // Update the flag with any properties that are "locked" by the code version.
+        if (isset($default_flag->locked)) {
+          $flags[$name]->locked = $default_flag->locked;
+          foreach ($default_flag->locked as $property) {
+            $flags[$name]->$property = $default_flag->$property;
+          }
+        }
       }
     }
   }
@@ -1292,6 +1376,39 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
   }
 
   return $filtered_flags;
+}
+
+/**
+ * Retrieve a list of flags defined by modules.
+ *
+ * @param $include_disabled
+ *   Unless specified, only enabled flags will be returned.
+ * @return
+ *   An array of flag prototypes, not usable for flagging. Use flag_get_flags()
+ *   if needing to perform a flagging with any enabled flag.
+ */
+function flag_get_default_flags($include_disabled = FALSE) {
+  $default_flags = array();
+  $flag_status = variable_get('flag_default_flag_status', array());
+
+  foreach (module_implements('flag_default_flags') as $module) {
+    $function = $module . '_flag_default_flags';
+    foreach ($function() as $config) {
+      $flag = flag_flag::factory_by_array($config);
+      $flag->module = $module;
+      // Add flags that have been enabled.
+      if ((!isset($flag_status[$flag->name]) && (!isset($flag->status) || $flag->status)) || !empty($flag_status[$flag->name])) {
+        $flag->status = TRUE;
+        $default_flags[$flag->name] = $flag;
+      }
+      elseif ($include_disabled) {
+        $flag->status = FALSE;
+        $default_flags[$flag->name] = $flag;
+      }
+    }
+  }
+
+  return $default_flags;
 }
 
 /**
