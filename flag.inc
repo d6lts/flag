@@ -150,7 +150,24 @@ class flag_flag {
 
     return $flag;
   }
-  
+
+  /**
+   * Create a complete flag (except an FID) from an array definition.
+   */
+  function factory_by_array($config) {
+    $flag = flag_create_handler($config['content_type']);
+
+    foreach ($config as $option => $value) {
+      $flag->$option = $value;
+    }
+
+    if (is_array($config['locked'])) {
+      $flag->locked = drupal_map_assoc($config['locked']);
+    }
+
+    return $flag;
+  }
+
   /**
    * Another factory method. Returns a new, "empty" flag; e.g., one suitable for
    * the "Add new flag" page.
@@ -706,6 +723,28 @@ class flag_flag {
   }
 
   /**
+   * Disable a flag provided by a module.
+   */
+  function disable() {
+    if (isset($this->module)) {
+      $flag_status = variable_get('flag_default_flag_status', array());
+      $flag_status[$this->name] = FALSE;
+      variable_set('flag_default_flag_status', $flag_status);
+    }
+  }
+
+  /**
+   * Enable a flag provided by a module.
+   */
+  function enable() {
+    if (isset($this->module)) {
+      $flag_status = variable_get('flag_default_flag_status', array());
+      $flag_status[$this->name] = TRUE;
+      variable_set('flag_default_flag_status', $flag_status);
+    }
+  }
+
+  /**
    * Renders a flag/unflag link. This is a wrapper around theme('flag') that,
    * in Drupal 6, easily channels the call to the right template file.
    *
@@ -770,17 +809,20 @@ class flag_node extends flag_flag {
       '#type' => 'checkbox',
       '#title' => t('Display link on node teaser'),
       '#default_value' => $this->show_on_teaser,
+      '#access' => empty($this->locked['show_on_teaser']),
     );
     $form['display']['show_on_page'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link on node page'),
       '#default_value' => $this->show_on_page,
+      '#access' => empty($this->locked['show_on_page']),
     );
     $form['display']['show_on_form'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display checkbox on node edit form'),
       '#default_value' => $this->show_on_form,
       '#description' => t('If you elect to have a checkbox on the node edit form, you may specify its initial state in the settings form <a href="@content-types-url">for each content type</a>.', array('@content-types-url' => url('admin/content/types'))),
+      '#access' => empty($this->locked['show_on_form']),
     );
   }
 
@@ -913,6 +955,7 @@ class flag_comment extends flag_flag  {
       '#type' => 'checkbox',
       '#title' => t('Display link under comment'),
       '#default_value' => $this->show_on_comment,
+      '#access' => empty($this->locked['show_on_comment']),
     );
   }
 
@@ -1012,6 +1055,7 @@ class flag_user extends flag_flag {
       '#type' => 'checkbox',
       '#title' => t('Display link on user profile page'),
       '#default_value' => $this->show_on_profile,
+      '#access' => empty($this->locked['show_on_profile']),
     );
   }
 
