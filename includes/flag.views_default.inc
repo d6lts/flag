@@ -7,7 +7,7 @@
  */
 
 /**
- * Implementation of hook_views_default_views()
+ * Implementation of hook_views_default_views().
  */
 function flag_views_default_views() {
   $views = array();
@@ -273,7 +273,7 @@ function _flag_views_user_default_views(&$views) {
       'title' => NULL,
       'weight' => 0,
     ));
-    
+
     $views[$view->name] = $view;
   }
 }

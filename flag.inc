@@ -7,7 +7,7 @@
  */
 
 /**
- * Implmenetation of hook_flag_definitions()
+ * Implmenetation of hook_flag_definitions().
  *
  * Defines the flags this module implements.
  *
@@ -182,7 +182,7 @@ class flag_flag {
    * Declares the options this flag supports, and their default values.
    *
    * Derived classes should want to override this.
-   */ 
+   */
   function default_options() {
     return array(
       'flag_short' => '',
@@ -207,7 +207,7 @@ class flag_flag {
 
   /**
    * Default constructor. Loads the default options.
-   */  
+   */
   function construct() {
     $options = $this->default_options();
     foreach ($options as $option => $value) {
@@ -223,7 +223,7 @@ class flag_flag {
     // stray FormAPI fields because we aren't touching unknown properties anyway.
     foreach ($form_values as $field => $value) {
       $this->$field = $value;
-    } 
+    }
     // But checkboxes need some massaging:
     $this->roles = array_values(array_filter($this->roles));
     $this->types = array_values(array_filter($this->types));
@@ -237,7 +237,7 @@ class flag_flag {
   function validate() {
     $this->validate_name();
   }
-  
+
   function validate_name() {
     // Ensure a safe machine name.
     if (!preg_match('/^[a-z_][a-z0-9_]*$/', $this->name)) {
@@ -311,7 +311,7 @@ class flag_flag {
   function applies_to_content_id($content_id) {
     return $this->applies_to_content_object($this->fetch_content($content_id));
   }
-  
+
   /**
    * Given a content object, returns its ID.
    * Derived classes must implement this.
@@ -378,7 +378,7 @@ class flag_flag {
       // users.
       return FALSE;
     }
-    
+
     if (!$skip_permission_check && !$this->user_access($account)) {
       // User has no permission to use this flag.
       return FALSE;
@@ -538,11 +538,11 @@ class flag_flag {
    * Replaces tokens in a label. Only the 'global' token context is regognized
    * by default, so derived classes should override this method to add all
    * token contexts they understand.
-   */  
+   */
   function replace_tokens($label, $contexts, $content_id) {
     return token_replace_multiple($label, $contexts);
   }
-  
+
   /**
    * Returns the token types this flag understands in labels. These are used
    * for narrowing down the token list shown in the help box to only the
@@ -702,7 +702,7 @@ class flag_flag {
 
   /**
    * Options are stored serialized in the database.
-   */  
+   */
   function get_serialized_options() {
     $option_names = array_keys($this->default_options());
     $options = array();
@@ -788,7 +788,7 @@ class flag_node extends flag_flag {
     );
     return $options;
   }
-  
+
   function options_form(&$form) {
     parent::options_form($form);
     // Note there isn't a translation helpers module in Drupal 5,
@@ -934,7 +934,7 @@ class flag_node extends flag_flag {
     }
     return $passed;
   }
-  
+
 }
 
 /**
@@ -948,7 +948,7 @@ class flag_comment extends flag_flag  {
     );
     return $options;
   }
-  
+
   function options_form(&$form) {
     parent::options_form($form);
     $form['display']['show_on_comment'] = array(
@@ -969,7 +969,7 @@ class flag_comment extends flag_flag  {
     }
     return FALSE;
   }
-  
+
   function get_content_id($comment) {
     return $comment->cid;
   }
@@ -1043,7 +1043,7 @@ class flag_user extends flag_flag {
     );
     return $options;
   }
-  
+
   function options_form(&$form) {
     parent::options_form($form);
     $form['types'] = array(
@@ -1071,7 +1071,7 @@ class flag_user extends flag_flag {
     }
     return FALSE;
   }
-  
+
   function get_content_id($user) {
     return $user->uid;
   }

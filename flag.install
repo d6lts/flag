@@ -368,7 +368,7 @@ function flag_update_6001() {
       $options['unflag_message'] = $flag->unflag_message;
       db_query("UPDATE {flags} SET options = '%s' WHERE fid = %d", serialize($options), $flag->fid);
     }
-  
+
     db_drop_field($ret, 'flags', 'flag_short');
     db_drop_field($ret, 'flags', 'flag_long');
     db_drop_field($ret, 'flags', 'flag_message');

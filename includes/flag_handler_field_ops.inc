@@ -87,7 +87,7 @@ class flag_handler_field_ops extends views_handler_field {
     $left_table = $this->view->relationship[$this->options['relationship']]->table_alias;
     $this->aliases['content_id'] = $this->query->add_field($left_table, $info['join field']);
   }
-  
+
   /**
    * Find out if the flag applies to each item seen on the page. It's done in a
    * separate DB query to to avoid complexity and to make 'many to one' tests
@@ -110,7 +110,7 @@ class flag_handler_field_ops extends views_handler_field {
     }
     $this->flag_applies = $ids ? $flag->applies_to_content_id_array(array_keys($ids)) : array();
   }
-  
+
   function render($values) {
     $flag = $this->get_flag();
 
@@ -121,7 +121,7 @@ class flag_handler_field_ops extends views_handler_field {
 
     $content_id = $values->{$this->aliases['content_id']};
     $is_flagged = $values->{$this->aliases['is_flagged']};
-    
+
     if (!isset($this->flag_applies[$content_id])) {
       // Flag does not apply to this content.
       return;

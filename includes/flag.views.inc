@@ -41,7 +41,7 @@ function flag_views_handlers() {
 }
 
 /**
- * Implementation of hook_views_plugins
+ * Implementation of hook_views_plugins().
  */
 function flag_views_plugins() {
   return array(
@@ -174,7 +174,7 @@ function flag_views_data_alter(&$data) {
         'relationship field' => $info['join field'],
       ),
     );
-  
+
     // Add the flag counter relationship.
     $data[$info['views table']]['flag_count_rel'] = array(
       'group' => t('Flags'),

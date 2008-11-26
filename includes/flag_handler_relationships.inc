@@ -7,7 +7,7 @@
  * @ingroup views
  */
 class flag_handler_relationship_content extends views_handler_relationship {
-  
+
   function option_definition() {
     $options = parent::option_definition();
 
@@ -90,7 +90,7 @@ class flag_handler_relationship_counts extends views_handler_relationship {
 
   function option_definition() {
     $options = parent::option_definition();
-    
+
     $content_type = $this->definition['flag type'];
     $options['flag'] = array('default' => flag_views_flag_default($content_type));
     $options['required'] = array('default' => 1);

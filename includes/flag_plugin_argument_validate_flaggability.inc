@@ -79,7 +79,7 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
   /**
    * Validator arguments are stored in the argument object, not here, so we
    * define a convenience method for fetching them.
-   */ 
+   */
   function _get_option($option, $default) {
     $option = $this->_option_name($option);
     return isset($this->argument->options[$option]) ? $this->argument->options[$option] : $default;
@@ -145,7 +145,7 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
    * Tests whether the argument is flaggable, or flagged, or flagged by current
    * user. These are three possible tests, and which of the three to actually
    * carry out is determined by 'flag_test'.
-   */ 
+   */
   function validate_argument($argument) {
     $flag_test = $this->_get_option('flag_test', 'flaggable');
     $id_type   = $this->_get_option('flag_id_type', 'id');

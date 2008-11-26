@@ -105,7 +105,7 @@ function flag_perm() {
 /**
  * Access checking to check an account for flagging ability.
  *
- * See documentation for $flag->user_access()
+ * See documentation for $flag->user_access().
  */
 function flag_access($flag, $account = NULL) {
   return $flag->user_access($account);
@@ -146,7 +146,7 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
 
   // Get all possible flags for this content-type.
   $flags = flag_get_flags($type);
-  
+
   foreach ($flags as $flag) {
     if (!$flag->user_access($user)) {
       // User has no permission to use this flag.
@@ -718,7 +718,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     // to give the flag handler a chance to remove it (e.g. flag_broken).
     '#weight' => 999,
   );
-  
+
   $flag->options_form($form);
 
   return $form;
