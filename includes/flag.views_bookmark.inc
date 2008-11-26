@@ -259,7 +259,7 @@ if (!function_exists('update_sql')) {
  */
 function flag_views_bookmark_update_1() {
   $ret = array();
-  switch($GLOBALS['db_type']) {
+  switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
       $ret[] = update_sql('ALTER TABLE {views_bookmarks} DROP INDEX vbid');
@@ -277,7 +277,7 @@ function flag_views_bookmark_update_1() {
  */
 function flag_views_bookmark_update_2() {
   $ret = array();
-  switch($GLOBALS['db_type']) {
+  switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
     $ret[] = update_sql("CREATE TABLE if not exists {views_bookmark_node_count} (
@@ -293,7 +293,7 @@ function flag_views_bookmark_update_2() {
 
 function flag_views_bookmark_update_3() {
   $ret = array();
-  switch($GLOBALS['db_type']) {
+  switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
       $result = db_query('SELECT vbid, nid, count(uid) as count FROM {views_bookmark_nodes} GROUP BY vbid, nid');
@@ -307,7 +307,7 @@ function flag_views_bookmark_update_3() {
 
 function flag_views_bookmark_update_4() {
   $ret = array();
-  switch($GLOBALS['db_type']) {
+  switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
       $ret[] = update_sql("ALTER TABLE {flags} ADD show_on_form int(1) unsigned NOT NULL default '0'");
@@ -321,7 +321,7 @@ function flag_views_bookmark_update_4() {
  */
 function flag_views_bookmark_update_5() {
   $ret = array();
-  switch($GLOBALS['db_type']) {
+  switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
       $timestamp = time();
@@ -337,7 +337,7 @@ function flag_views_bookmark_update_5() {
  */
 function flag_views_bookmark_update_6() {
   $ret = array();
-  switch($GLOBALS['db_type']) {
+  switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
       $ret[] = update_sql("ALTER TABLE {flags} ADD mark_message varchar(255) default '' AFTER mark_long");

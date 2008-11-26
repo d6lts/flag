@@ -324,7 +324,7 @@ function flag_arg_uid($op, &$query, $argtype, $arg = '') {
 }
 
 /**
- * Implementation of hook_views_default_views()
+ * Implementation of hook_views_default_views().
  */
 function flag_views_default_views() {
   $flags = flag_get_flags('node'); // Views 1.x supports only nodes.

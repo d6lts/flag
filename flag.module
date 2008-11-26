@@ -101,7 +101,7 @@ function flag_perm() {
 /**
  * Access checking to check an account for flagging ability.
  *
- * See documentation for $flag->user_access()
+ * See documentation for $flag->user_access().
  */
 function flag_access($flag, $account = NULL) {
   return $flag->user_access($account);
@@ -142,7 +142,7 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
 
   // Get all possible flags for this content-type.
   $flags = flag_get_flags($type);
-  
+
   foreach ($flags as $flag) {
     if (!$flag->user_access($user)) {
       // User has no permission to use this flag.
@@ -719,7 +719,7 @@ function flag_form($name = NULL, $type = NULL) {
     // to give the flag handler a chance to remove it (e.g. flag_broken).
     '#weight' => 999,
   );
-  
+
   $flag->options_form($form);
 
   return $form;
@@ -901,7 +901,7 @@ function flag_confirm_submit($form_id, $form_values) {
   $action = $form_values['action'];
   $flag_name = $form_values['flag_name'];
   $content_id = $form_values['content_id'];
-  
+
   $result = flag($action, $flag_name, $content_id);
   if (!$result) {
     drupal_set_message(t('You are not allowed to flag, or unflag, this content.'));
@@ -1121,10 +1121,10 @@ function flag_phptemplate_adapter($flag, $action, $content_id, $after_flagging =
     $suggestions[] = str_replace('_', '-', $suggestion);
   }
   $suggestions = array_reverse($suggestions);
-  
+
   // Hand control to the phptemplate engine.
   $output = _phptemplate_callback('flag', $variables, $suggestions);
-  
+
   // Finally, handle Drupal 5's jQuery bug. See explanation in theme_flag().
   $output = strtr($output, "\r\n", '  ');
   return $output;

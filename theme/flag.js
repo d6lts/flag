@@ -45,7 +45,7 @@ Drupal.flagLink = function(context) {
 
     $('.flag-message', $newLink).fadeIn();
   }
-  
+
   /**
    * A click handler that is attached to all <A class="flag"> elements.
    */

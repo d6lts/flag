@@ -99,7 +99,7 @@ function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = '
 function flag_token_get_list($types = array('all')) {
   token_include();
   $return = array();
-  foreach($types as $type) {
+  foreach ($types as $type) {
     foreach (module_implements('token_list') as $module) {
       $function = $module .'_token_list';
       $result = $function($type);
