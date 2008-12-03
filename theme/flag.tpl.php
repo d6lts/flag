@@ -2,7 +2,7 @@
 // $Id$
 
 /**
- * @file flag.tpl.php
+ * @file
  * Default theme implementation to display a flag link, and a message after the action
  * is carried out.
  *

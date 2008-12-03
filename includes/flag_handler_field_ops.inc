@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Contains the flag Ops field handler.
+ */
+
+/**
  * Views field handler for the Flag operations links (flag/unflag).
  *
  * @ingroup views

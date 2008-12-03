@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Flag module install/schema/update hooks.
+ */
+
+/**
  * Implementation of hook_install().
  */
 function flag_install() {
@@ -85,6 +90,9 @@ function flag_requirements($phase) {
     $requirements['flag_translation']['title'] = $t('Flag');
     $requirements['flag_translation']['severity'] = REQUIREMENT_ERROR;
     $requirements['flag_translation']['description'] = $t('To have the flag module work with translations, you need to install and enable the <a href="http://drupal.org/project/translation_helpers">Translation helpers</a> module.');
+    if ($phase == 'runtime') {
+      $requirements['flag_translation']['value'] = $t('Translation helpers module not found.');
+    }
   }
   return $requirements;
 }
@@ -121,7 +129,7 @@ function flag_schema() {
         'type' => 'varchar',
         'length' => '32',
         'not null' => TRUE,
-        'default' => ''
+        'default' => '',
       ),
       'name' => array(
         'type' => 'varchar',
@@ -154,7 +162,7 @@ function flag_schema() {
     ),
     'primary key' => array('fid'),
     'unique keys' => array(
-      'name' => array('name')
+      'name' => array('name'),
     ),
   );
 
@@ -176,7 +184,7 @@ function flag_schema() {
         'type' => 'varchar',
         'length' => '32',
         'not null' => TRUE,
-        'default' => ''
+        'default' => '',
       ),
       'content_id' => array(
         'type' => 'int',

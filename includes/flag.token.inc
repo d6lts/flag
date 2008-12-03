@@ -2,9 +2,13 @@
 // $Id$
 
 /**
- * Implementation of hook_token().
+ * @file
+ * Flag module tokens support.
  */
 
+/**
+ * Implementation of hook_token_list().
+ */
 function flag_token_list($type = 'all') {
   $tokens = array();
   if ($type == 'flag' || $type == 'all') {
@@ -64,7 +68,7 @@ function flag_token_values($type, $object = NULL) {
  * categories.
  *
  * @todo Incorporate this feature into the Token module(?)
- **/
+ */
 function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = ']') {
   token_include();
   $tokens = flag_token_get_list($types);

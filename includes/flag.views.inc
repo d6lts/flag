@@ -89,7 +89,7 @@ function flag_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,
-     ),
+    ),
     'sort' => array(
       'handler' => 'views_handler_sort_date',
     ),
@@ -107,7 +107,7 @@ function flag_views_data() {
     'help' => t('The unique ID of the object that has been flagged.'),
     'argument' => array(
       'handler' => 'flag_handler_argument_content_id',
-    )
+    ),
   );
 
   // Specialized is null/is not null filter.
@@ -136,7 +136,7 @@ function flag_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
-     ),
+    ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),

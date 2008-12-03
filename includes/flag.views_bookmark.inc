@@ -2,8 +2,7 @@
 // $Id$
 
 /**
- * @file flag.view_bookmark.inc
- *
+ * @file
  * Upgrade code to migrate from Views bookmark to Flag module.
  */
 

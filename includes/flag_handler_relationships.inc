@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Contains various relationship handlers.
+ */
+
+/**
  * Specialized relationship handler associating flags and content.
  *
  * @ingroup views

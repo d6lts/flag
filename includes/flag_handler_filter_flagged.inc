@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Contains the flagged content filter handler.
+ */
+
+/**
  * Handler to filter for content that has not been flagged.
  *
  * @ingroup views

@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Contains the flaggability validator handler.
+ */
+
+/**
  * Validates whether an argument is a flaggable/flagged object.
  *
  * @ingroup views
@@ -166,8 +171,8 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
 
     $ids = views_break_phrase($argument);
     if ($ids->value == array(-1)) {
-       // Malformed argument syntax. Invalidate.
-       return FALSE;
+      // Malformed argument syntax. Invalidate.
+      return FALSE;
     }
     $ids = $ids->value;
 

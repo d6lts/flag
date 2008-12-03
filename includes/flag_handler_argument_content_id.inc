@@ -2,6 +2,11 @@
 // $Id$
 
 /**
+ * @file
+ * Contains the content ID argument handler.
+ */
+
+/**
  * Handler to accept an argument of the content ID of any object.
  *
  * @ingroup views
