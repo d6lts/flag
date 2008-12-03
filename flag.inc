@@ -388,9 +388,10 @@ class flag_flag {
       return FALSE;
     }
 
-    // Clear the counters cache; We don't want code running after us to report
-    // wrong counts.
+    // Clear various caches; We don't want code running after us to report
+    // wrong counts or false flaggings.
     flag_get_counts(NULL, NULL, TRUE);
+    flag_get_user_flags(NULL, NULL, NULL, TRUE);
 
     // Perform the flagging or unflagging of this flag.
     $uid = $this->global ? 0 : $account->uid;
@@ -421,15 +422,9 @@ class flag_flag {
    */
   function is_flagged($content_id, $uid = NULL) {
     $uid = !isset($uid) ? $GLOBALS['user']->uid : $uid;
-
-    // flag_get_user_flags() alreday does caching, but nevertheless we manage a
-    // cache of our own to save on function calls.
-    static $flag_status = array();
-    if (!isset($flag_status[$uid][$this->content_type][$content_id])) {
-      $flag_status[$uid][$this->content_type][$content_id] = flag_get_user_flags($this->content_type, $content_id, $uid);
-    }
-
-    return isset($flag_status[$uid][$this->content_type][$content_id][$this->name]);
+    // flag_get_user_flags() does caching.
+    $user_flags = flag_get_user_flags($this->content_type, $content_id, $uid);
+    return isset($user_flags[$this->name]);
   }
 
   /**

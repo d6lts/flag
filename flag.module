@@ -1354,10 +1354,17 @@ function flag_get_default_flags($include_disabled = FALSE) {
 function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $reset = FALSE) {
   static $flagged_content;
 
+  if ($reset) {
+    $flagged_content = array();
+    if (!isset($content_type)) {
+      return;
+    }
+  }
+
   $uid = !isset($uid) ? $GLOBALS['user']->uid : $uid;
 
   if (isset($content_id)) {
-    if (!isset($flagged_content[$uid][$content_type][$content_id]) || $reset) {
+    if (!isset($flagged_content[$uid][$content_type][$content_id])) {
       $flag_names = _flag_get_flag_names();
       $flagged_content[$uid][$content_type][$content_id] = array();
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d AND (uid = %d OR uid = 0)", $content_type, $content_id, $uid);
@@ -1369,7 +1376,7 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
   }
 
   else {
-    if (!isset($flagged_content[$uid]['all'][$content_type]) || $reset) {
+    if (!isset($flagged_content[$uid]['all'][$content_type])) {
       $flag_names = _flag_get_flag_names();
       $flagged_content[$uid]['all'][$content_type] = TRUE;
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0)", $content_type, $uid);
