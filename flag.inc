@@ -1,13 +1,14 @@
 <?php
 // $Id$
+
 /**
- * @file flag.inc
+ * @file
  * Implements various flags. Uses object oriented style inspired by that
  * of Views 2.
  */
 
 /**
- * Implmenetation of hook_flag_definitions().
+ * Implementation of hook_flag_definitions().
  *
  * Defines the flags this module implements.
  *
