@@ -157,7 +157,7 @@ function flag_schema() {
       ),
       'options' => array(
         'type' => 'text',
-        'default' => NULL,
+        'not null' => FALSE,
       ),
     ),
     'primary key' => array('fid'),
