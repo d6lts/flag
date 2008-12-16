@@ -860,6 +860,11 @@ function flag_page($action, $flag_name, $content_id) {
     print drupal_to_js(array(
       'status' => TRUE,
       'newLink' => $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id, TRUE),
+      // Further information for the benefit of custom JavaScript event handlers:
+      'contentId' => $content_id,
+      'contentType' => $flag->content_type,
+      'flagName' => $flag->name,
+      'flagStatus' => $flag->is_flagged($content_id) ? 'flagged' : 'unflagged',
     ));
     exit;
   }
