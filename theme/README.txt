@@ -28,7 +28,7 @@ you should place in your theme's folder.
 
 The phptemplate_flag()
 ----------------------
-You should paste the following function into your 'tempalte.php'. This
+You should paste the following function into your 'template.php'. This
 function instructs PHPTemplate to use your template file, or files, when
 theming flags.
 
