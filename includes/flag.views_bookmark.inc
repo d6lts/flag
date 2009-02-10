@@ -48,7 +48,7 @@ function flag_views_bookmark_update_prepare() {
   $vb_schema = drupal_get_installed_schema_version('views_bookmark');
   $ret = array();
   if (!empty($vb_schema) && $vb_schema <= 5102) {
-    for ($version = $vb_schema; $version <= 5102; $version++) {
+    for ($version = $vb_schema + 1; $version <= 5102; $version++) {
       $update_function = 'flag_views_bookmark_update_'. $version;
       if (function_exists($update_function)) {
         $ret += $update_function();
@@ -213,7 +213,7 @@ function flag_views_bookmark_update_3() {
     case 'mysqli':
       $result = db_query('SELECT vbid, nid, count(uid) as count FROM {views_bookmark_nodes} GROUP BY vbid, nid');
       while ($row = db_fetch_object($result)) {
-        $ret[] = update_sql("INSERT INTO {flag_node_count} VALUES ($row->vbid, $row->nid, $row->count)");
+        $ret[] = update_sql("INSERT INTO {views_bookmark_node_count} VALUES ($row->vbid, $row->nid, $row->count)");
       }
       break;
   }
@@ -225,7 +225,7 @@ function flag_views_bookmark_update_4() {
   switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
-      $ret[] = update_sql("ALTER TABLE {flags} ADD show_on_form int(1) unsigned NOT NULL default '0'");
+      $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD show_on_form int(1) unsigned NOT NULL default '0'");
       break;
   }
   return $ret;
@@ -240,8 +240,8 @@ function flag_views_bookmark_update_5() {
     case 'mysql':
     case 'mysqli':
       $timestamp = time();
-      $ret[] = update_sql("ALTER TABLE {flag_nodes} ADD timestamp int(11) unsigned NOT NULL default '0'");
-      $ret[] = update_sql("UPDATE {flag_nodes} SET timestamp = $timestamp WHERE timestamp = 0");
+      $ret[] = update_sql("ALTER TABLE {views_bookmark_nodes} ADD timestamp int(11) unsigned NOT NULL default '0'");
+      $ret[] = update_sql("UPDATE {views_bookmark_nodes} SET timestamp = $timestamp WHERE timestamp = 0");
       break;
   }
   return $ret;
@@ -255,8 +255,8 @@ function flag_views_bookmark_update_6() {
   switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
-      $ret[] = update_sql("ALTER TABLE {flags} ADD mark_message varchar(255) default '' AFTER mark_long");
-      $ret[] = update_sql("ALTER TABLE {flags} ADD unmark_message varchar(255) default '' AFTER unmark_long");
+      $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD mark_message varchar(255) default '' AFTER mark_long");
+      $ret[] = update_sql("ALTER TABLE {views_bookmarks} ADD unmark_message varchar(255) default '' AFTER unmark_long");
       break;
   }
   return $ret;
@@ -298,7 +298,7 @@ function flag_views_bookmark_update_5101() {
  */
 function flag_views_bookmark_update_5102() {
   // Because of a certain FAPI trait, when the admin didn't selected any
-  // roles on the flag configuration form it's as if he selected the
+  // roles on the bookmark configuration form it's as if he selected the
   // 'anonymous role'. We clear this bogus selection.
   //
   // (Note: update_sql() doesn't support %placeholders, so we embed the value
