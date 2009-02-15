@@ -264,12 +264,18 @@ function flag_form_alter($form_id, &$form) {
     }
 
     foreach ($flags as $flag) {
-      $ct_default = variable_get('flag_' . $flag->name . '_default_' . $form['type']['#value'], 0);
+      if (isset($form['#node']->flag[$flag->name])) {
+        $flag_status = $form['#node']->flag[$flag->name];
+      }
+      else {
+        $flag_status_default = variable_get('flag_' . $flag->name . '_default_' . $form['type']['#value'], 0);
+        $flag_status = $nid ? $flag->is_flagged($nid) : $flag_status_default;
+      }
       $form['flag'][$flag->name] = array(
         '#type' => 'checkbox',
         '#title' => $flag->get_label('flag_short', $nid),
         '#description' => $flag->get_label('flag_long', $nid),
-        '#default_value' => $nid ? $flag->is_flagged($nid) : $ct_default,
+        '#default_value' => $flag_status,
         '#return_value' => 1,
       );
     }
