@@ -2,3 +2,4 @@
 name = Flag actions
 description = Execute actions on Flag events.
 dependencies = flag actions
+package = Flags
