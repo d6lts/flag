@@ -386,9 +386,18 @@ function flag_node_type($op, $info) {
  */
 function flag_admin_page() {
   $flags = flag_get_flags();
+  $default_flags = flag_get_default_flags(TRUE);
 
+  return theme('flag_admin_page', $flags, $default_flags);
+}
+
+/**
+ * Theme the output for the main flag administration page.
+ */
+function theme_flag_admin_page($flags, $default_flags) {
   $output = '<p>' . t('This page lists all the <em>flags</em> that are currently defined on this system. You may <a href="@add-url">add</a> new flags.', array('@add-url' => url('admin/build/flags/add'))) . '</p>';
 
+  // Build out the list of normal, database flags.
   foreach ($flags as $flag) {
     $ops = theme('links', array(
       'flags_edit' =>  array('title' => t('edit'), 'href' => "admin/build/flags/edit/". $flag->name),
@@ -415,8 +424,6 @@ function flag_admin_page() {
   $output .= theme('table', $header, $rows);
 
   // Build a list of disabled, module-based flags.
-  $default_flags = flag_get_default_flags(TRUE);
-
   $rows = array();
   foreach ($default_flags as $name => $flag) {
     if (!isset($flags[$name])) {
