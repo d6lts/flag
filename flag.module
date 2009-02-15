@@ -191,7 +191,7 @@ function flag_flag_link(&$flag, $action, $content_id) {
   $token = flag_get_token($content_id);
   return array(
     'href' => "flag/". ($flag->link_type == 'confirm' ? 'confirm/' : '') ."$action/$flag->name/$content_id",
-    'query' => drupal_get_destination() . ($flag->link_type == 'confirm' ? '' : '&amp;token='. $token),
+    'query' => drupal_get_destination() . ($flag->link_type == 'confirm' ? '' : '&token='. $token),
   );
 }
 
@@ -1077,7 +1077,7 @@ function template_preprocess_flag(&$variables) {
     $variables['setup'] = FALSE;
   }
 
-  $variables['link_href'] = url($link['href'], $link['query'], $link['fragment']);
+  $variables['link_href'] = check_url(url($link['href'], $link['query'], $link['fragment']));
   $variables['link_text'] = isset($link['title']) ? $link['title'] : strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
   $variables['link_title'] = isset($link['attributes']['title']) ? $link['attributes']['title'] : strip_tags($flag->get_label($action . '_long', $content_id));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
