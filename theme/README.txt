@@ -22,7 +22,7 @@ In order to customize flag theming:
 Template variants
 -----------------
 In addition, the theme layer will first look for the template
-'flag-<FLAG_NAME>.tpl.php' before it turns to 'flag.tpl.php'. This too
+'flag--<FLAG_NAME>.tpl.php' before it turns to 'flag.tpl.php'. This too
 you should place in your theme's folder.
 
 

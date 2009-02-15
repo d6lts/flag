@@ -764,7 +764,7 @@ class flag_flag {
    */
   function theme_suggestions() {
     $suggestions = array();
-    $suggestions[] = 'flag_' . $this->name;
+    $suggestions[] = 'flag__' . $this->name;
     $suggestions[] = 'flag';
     return $suggestions;
   }
