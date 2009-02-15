@@ -1012,7 +1012,7 @@ function flag_theme() {
     'flag' => array(
       'arguments' => array('flag' => NULL, 'action' => NULL, 'content_id' => NULL, 'after_flagging' => FALSE),
       'template' => 'flag',
-      'pattern' => 'flag_',
+      'pattern' => 'flag__',
       'path' => $path,
     ),
     'flag_token_help' => array(
