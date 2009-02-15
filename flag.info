@@ -2,3 +2,4 @@
 name = Flag
 description = Create customized flags that users can set on nodes.
 core = 6.x
+package = Flags
