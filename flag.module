@@ -395,7 +395,7 @@ function flag_admin_page() {
  * Theme the output for the main flag administration page.
  */
 function theme_flag_admin_page($flags, $default_flags) {
-  $output = '<p>' . t('This page lists all the <em>flags</em> that are currently defined on this system. You may <a href="@add-url">add</a> new flags.', array('@add-url' => url('admin/build/flags/add'))) . '</p>';
+  $output = '<p>' . t('This page lists all the <em>flags</em> that are currently defined on this system. You may <a href="@add-url">add new flags</a>.', array('@add-url' => url('admin/build/flags/add'))) . '</p>';
 
   // Build out the list of normal, database flags.
   foreach ($flags as $flag) {
@@ -450,7 +450,13 @@ function theme_flag_admin_page($flags, $default_flags) {
     $output .= '<p>' . t('The <a href="@views-url">Views</a> module is not installed, or not enabled. It is recommended that you install the Views module to be able to easily produce lists of flagged content.', array('@views-url' => url('http://drupal.org/project/views'))) . '</p>';
   }
   else {
-    $output .= '<p>' . t('Once a flag is defined, a new menu item will appear leading to a page showing for each user the items she has flagged by it. In case of <em>global</em> flags, the items flagged are shared by all users. These lists of flagged items <a href="@views-url">are views</a>, and <a href="@customize-url">are customizable</a>.', array('@views-url' => url('admin/build/views'), '@customize-url' => 'http://drupal.org/node/296954')) . '</p>';
+    $output .= '<p>';
+    $output .= t('Lists of flagged content can be displayed using views. You can configure these in the <a href="@views-url">Views administration section</a>.', array('@views-url' => url('admin/build/views')));
+    if (flag_get_flag('bookmarks')) {
+      $output .= ' ' . t('Flag module automatically provides a few <a href="@views-url">default views for the <em>bookmarks</em> flag</a>. You can use these as templates by cloning these views and then customizing as desired.', array('@views-url' => url('admin/build/views')));
+    }
+    $output .= ' ' . t('The <a href="@flag-handbook-url">Flag module handbook</a> contains extensive <a href="@customize-url">documentation on creating customized views</a> using flags.', array('@flag-handbook-url' => 'http://drupal.org/handbook/modules/flag', '@customize-url' => 'http://drupal.org/node/296954'));
+    $output .= '</p>';
   }
 
   if (!module_exists('flag_actions')) {
@@ -460,7 +466,7 @@ function theme_flag_admin_page($flags, $default_flags) {
     $output .= '<p>' . t('Flagging an item may trigger <a href="@actions-url">actions</a>.', array('@actions-url' => url('admin/build/flags/actions'))) . '</p>';
   }
 
-  $output .= '<p>' . t('To learn about the various ways to use flags, please check out <a href="@handbook-url">the handbook</a>.', array('@handbook-url' => 'http://drupal.org/handbook/modules/flag')) . '</p>';
+  $output .= '<p>' . t('To learn about the various ways to use flags, please check out the <a href="@handbook-url">Flag module handbook</a>.', array('@handbook-url' => 'http://drupal.org/handbook/modules/flag')) . '</p>';
 
   return $output;
 }

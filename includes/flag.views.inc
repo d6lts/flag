@@ -327,99 +327,104 @@ function flag_arg_uid($op, &$query, $argtype, $arg = '') {
  * Implementation of hook_views_default_views().
  */
 function flag_views_default_views() {
-  $flags = flag_get_flags('node'); // Views 1.x supports only nodes.
-
-  foreach ($flags as $flag) {
-    $menu_title = $flag->global ? drupal_ucfirst($flag->get_title()) : t('My !flag-title', array('!flag-title' => drupal_strtolower($flag->get_title())));
-
-    $view = new stdClass();
-    $view->name = 'flags_'. $flag->name;
-    $view->access = empty($flag->roles) ? array(DRUPAL_AUTHENTICATED_RID) : $flag->roles;
-    $view->description = t('View for flag: !flag-title', array('!flag-title' => $flag->get_title()));
-    $view->page = TRUE;
-    $view->page_title = $menu_title;
-    $view->page_type = 'table';
-    $view->url = 'flags/'. $flag->name;
-    $view->use_pager = TRUE;
-    $view->nodes_per_page = '25';
-    $view->menu = TRUE;
-    $view->menu_tab = FALSE;
-    $view->menu_tab_default = FALSE;
-    $view->sort = array(
-    );
-    $view->argument = array(
-    );
-    $view->field = array(
-      array(
-        'tablename' => 'node',
-        'field' => 'type',
-        'label' => 'Type',
-        'sortable' => '1',
-      ),
-      array(
-        'tablename' => 'node',
-        'field' => 'title',
-        'label' => 'Title',
-        'handler' => 'views_handler_field_nodelink',
-        'sortable' => '1',
-      ),
-      array(
-        'tablename' => 'users',
-        'field' => 'name',
-        'label' => 'Author',
-        'sortable' => '1',
-      ),
-      array(
-        'tablename' => "flag_ops_". $flag->name,
-        'field' => 'ops',
-        'label' => 'Ops',
-      ),
-    );
-    $view->filter = array(
-      array(
-        'tablename' => 'node',
-        'field' => 'status',
-        'operator' => '=',
-        'options' => '',
-        'value' => '1',
-      ),
-      array(
-        'tablename' => "flag_content_". $flag->name,
-        'field' => 'uid',
-        'operator' => 'IS NOT',
-        'options' => '',
-        'value' => '***CURRENT_USER***',
-      ),
-    );
-    $view->requires = array('node', 'users');
-
-    // If comment module exists, append two additional fields to the default
-    // view. If comment module is added later, these fields will be added.
-    if (module_exists('comment')) {
-      $op_field = array_pop($view->field);
-      $view->field = array_merge($view->field, array(
-        array(
-          'tablename' => 'node_comment_statistics',
-          'field' => 'comment_count',
-          'label' => 'Replies',
-          'handler' => 'views_handler_comments_with_new',
-          'sortable' => '1',
-        ),
-        array(
-          'tablename' => 'node_comment_statistics',
-          'field' => 'last_comment_timestamp',
-          'label' => 'Last Post',
-          'handler' => 'views_handler_field_since',
-          'sortable' => '1',
-          'defaultsort' => 'DESC',
-        ),
-      ));
-      array_push($view->field, $op_field);
-      $view->requires = array_merge($view->requires, array('node_comment_statistics'));
-    }
-
-    $views[$view->name] = $view;
+  // Only setup views for the "bookmarks" flag.
+  // If it's been deleted, don't create any views.
+  $flag = flag_get_flag('bookmarks');
+  if (!$flag) {
+    return;
   }
+
+  $views = array();
+
+  $view = new stdClass();
+  $view->name = 'flag_'. $flag->name;
+  $view->access = empty($flag->roles) ? array(DRUPAL_AUTHENTICATED_RID) : $flag->roles;
+  $view->description = 'A page listing the current user\'s bookmarks at /bookmarks.';
+  $view->page = TRUE;
+  $view->page_title = 'My bookmarks';
+  $view->page_type = 'table';
+  $view->url = 'bookmarks';
+  $view->use_pager = TRUE;
+  $view->nodes_per_page = '25';
+  $view->menu = TRUE;
+  $view->menu_tab = FALSE;
+  $view->menu_tab_default = FALSE;
+  $view->sort = array();
+  $view->argument = array();
+  $view->field = array(
+    array(
+      'tablename' => 'node',
+      'field' => 'type',
+      'label' => 'Type',
+      'sortable' => '1',
+    ),
+    array(
+      'tablename' => 'node',
+      'field' => 'title',
+      'label' => 'Title',
+      'handler' => 'views_handler_field_nodelink',
+      'sortable' => '1',
+      'defaultsort' => 'ASC',
+    ),
+    array(
+      'tablename' => 'users',
+      'field' => 'name',
+      'label' => 'Author',
+      'sortable' => '1',
+    ),
+    array(
+      'tablename' => "flag_ops_". $flag->name,
+      'field' => 'ops',
+      'label' => 'Ops',
+    ),
+  );
+  $view->filter = array(
+    array(
+      'tablename' => 'node',
+      'field' => 'status',
+      'operator' => '=',
+      'options' => '',
+      'value' => '1',
+    ),
+    array(
+      'tablename' => "flag_content_". $flag->name,
+      'field' => 'uid',
+      'operator' => 'IS NOT',
+      'options' => '',
+      'value' => '***CURRENT_USER***',
+    ),
+  );
+  $view->requires = array('node', 'users');
+
+  // If comment module exists, append two additional fields to the default
+  // view. If comment module is added later, these fields will be added.
+  if (module_exists('comment')) {
+    $op_field = array_pop($view->field);
+    // Remove the default sort on the node title.
+    unset($view->field[1]['defaultsort']);
+    $view->field = array_merge($view->field, array(
+      array(
+        'tablename' => 'node_comment_statistics',
+        'field' => 'comment_count',
+        'label' => 'Replies',
+        'handler' => 'views_handler_comments_with_new',
+        'sortable' => '1',
+      ),
+      array(
+        'tablename' => 'node_comment_statistics',
+        'field' => 'last_comment_timestamp',
+        'label' => 'Last Post',
+        'handler' => 'views_handler_field_since',
+        'sortable' => '1',
+        'defaultsort' => 'DESC',
+      ),
+    ));
+    array_push($view->field, $op_field);
+    $view->requires = array_merge($view->requires, array('node_comment_statistics'));
+  }
+
+  $views[$view->name] = $view;
+
   return $views;
 }
 
