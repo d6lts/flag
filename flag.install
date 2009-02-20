@@ -408,6 +408,27 @@ function flag_update_6002() {
   return $ret;
 }
 
+/**
+ * Remove the previous default views that are no longer bundled with Flag.
+ *
+ * These views are saved to the database so that they are preserved.
+ */
+function flag_update_6003() {
+  $ret = array();
+
+  $flags = flag_get_flags();
+  foreach ($flags as $name => $flag) {
+    if ($view = views_get_view('flags_'. $name)) {
+      if (!$view->disabled && $view->type == t('Default')) {
+        $view->save();
+        $ret[] = array('success' => TRUE, 'query' => t('The view %name as been saved to the database. Flag no longer provides this view by default.', array('%name' => $view->name)));
+      }
+    }
+  }
+
+  return $ret;
+}
+
 // This is a replacement for update_sql(). The latter doesn't support placeholders.
 function _flag_update_sql($sql) {
   $args = func_get_args();
