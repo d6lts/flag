@@ -937,7 +937,7 @@ function flag_confirm_submit($form_id, $form_values) {
 }
 
 /**
- * Flags, on unflags, an item.
+ * Flags or unflags an item.
  *
  * @param $account
  *   The user on whose behalf to flag. Leave empty for the current user.
