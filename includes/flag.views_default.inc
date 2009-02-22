@@ -145,8 +145,9 @@ function flag_views_default_views() {
   /* Individual users user/%/bookmarks tab. */
 
   // Additional relationship for this view.
-  $relationships['flag_content_rel']['user_scope'] = 'all';
-  $relationships_tab = $relationships + array(
+  $relationships_tab = $relationships;
+  $relationships_tab['flag_content_rel']['user_scope'] = 'all';
+  $relationships_tab += array(
     'uid' => array(
       'label' => 'bookmarks_user',
       'required' => 1,
