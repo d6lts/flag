@@ -1,0 +1,1013 @@
+# $Id$
+#
+# French translation of Drupal (general)
+# Copyright 2009 Stéphane Bordage, Breek <sbordage@breek.fr>
+# Generated from files:
+#  flag.actions.inc,v 1.2.2.11 2008/09/30 03:08:49 quicksketch
+#  flag.inc,v 1.1.2.28 2009/02/15 21:14:21 quicksketch
+#  flag.module,v 1.11.2.65 2009/02/22 03:15:52 quicksketch
+#  flag.info,v 1.2.2.2 2009/02/20 22:43:19 quicksketch
+#  flag_actions.info,v 1.1.2.2 2009/02/15 02:24:01 quicksketch
+#  flag.views.inc,v 1.1.2.9 2008/12/03 14:09:59 mooffie
+#  flag_actions.module,v 1.1.2.11 2008/09/18 15:37:47 mooffie
+#  flag.install,v 1.2.2.28 2009/02/20 21:56:40 quicksketch
+#  flag_plugin_argument_validate_flaggability.inc,v 1.1.2.3 2008/12/03 14:10:00 mooffie
+#  flag_handler_field_ops.inc,v 1.1.2.5 2008/12/03 14:10:00 mooffie
+#  flag.token.inc,v 1.1.2.4 2008/12/03 14:09:59 mooffie
+#  flag_handler_filter_flagged.inc,v 1.1.2.5 2008/12/03 14:10:00 mooffie
+#  flag_handler_relationships.inc,v 1.1.2.8 2008/12/03 14:10:00 mooffie
+#  flag.views_bookmark.inc,v 1.1.2.8 2009/02/10 04:27:35 quicksketch
+#  flag.views_convert.inc,v 1.1.2.2 2008/11/09 08:40:01 mooffie
+#  flag.views_default.inc,v 1.1.2.4 2009/02/20 21:56:41 quicksketch
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-03-03 16:13+0100\n"
+"PO-Revision-Date: 2009-03-03 19:42+0100\n"
+"Last-Translator: Jérémy Chatard <jchatard@breek.fr>\n"
+"Language-Team: French <breek@breek.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: flag.actions.inc:17
+#, fuzzy
+msgid "Content has been flagged"
+msgstr "Le contenu a été flaggé"
+
+#: flag.actions.inc:20
+#, fuzzy
+msgid "Content has been unflagged"
+msgstr "Le contenu a été déflaggé"
+
+#: flag.inc:22
+#, fuzzy
+msgid "Nodes"
+msgstr "Nœuds"
+
+#: flag.inc:23
+msgid "Nodes are a Drupal site's primary content."
+msgstr "Les nœuds constituent le contenu primaire d'un site Drupal."
+
+#: flag.inc:27
+msgid "Comments"
+msgstr "Commentaires"
+
+#: flag.inc:28
+msgid "Comments are responses to node content."
+msgstr "Les commentaires sont des réponses au contenu des nœuds."
+
+#: flag.inc:32
+msgid "Users"
+msgstr "Utilisateurs"
+
+#: flag.inc:33
+msgid "Users who have created accounts on your site."
+msgstr "Utilisateurs ayant créé un compte sur votre site."
+
+#: flag.inc:245
+#, fuzzy
+msgid "The flag name may only contain lowercase letters, underscores, and numbers."
+msgstr "Le nom du flag ne contenir que des lettres minuscules, underscores et des nombres."
+
+#: flag.inc:251
+#, fuzzy
+msgid "Flag names must be unique. This flag name is already in use."
+msgstr "Les noms des flags doivent être uniques. Ce nom de flag est déjà utilisé."
+
+#: flag.inc:794
+msgid "Internationalization"
+msgstr "Gestion multilingue"
+
+#: flag.inc:796
+#, fuzzy
+msgid "Flag translations of content as a group"
+msgstr "Flagger les traductions de contenu comme un groupe"
+
+#: flag.inc:797
+#, fuzzy
+msgid "Flag each translation of content separately"
+msgstr "Flagger chaque traduction séparemment"
+
+#: flag.inc:800
+#, fuzzy
+msgid "Flagging translations as a group effectively allows users to flag the original piece of content regardless of the translation they are viewing. Changing this setting will <strong>not</strong> update content that has been flagged already."
+msgstr "Flagger les traductions comme un groupe permet aux utilisateurs de flagger le contenu original sans faire de distinction sur la traduction qu'ils sont en train d'afficher. Changer ce paramètre ne mettra <strong>pas</strong> à jour les contenus déjà flaggés."
+
+#: flag.inc:806
+msgid "Display link on node teaser"
+msgstr "Afficher le lien sur la version résumé du nœud"
+
+#: flag.inc:812
+msgid "Display link on node page"
+msgstr "Afficher le lien sur la version complète du nœud"
+
+#: flag.inc:818
+msgid "Display checkbox on node edit form"
+msgstr "Afficher une case à cocher sur le formulaire d'édition du nœud"
+
+#: flag.inc:820
+msgid "If you elect to have a checkbox on the node edit form, you may specify its initial state in the settings form <a href=\"@content-types-url\">for each content type</a>."
+msgstr "Si vous choisissez d'avoir une case à cocher sur le formulaire d'édition du nœud, vous devez spécifier son état initial sur le formulaire de paramètres de <a href=\"@content-types-url\">chacun des types de contenus</a>."
+
+#: flag.inc:916
+#, fuzzy
+msgid "Node flag"
+msgstr "Nœud flaggé"
+
+#: flag.inc:917
+msgid "Limit results to only those nodes flagged by a certain flag; Or display information about the flag set on a node."
+msgstr "Limite les résultats aux nœuds qui ont été flaggés par un certain flag ; ou affiche les informations du flag appliqué au nœud."
+
+#: flag.inc:918
+#, fuzzy
+msgid "Node flag counter"
+msgstr "Compteur de flag du nœud"
+
+#: flag.inc:919;1015;1112
+#, fuzzy
+msgid "Include this to gain access to the flag counter field."
+msgstr "Inclure ceci pour avoir accès au champ compteur de flag."
+
+#: flag.inc:952
+msgid "Display link under comment"
+msgstr "Afficher le lien sous le commentaire"
+
+#: flag.inc:1012
+msgid "Comment flag"
+msgstr "Flag de commentaire"
+
+#: flag.inc:1013
+msgid "Limit results to only those comments flagged by a certain flag; Or display information about the flag set on a comment."
+msgstr "Limite les résultats aux commentaires qui ont été flaggés par un certain flag ; ou affiche les informations du flag appliqué au commentaire."
+
+#: flag.inc:1014
+msgid "Comment flag counter"
+msgstr "Compteur de flag du commentaire"
+
+#: flag.inc:1052
+msgid "Display link on user profile page"
+msgstr "Afficher le lien sur la page de profil de l'utilisateur"
+
+#: flag.inc:1109
+msgid "User flag"
+msgstr "Flag d'utilisateur"
+
+#: flag.inc:1110
+msgid "Limit results to only those users flagged by a certain flag; Or display information about the flag set on a user."
+msgstr "Limite les résultats aux utilisateurs qui ont été flaggés par un certain flag ; ou affiche les informations du flag appliqué à l'utilisateur."
+
+#: flag.inc:1111
+msgid "User flag counter"
+msgstr "Compteur de flag de l'utilisateur"
+
+#: flag.inc:1137
+msgid "The module providing this flag wasn't found, or this flag type, %type, isn't valid."
+msgstr "Le module fournissant ce flag n'a pas été trouvé, ou ce type de flag <em> %type</em> n'est pas valide."
+
+#: flag.module:208
+#, fuzzy
+msgid "JavaScript toggle"
+msgstr "Basculement JavaScript"
+
+#: flag.module:209
+msgid "Normal link"
+msgstr "Lien standard"
+
+#: flag.module:210
+msgid "Confirmation form"
+msgstr "Formulaire de confirmation"
+
+#: flag.module:237
+msgid "Default flags"
+msgstr "Flags par défaut"
+
+#: flag.module:238
+msgid "Above are the <a href=\"@flag-url\">flags</a> you elected to show on the node editing form. You may specify their initial state here."
+msgstr "Ci-dessus sont listés les <a href=\"@flag-url\">flags</a> que vous avez définis comme devant apparaître sur le formulaire d'édition des nœuds. Vous pouvez spécifier leur état initial ici."
+
+#: flag.module:267;18
+#: flag.info:0
+#: flag_actions.info:0
+#: includes/flag.views.inc:73;74;165;180;196
+#, fuzzy
+msgid "Flags"
+msgstr "Flags"
+
+#: flag.module:402
+msgid "This page lists all the <em>flags</em> that are currently defined on this system. You may <a href=\"@add-url\">add new flags</a>."
+msgstr "Cette page liste tous les <em>flags</em> définis dans ce système. Vous pouvez <a href=\"@add-url\">ajouter de nouveaux flags</a>."
+
+#: flag.module:407
+#: flag_actions.module:244
+msgid "edit"
+msgstr "modifier"
+
+#: flag.module:408
+#: flag_actions.module:245
+msgid "delete"
+msgstr "supprimer"
+
+#: flag.module:415
+msgid "No roles"
+msgstr "Aucun rôle"
+
+#: flag.module:417
+msgid "Yes"
+msgstr "Oui"
+
+#: flag.module:417
+msgid "No"
+msgstr "Non"
+
+#: flag.module:423
+msgid "No flags are currently defined."
+msgstr "Aucun flag n'est actuellement défini."
+
+#: (duplicate) flag.module:427;57
+#: flag_actions.module:254
+#: flag.install:83
+#: ;90  flag.info:0
+#: includes/flag.views.inc:225
+#: includes/flag_plugin_argument_validate_flaggability.inc:30
+#, fuzzy
+msgid "Flag"
+msgstr "Flag"
+
+#: flag.module:427;449;511
+#, fuzzy
+msgid "Flag type"
+msgstr "Type de flag"
+
+#: flag.module:427
+msgid "Roles"
+msgstr "Rôles"
+
+#: flag.module:427
+#, fuzzy
+msgid "Node types"
+msgstr "Types de contenu"
+
+#: flag.module:427
+msgid "Global?"
+msgstr "Global ?"
+
+#: flag.module:427;449
+#: flag_actions.module:257
+msgid "Operations"
+msgstr "Opérations"
+
+#: flag.module:435
+msgid "enable"
+msgstr "activé"
+
+#: flag.module:449
+msgid "Disabled Flags"
+msgstr "Flags inactifs"
+
+#: flag.module:449
+msgid "Module"
+msgstr "Module"
+
+#: flag.module:454
+#, fuzzy
+msgid "The <a href=\"@views-url\">Views</a> module is not installed, or not enabled. It is recommended that you install the Views module to be able to easily produce lists of flagged content."
+msgstr "Le module <a href=\"@views-url\">Views</a> n'est pas installé ou n'est pas activé. Il est recommandé d'installer le module Views afin de pouvoir générer simplement des listes de contenu flaggé."
+
+#: flag.module:458
+#, fuzzy
+msgid "Lists of flagged content can be displayed using views. You can configure these in the <a href=\"@views-url\">Views administration section</a>."
+msgstr "Des listes de contenu flaggés peuvent être affichées en utilisant des vues. Vous pouvez les configurer dans la <a href=\"@views-url\">section d'administration de Views</a>."
+
+#: flag.module:460
+#, fuzzy
+msgid "Flag module automatically provides a few <a href=\"@views-url\">default views for the <em>bookmarks</em> flag</a>. You can use these as templates by cloning these views and then customizing as desired."
+msgstr "Le module Flag fournit automatiquement quelques <a href=\"@views-url\">vues par défaut pour le flag <em>bookmarks</em></a>.  Vous pouvez les utiliser comme patron en clonant ces vues, puis les paramétrant selon vos besoins."
+
+#: flag.module:462
+#, fuzzy
+msgid "The <a href=\"@flag-handbook-url\">Flag module handbook</a> contains extensive <a href=\"@customize-url\">documentation on creating customized views</a> using flags."
+msgstr "Le <a href=\"@flag-handbook-url\">manuel du module Flag</a> contient de la <a href=\"@customize-url\">documentation pour créer des vues personnalisées</a> en utilisants les flags."
+
+#: flag.module:467
+#, fuzzy
+msgid "Flagging an item may trigger <em>actions</em>. However, you don't have the <em>Flag actions</em> module <a href=\"@modules-url\">enabled</a>, so you won't be able to enjoy this feature."
+msgstr "Flagger un élément peut déclencher des <em>actions</em>. Cependant, vous n'avez pas le module <em>Flag actions</em> d'<a href=\"@modules-url\">activé</a> ; vous ne pourrez donc pas profiter de cette fonctionnalité."
+
+#: flag.module:470
+#, fuzzy
+msgid "Flagging an item may trigger <a href=\"@actions-url\">actions</a>."
+msgstr "Flagger un élément peut déclencher des <a href=\"@actions-url\">actions</a>."
+
+#: flag.module:473
+#, fuzzy
+msgid "To learn about the various ways to use flags, please check out the <a href=\"@handbook-url\">Flag module handbook</a>."
+msgstr "Pour apprendre les différentes manières d'utiliser les flags, consultez le <a href=\"@handbook-url\">manuel du module Flag</a>."
+
+#: flag.module:498
+msgid "Flag name"
+msgstr "Nom du flag"
+
+#: flag.module:499;568
+#, fuzzy
+msgid "The machine-name for this flag. It may be up to 32 characters long and my only contain lowercase letters, underscores, and numbers. It will be used in URLs and in all API calls."
+msgstr "Le nom système pour ce flag. Il peut faire jusqu'à 32 caractères et contenir des lettres minuscules, des underscores et des nombres. Il sera utilisé dans les URLs et dans les tous les appels d'API."
+
+#: flag.module:513
+msgid "The type of content this flag will affect. An individual flag can only affect one type of content. This cannot be changed once the flag is created."
+msgstr "Le type de contenu que ce flag peut affecter. Un flag ne peut affecter qu'un seul type de contenu. Ceci ne peut être changé une fois que le flag est créé."
+
+#: flag.module:520;729
+#: flag_actions.module:437
+msgid "Submit"
+msgstr "Soumettre"
+
+#: flag.module:544
+msgid "Add new flag"
+msgstr "Ajouter un flag"
+
+#: flag.module:559
+msgid "Edit @title flag"
+msgstr "Modifier le flag @title"
+
+#: flag.module:566
+msgid "Name"
+msgstr "Nom"
+
+#: flag.module:575
+msgid "Change this value only with great care."
+msgstr "Changez cette valeur avec beaucoup de précautions."
+
+#: flag.module:580
+msgid "Title"
+msgstr "Titre"
+
+#: flag.module:582
+msgid "A short, descriptive title for this flag. It will be used in administrative interfaces to refer to this flag, and in page titles and menu items of some <a href=\"@insite-views-url\">views</a> this module provides (theses are customizable, though). Some examples could be <em>Bookmarks</em>, <em>Favorites</em>, or <em>Offensive</em>."
+msgstr "Un titre court et descriptif pour ce flag. Il sera utilisé dans les interfaces d'administration pour faire référence à ce flag, ainsi que dans les titres de page et les éléments de menus de certaines <a href=\"@insite-views-url\">vues</a> que ce module fournit (ils sont cependant personnalisables). Des exemples pourraient être <em>Marque-page</em>, <em>Favoris</em> ou <em>Abusif</em>"
+
+#: flag.module:590
+#, fuzzy
+msgid "Flag link text"
+msgstr "Texte du lien du flag"
+
+#: flag.module:592
+#, fuzzy
+msgid "The text for the \"flag this\" link for this flag."
+msgstr "Le texte pour le lien \"flagger ceci\" pour ce flag."
+
+#: flag.module:599
+msgid "Flag link description"
+msgstr "Description du lien du flag"
+
+#: flag.module:601
+msgid "The description of the \"flag this\" link. Usually displayed on mouseover."
+msgstr "La description du lien \"flagger ceci\". Habituellement affiché au survol de la souris."
+
+#: flag.module:607
+msgid "Flag confirmation message"
+msgstr "Message de confirmation du flag."
+
+#: flag.module:609
+msgid "Message displayed if the user has clicked the \"flag this\" link and confirmation is required. Usually presented in the form of a question such as, \"Are you sure you want to flag this content?\""
+msgstr "Le message affiché si l'utilisateur a cliqué sur le lien \"flagger ceci\" et qu'une confirmation est requise. Habituellement présenté sous forme de question tel que : \"Êtes-vous certain de vouloir flagger ce contenu ?\""
+
+#: flag.module:615
+msgid "Flagged message"
+msgstr "Message de contenu flaggé"
+
+#: flag.module:617
+msgid "Message displayed after flagging content. If JavaScript is enabled, it will be displayed below the link. If not, it will be displayed in the message area."
+msgstr "Le message affiché après que le contenu ait été flaggé. Si le JavaScript est activé, il sera affiché sous le lien. S'il n'est pas activé, il sera affiché dans la zone des messages."
+
+#: flag.module:623
+msgid "Unflag link text"
+msgstr "Texte du lien pour déflagger"
+
+#: flag.module:625
+msgid "The text for the \"unflag this\" link for this flag."
+msgstr "Le texte du lien \"Déflagger ceci\" pour ce flag."
+
+#: flag.module:632
+msgid "Unflag link description"
+msgstr "Description du lien déflagger"
+
+#: flag.module:634
+msgid "The description of the \"unflag this\" link. Usually displayed on mouseover."
+msgstr "La description du lien \"déflagger ceci\". Habituellement affiché au survol de la souris."
+
+#: flag.module:640
+msgid "Unflag confirmation message"
+msgstr "Message de confirmation de déflaggage"
+
+#: flag.module:642
+msgid "Message displayed if the user has clicked the \"unflag this\" link and confirmation is required. Usually presented in the form of a question such as, \"Are you sure you want to unflag this content?\""
+msgstr "Le message affiché si l'utilisateur a cliqué sur le lien \"déflagger ceci\" et qu'une confirmation est requise. Habituellement présenté sour la forme d'une question tel que : \"Êtes-vous certain de vouloir déflagger ce contenu ?\""
+
+#: flag.module:648
+#, fuzzy
+msgid "Unflagged message"
+msgstr "Message de déflaggage"
+
+#: flag.module:650
+msgid "Message displayed after content has been unflagged. If JavaScript is enabled, it will be displayed below the link. If not, it will be displayed in the message area."
+msgstr "Le message affiché après qu'un contenu a été déflaggé. Si le JavaScript est activé, il s'affichera sous le lien. S'il n'est pas activé, il sera affiché dans la zone des messages."
+
+#: flag.module:656
+msgid "Token replacement"
+msgstr "Remplacement par les tokens"
+
+#: flag.module:658
+msgid "The above six options may contain the following wildcard replacements. For example, \"Mark Link\" could be entered as \"Add [title] to your flags\" or \"Add this [type-name] to your flags\". These wildcards will be replaced with the appropriate field from the node."
+msgstr "Les six libellés ci-dessus peuvent contenir jokers de remplacement suivants. Par exemple, \"Marquer ce lien\" pourrait être entré comme \"Ajouter [title] à mes favoris\" ou \"Ajouter ce [type-name]\ à vous favoris\". Ces jokers seront remplacés avec les valeurs correspondantes du nœud."
+
+#: flag.module:665
+msgid "Note: You don't have the <a href=\"@token-url\">Token</a> module installed. If you have it installed, and enabled, you'll be able to embed tokens in the six labels above."
+msgstr "A noter : le module <a href=\"@token-url\">Token</a> n'est pas installé. Si vous l'aviez installé et activé, vous pourriez incorporer les tokens dans les six libellés ci-dessus."
+
+#: flag.module:671
+msgid "Global flag"
+msgstr "Flag global"
+
+#: flag.module:673
+msgid "If checked, flag is considered \"global\" and each node is either flagged or not. If unchecked, each user has individual flags on content."
+msgstr "Si activée, le flag est considéré comme \"global\" et chaque nœud est soit flaggé soit non flaggé. Si cette option n'est pas activée, chaque utilisatuer dispose d'un flag sur chaque contenu."
+
+#: flag.module:680
+msgid "Roles that may use this flag"
+msgstr "Rôles pouvant utiliser ce flag"
+
+#: flag.module:684
+msgid "Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content."
+msgstr "Cocher <em>utilisateur identifié</em> va permettre à tous les utilisateurs disposant d'un compte de flagger du contenu avec ce flag. Les utilisateurs anonyme ne pourront pas flagger de contenu."
+
+#: flag.module:696
+msgid "What nodes this flag may be used on"
+msgstr "Sur quels types de nœuds ce flag peut-il être utilisé"
+
+#: flag.module:699
+msgid "Check any node types that this flag may be used on. You must check at least one node type."
+msgstr "Sélectionnez chacun des types de contenu sur lesquels ce flag peut être utilisé. Vous devez en sélectionner un au minimum."
+
+#: flag.module:712
+msgid "Display options"
+msgstr "Options d'affichage"
+
+#: flag.module:713
+msgid "Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here. It is legitimate to have none of the following checkboxes ticked, if, for some reason, you wish <a href=\"@placement-url\">to place the the links on the page yourself</a>."
+msgstr "Les flags sont souvent contrôlés par des liens qui permettent aux utilisateurs de basculer d'un état à l'autre. Vous pouvez choisir comment les utilisateurs intéragissent avec les flags ici. Il est normal de n'avoir aucune des ces options cochées, si vous souhaitez <a href=\"@placement-url\">placer les liens sur la page vous-même</a>."
+
+#: flag.module:720
+#: includes/flag_handler_field_ops.inc:52
+msgid "Link type"
+msgstr "Type de lien"
+
+#: flag.module:748
+msgid "A flag confirmation message is required when using the confirmation link type."
+msgstr "Le message de confirmation du flag est obligatoire lorsque vous utilisez le type de lien confirmation."
+
+#: flag.module:751
+msgid "An unflag confirmation message is required when using the confirmation link type."
+msgstr "Un message de confirmation est obligatoire lorsque vous utilisez le type de lien confirmation."
+
+#: flag.module:769
+msgid "Flag @name has been saved."
+msgstr "Le flag @name a été enregistré."
+
+#: flag.module:786
+msgid "Are you sure you want to delete %title?"
+msgstr "Êtes-vous sûr de vouloir supprimer %title ?"
+
+#: flag.module:788
+msgid "This flag is provided by the @module module. It will loose any customizations and be disabled."
+msgstr "Ce flag est fournit par le module @module. Il va perdre toute personnalisation et être désactivé."
+
+#: flag.module:788
+msgid "This action cannot be undone."
+msgstr "Cette action est irréversible."
+
+#: flag.module:789
+#: flag_actions.module:518
+msgid "Delete"
+msgstr "Supprimer"
+
+#: flag.module:789
+msgid "Cancel"
+msgstr "Annuler"
+
+#: flag.module:800
+msgid "Flag @name has been deleted."
+msgstr "Le flag @name a été supprimé."
+
+#: flag.module:832
+msgid "Bad token. You seem to have followed an invalid link."
+msgstr "Mauvais token. Il semble que vous avez suivi un lien non valide."
+
+#: flag.module:837;915
+msgid "You are not allowed to flag, or unflag, this content."
+msgstr "Vous n'êtes pas autorisé à flagger ou déflagger ce contenu."
+
+#: flag.module:996
+msgid "The update has been performed."
+msgstr "La mise à jour a été effectuée."
+
+#: flag.module:102
+msgid "administer flags"
+msgstr "administrer les flags"
+
+#: flag.module:22
+msgid "Configure flags for marking content with arbitary information (such as <em>offensive</em> or <em>bookmarked</em>)."
+msgstr "Paramétrer les flags pour marquer le contenu avec des informations arbitraires (tel que <em>abusif</em> ou <em>ajouter aux favoris</em>)."
+
+#: flag.module:26
+msgid "Edit flags"
+msgstr "Modifier les flags"
+
+#: flag.module:34
+msgid "Delete flags"
+msgstr "Supprimer les flags"
+
+#: flag.module:42
+msgid "List"
+msgstr "Liste"
+
+#: flag.module:50
+msgid "Add"
+msgstr "Ajouter"
+
+#: flag.module:64
+msgid "Flag confirm"
+msgstr "Confirmation"
+
+#: flag.module:0
+#: includes/flag.views.inc:171
+msgid "flag"
+msgstr "flag"
+
+#: flag_actions.module:92
+msgid "Missing action \"@action-callback\". Module providing it was either uninstalled or disabled."
+msgstr "Action manquante \"@action-callback\". Le module qui la fournissait a soit été désinstallé soit désactivé."
+
+#: flag_actions.module:250
+msgid "Currently no flag actions. Use the <em>Add new flag action</em> form to add an action."
+msgstr "Aucune action sur les flags. Utilisez le formulaire <em>Ajouter une action sur un flag</em> pour créer une action."
+
+#: flag_actions.module:255
+msgid "Threshold"
+msgstr "Seuil"
+
+#: flag_actions.module:256
+msgid "Action"
+msgstr "Action"
+
+#: flag_actions.module:277;284
+msgid "No flag available"
+msgstr "Aucun flag disponible"
+
+#: flag_actions.module:286
+msgid "Select a flag"
+msgstr "Sélectionnez un flag"
+
+#: flag_actions.module:291;30
+msgid "Add action"
+msgstr "Ajouter une action"
+
+#: flag_actions.module:306
+msgid "Add a new flag action"
+msgstr "Ajouter une action sur un flag"
+
+#: flag_actions.module:335
+msgid "Edit the \"@action\" action for the @title flag"
+msgstr "Modifier l'action \"@action\" pour le flag @title"
+
+#: flag_actions.module:353
+msgid "Add an action to the @title flag"
+msgstr "Ajouter une action pour le flag @title"
+
+#: flag_actions.module:362
+msgid "Select an action"
+msgstr "Sélectionnez une action"
+
+#: flag_actions.module:369
+msgid "Continue"
+msgstr "Continuer"
+
+#: flag_actions.module:380
+msgid "Add \"@action\" action to the @title flag"
+msgstr "Ajouter l'action \"@action\" pour le flag @title"
+
+#: flag_actions.module:408
+msgid "reaches"
+msgstr "atteind"
+
+#: flag_actions.module:409
+msgid "falls below"
+msgstr "tombre sous"
+
+#: flag_actions.module:475
+msgid "The \"@action\" action for the @title flag has been saved."
+msgstr "L'action \"@action\" pour le flag @title a été enregistrée."
+
+#: flag_actions.module:486
+msgid "Perform action when content !event !threshold flags"
+msgstr "Exécute une action lorsque l'événement !event du contenu atteind le seuil de !threshold flags."
+
+#: flag_actions.module:490
+msgid "Flagging threshold"
+msgstr "Seuil du flag"
+
+#: flag_actions.module:491
+msgid "Set the event for which this action should be executed."
+msgstr "Spécifier l'événement pour lequel cette action doit s'exécuter."
+
+#: flag_actions.module:515
+msgid "Delete the \"@action\" action for the @title flag?"
+msgstr "Supprimer l'action \"@action\" pour le flag @title ?"
+
+#: flag_actions.module:523
+msgid "The \"@action\" action for the @title flag has been deleted."
+msgstr "L'action \"@action\" pour le flag @title a été supprimée."
+
+#: flag_actions.module:530
+msgid "Tip"
+msgstr "Astuce"
+
+#: flag_actions.module:532
+msgid "The \"Send tokenized e-mail\" action is preferable to the \"Send e-mail\" action you are now using. It provides you with many more tokens to use. This is especially useful when flagging users and comments."
+msgstr "L'action \"Envoyer un e-mail avec des tokens\" est à préférer à l'action \"Envoyer un e-mail\" que vous utilisez actuellement. Elle vous fournit bien plus de tokens à utiliser. Ce qui est extrèment utile lorsque l'on flag des utilisateurs ou des commentaires."
+
+#: flag_actions.module:533
+msgid "You may wish to enable the <em>Token actions</em> module, which is shipped with the <a href=\"@token-url\">Token</a> module. That module provides a \"Send tokenized e-mail\" action, which is similar to the \"Send e-mail\" action you are now using, except it provides you with many more tokens to use. This is especially useful when flagging users and comments."
+msgstr "Vous devriez activer le module <em>Token actions</em> qui est fornit avec le module <a href=\"@token-url\">Token</a>. Ce module fournit une action \"Envoyer un e-mail avec des tokens\" qui est à préférer à l'action \"Envoyer un e-mail\" que vous utilisez actuellement. Elle vous fournit bien plus de tokens à utiliser. Ce qui est extrèment utile lorsque l'on flag des utilisateurs ou des commentaires."
+
+#: flag_actions.module:545
+msgid "Content Flagged @flag_title"
+msgstr "Contenu flaggé @flag_title"
+
+#: flag_actions.module:549
+msgid ""
+"The @flag_content_type [flag-content-title] has been flagged [flag-count] times with the @flag_title flag.\n"
+"\n"
+"View this @flag_content_type at [flag-content-url]."
+msgstr ""
+"Le @flag_content_type [flag-content-title] a été flaggé [flag-count] fois avec le flag @flag_title.\n"
+"\n"
+"Afficher ce @flag_content_type [flag-content-url]."
+
+#: flag_actions.module:554
+msgid "Tokens"
+msgstr "Tokens"
+
+#: flag_actions.module:555
+msgid "The following tokens can be used in the recipient, subject, or message."
+msgstr "Les tokens suivants peuvent être utilisés dans les champs destinataire, sujet ou message."
+
+#: flag_actions.module:565
+msgid "More tokens"
+msgstr "Plus de tokens"
+
+#: flag_actions.module:566
+msgid "Depending on the type of the content being flagged, the following tokens can be used in the recipients, subject, or message. For example, if the content being flagged is a node, you can use any of the node tokens --but you can't use the comment tokens: they won't be recognized. Similarly, if the content being flagged is a user, you can use only the user tokens."
+msgstr "En fonction du type de contenu qui est flaggé, les tokens suivants peuvent être utilisés dans les champs destinataire, sujet ou message. Par exemple, si le contenu flaggé est un nœud, vous pouvez utiliser les tokens des nœuds --mais vous ne pouvez pas utiliser les tokens des commentaires : ils ne seront pas reconnus. De la même manière, si le contenu flaggé est un utilisateur, vous ne pourrez utiliser que les tokens des utilisateurs."
+
+#: flag_actions.module:23
+msgid "Actions"
+msgstr "Actions"
+
+#: flag_actions.module:38
+msgid "Delete action"
+msgstr "Supprimer l'action"
+
+#: flag_actions.module:46
+msgid "Edit action"
+msgstr "Modifier l'action"
+
+#: flag_actions.module:0
+msgid "flag_actions"
+msgstr "flag_actions"
+
+#: flag.install:70
+msgid "Flag has been uninstalled."
+msgstr "Flag a été désinstallé."
+
+#: flag.install:307
+msgid "No old actions to remove."
+msgstr "Aucune ancienne action à retirer."
+
+#: flag.install:313
+msgid "Deleting the following actions: @aids"
+msgstr "Suppresion des actions suivantes : @aids"
+
+#: flag.install:326
+msgid "actions_delete(\"@aid\") called."
+msgstr "actions_delete(\"@aid\") appelée."
+
+#: flag.install:354
+msgid "Cleanup of Actions tables is unneeded."
+msgstr "Le nettoyage des tables d'Actions n'est pas nécessaire."
+
+#: flag.install:422
+msgid "Default"
+msgstr "Par défaut"
+
+#: flag.install:424
+msgid "The view %name as been saved to the database. Flag no longer provides this view by default."
+msgstr "La vue %name a été sauvegardée dans la base de données. Flag ne fournit plus cette vue par défaut."
+
+#: (duplicate) flag.install:92
+msgid "To have the flag module work with translations, you need to install and enable the <a href=\"http://drupal.org/project/translation_helpers\">Translation helpers</a> module."
+msgstr "Pour que le module Flag fonctionne avec les traductions, vous devez installer et activer le module <a href=\"http://drupal.org/project/translation_helpers\">Translation helpers</a>."
+
+#: (duplicate) flag.install:94
+msgid "Translation helpers module not found."
+msgstr "Le module Translation helpers n'a pas été trouvé."
+
+#: (duplicate) flag.install:111
+msgid "You are trying to install the <em>Flag</em> module. However, you have the <em>\"Flag content\"</em> module installed, and these two modules aren't compatible (because they happen to use a database table by the same name). To install the <em>Flag</em> module, you'll first have to disable and then <a href='@uninstall-url'>uninstall</a> the <em>\"Flag content\"</em> module."
+msgstr "Vous essayez d'installer le module <em>Flag</em>. Cependant, vous avez le module <em>\"Flag content\"</em> installé, et ces deux modules ne sont pas compatibles (car il arrive qu'ils utilisent le même nom de base de données). Pour installer le module <em>Flag</em>, vous devrez en premier désactiver et ensuite <a href='@uninstall-url'>désinstaller</a> le module <em>\"Flag content\"</em>."
+
+#: flag.info:0
+msgid "Create customized flags that users can set on content."
+msgstr "Créez des flags personnalisés que les utilisateurs peuvent activer sur du contenu."
+
+#: flag_actions.info:0
+msgid "Flag actions"
+msgstr "Flag actions"
+
+#: flag_actions.info:0
+msgid "Execute actions on Flag events."
+msgstr "Exécute des actions sur les événements de Flag."
+
+#: includes/flag.token.inc:15
+msgid "The flag name."
+msgstr "Le nom du flag."
+
+#: includes/flag.token.inc:16
+msgid "The flag title."
+msgstr "Le titre du flag."
+
+#: includes/flag.token.inc:19
+msgid "The flagging action taking place."
+msgstr "L'action du flag s'exécutant."
+
+#: includes/flag.token.inc:20
+msgid "The URL of the content being flagged."
+msgstr "L'URL du contenu flaggé."
+
+#: includes/flag.token.inc:21
+msgid "The title of the content being flagged."
+msgstr "Le titre du contenu flaggé."
+
+#: includes/flag.token.inc:22
+msgid "The type of content being flagged, such as <em>node</em> or <em>comment</em>."
+msgstr "Le type de contenu flaggé, tel que <em>nœud</em> ou <em>commentaire</em>."
+
+#: includes/flag.token.inc:23
+msgid "The ID of content being flagged, may be a nid or cid."
+msgstr "L'ID du contenu flaggé, peut être un nid ou un cid."
+
+#: includes/flag.token.inc:24
+msgid "The current count total for this flag."
+msgstr "Le total courant pour ce flag."
+
+#: includes/flag.token.inc:30
+msgid "Total flag count for flag @flag"
+msgstr "Le nombre total de flag pour le flag @flag"
+
+#: includes/flag.token.inc:76
+msgid "Token"
+msgstr "Token"
+
+#: includes/flag.token.inc:76
+msgid "Replacement value"
+msgstr "Valeur de remplacement"
+
+#: includes/flag.token.inc:79
+msgid "tokens"
+msgstr "tokens"
+
+#: includes/flag.views.inc:50
+msgid "Flaggable node"
+msgstr "Nœud flaggable"
+
+#: includes/flag.views.inc:56
+msgid "Flaggable user"
+msgstr "Utilisateur flaggable"
+
+#: includes/flag.views.inc:77
+msgid "User"
+msgstr "Utilisateur"
+
+#: includes/flag.views.inc:78
+msgid "The user that flagged an item."
+msgstr "L'utilisateur qui a flaggé un élément."
+
+#: includes/flag.views.inc:82
+msgid "Flag user"
+msgstr "Flag l'utilisateur"
+
+#: includes/flag.views.inc:87
+msgid "Flagged time"
+msgstr "Heure du flag"
+
+#: includes/flag.views.inc:88
+msgid "Display the time the content was flagged by a user."
+msgstr "Affiche la date/heure à laquelle le contenu a été flaggé par un utilisateur."
+
+#: includes/flag.views.inc:106
+msgid "Content ID"
+msgstr "ID du contenu"
+
+#: includes/flag.views.inc:107
+msgid "The unique ID of the object that has been flagged."
+msgstr "L'ID unique de l'objet qui a été flaggé."
+
+#: includes/flag.views.inc:115;120
+#: includes/flag_handler_filter_flagged.inc:24
+#: includes/flag_handler_relationships.inc:170
+msgid "Flagged"
+msgstr "Flaggé"
+
+#: includes/flag.views.inc:116
+msgid "Filter to ensure content has or has not been flagged."
+msgstr "Filtre qui s'assure qu'un contenu a été ou n'a pas été flaggé."
+
+#: includes/flag.views.inc:126
+msgid "Flag link"
+msgstr "Lien du flag"
+
+#: includes/flag.views.inc:127
+msgid "Display flag/unflag link."
+msgstr "Afficher le lien de flag/déflag."
+
+#: includes/flag.views.inc:134
+msgid "Flag counter"
+msgstr "Compteur de flag"
+
+#: includes/flag.views.inc:135
+msgid "The number of times a piece of content is flagged by any user."
+msgstr "Le nombre de fois qu'un contenu a été flaggé pour tous les utilisateurs."
+
+#: includes/flag.views.inc:186
+msgid "counter"
+msgstr "compteur"
+
+#: includes/flag.views.inc:197
+msgid "User's flagged content"
+msgstr "Contenu flaggé par l'utilisateur"
+
+#: includes/flag.views.inc:198
+#, fuzzy
+msgid "Limit results to users that have flagged certain content."
+msgstr "Limiter les résultats aux utilisateurs qui ont flaggé certains contenus."
+
+#: includes/flag.views.inc:204
+msgid "user flagged content"
+msgstr "contenu flaggé par l'utilisateur"
+
+#: includes/flag.views_bookmark.inc:20
+msgid "Migrating Views Bookmark to Flag module. More information about the changes between Views Bookmark and Flag may be found on the <a href=\"http://drupal.org/node/268269\">upgrading handbook page</a>."
+msgstr "Migrer Views Bookmark vers le module Flag. Plus d'information sur les changements entre Views Bookmark et Flag peuvent être trouvées sur la <a href=\"http://drupal.org/node/268269\">page de mise à jour du manuel</a>."
+
+#: includes/flag.views_bookmark.inc:31
+msgid "The Flag module has been installed, replacing Views Bookmark. Views Bookmark has been disabled, please remove it from your installation."
+msgstr "Le module Flag a été installé, remplaçant Views Bookmark. Views Bookmark a été désactivé, supprimez-le de votre installation."
+
+#: includes/flag.views_bookmark.inc:148
+msgid "The views bookmark %bookmark has been migrated to Flag. It was given the machine-name %name, which you may change on the <a href=\"!url\">%bookmark configuration form</a>."
+msgstr "La vue bookmark %bookmark a été migrée vers Flag. Le nom système %name lui a été attribué, vous pouvez le changer sur le <a href=\"!url\">formulaire de configuration de %bookmark</a>."
+
+#: includes/flag.views_convert.inc:110
+msgid "Flag is not able to convert the <em>Flagged time</em> filter. It's value is currently empty, but needs to be populated to work properly."
+msgstr "Flag n'est pas en mesure de convertir le filtre <em>Date/Heure du flag</em>. Sa valeur est vide pour le moment, mais doit être renseignée pour fonctionner correctement."
+
+#: includes/flag.views_default.inc:256;267
+msgid "My bookmarks"
+msgstr "Mes favoris"
+
+#: includes/flag_handler_field_ops.inc:53
+msgid "Use flag link settings"
+msgstr "Utilisez le lien paramètres de Flag"
+
+#: includes/flag_handler_filter_flagged.inc:23
+msgid "Status"
+msgstr "Statut"
+
+#: includes/flag_handler_filter_flagged.inc:24
+msgid "Not flagged"
+msgstr "Non flaggé"
+
+#: includes/flag_handler_filter_flagged.inc:26
+#, fuzzy
+msgid "This filter is only needed if the relationship used has the \"Include only flagged content\" option <strong>unchecked</strong>. Otherwise, this filter is useless, because all records are already limited to flagged content."
+msgstr "Ce filtre n'est requis que si la relation utilisée comme option \"Uniquement inclure du contenu flaggé\" n'est pas cochée. Sinon, le filtre est sans effet car tous les enregistrements sont déjà limités au contenu flaggé."
+
+#: includes/flag_handler_filter_flagged.inc:26
+msgid "By choosing <em>Not flagged</em>, it is possible to create a list of content <a href=\"@unflagged-url\">that is specifically not flagged</a>."
+msgstr "En choisissant <em>Non flaggé</em>, il est possible de créer une liste de contenu <a href=\"@unflagged-url\">qui n'est pas flaggé</a>."
+
+#: includes/flag_handler_relationships.inc:30
+#, fuzzy
+msgid "The name of the selected flag makes a good label."
+msgstr "Le nom du flag sélectionné fait un bon libellé."
+
+#: includes/flag_handler_relationships.inc:35
+msgid "By"
+msgstr "Par"
+
+#: includes/flag_handler_relationships.inc:36
+msgid "Current user"
+msgstr "Utilisateur courant"
+
+#: includes/flag_handler_relationships.inc:36
+msgid "Any user"
+msgstr "N'importe quel utilisateur"
+
+#: includes/flag_handler_relationships.inc:40;111
+msgid "Include only flagged content"
+msgstr "Uniquement inclure du contenu flaggé"
+
+#: includes/flag_handler_relationships.inc:41
+msgid "If checked, only content that has this flag will be included. Leave unchecked to include all content; or, in combination with the <em>Flagged</em> filter, <a href=\"@unflagged-url\">to limit the results to specifically unflagged content</a>."
+msgstr "Si coché, seul le contenu qui a ce flag sera inclu. Laisser non coché pour inclure tout le contenu ; ou en combinaison avec le filtre <em>Flaggé</em>, <a href=\"@unflagged-url\">pour limiter les résultats à du contenu spécifiquement non flaggé</a>."
+
+#: includes/flag_handler_relationships.inc:46
+#: includes/flag_plugin_argument_validate_flaggability.inc:38
+msgid "No %type flags exist. You must first <a href=\"@create-url\">create a %type flag</a> before being able to use one."
+msgstr "Aucun flag du type %type existant. Vous devez dabord <a href=\"@create-url\">créer un flag %type</a> avant de pouvoir l'utiliser."
+
+#: includes/flag_handler_relationships.inc:55
+msgid "You must first create a flag"
+msgstr "Vous devez dabord créer un flag"
+
+#: includes/flag_handler_relationships.inc:60
+msgid "by current user"
+msgstr "par l'utilisateur courant"
+
+#: includes/flag_handler_relationships.inc:60
+msgid "by any user"
+msgstr "par n'importe quel utilisateur"
+
+#: includes/flag_handler_relationships.inc:65
+msgid "!group: !title"
+msgstr "!group : !title"
+
+#: includes/flag_handler_relationships.inc:112
+msgid "If checked, only content that is flagged will be included."
+msgstr "Si coché, seul le contenu qui est flaggé sera inclu."
+
+#: includes/flag_handler_relationships.inc:121
+#, fuzzy
+msgid "!group: !title counter"
+msgstr "!group : !title compteur"
+
+#: includes/flag_handler_relationships.inc:167
+msgid "Including name of the selected flag helps identify this relationship."
+msgstr "Inclure le nom du flag sélectionné aide à identifier cette relation."
+
+#: includes/flag_handler_relationships.inc:172
+msgid "Include only users who have flagged content."
+msgstr "Uniquement inclure les utilisateurs qui ont flaggé du contenu."
+
+#: includes/flag_handler_relationships.inc:173
+msgid "If checked, only users that have flagged any content with this flag will be included."
+msgstr "Si coché, seul les utilisateurs qui ont flaggé n'importe quel contenu avec ce flag seront inclus."
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:33
+msgid "Select the flag to validate against."
+msgstr "Sélectionnez le flag servant de validation."
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:43
+msgid "Validate the @type only if"
+msgstr "Valider le @type seulement si"
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:55
+msgid "Argument type"
+msgstr "Type d'argument"
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:57
+msgid "ID"
+msgstr "Identifiant"
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:58
+msgid "IDs separated by , or +"
+msgstr "IDs séparés par des , ou +"
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:79
+msgid "<em>Pick the first flag mentioned in the relationships.</em>"
+msgstr "<em>Choisir le premier flag mentionnés dans les relations</em>."
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:108
+msgid "It is flaggable"
+msgstr "Il est flaggable"
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:112
+msgid "It is flagged at least once"
+msgstr "Il est flaggé au moins une fois"
+
+#: includes/flag_plugin_argument_validate_flaggability.inc:116
+msgid "It is flagged by the current user"
+msgstr "Il est flaggé par l'utilisateur courant"
+
