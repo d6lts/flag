@@ -373,6 +373,11 @@ function flag_update_5002() {
 function flag_update_5003() {
   $ret = array();
 
+  // Bail out if Views doesn't exist.
+  if (!function_exists('views_get_view')) {
+    return $ret;
+  }
+
   $flags = flag_get_flags();
   $disabled_views = variable_get('views_defaults', array());
   foreach ($flags as $name => $flag) {
