@@ -414,6 +414,11 @@ function flag_update_6002() {
 function flag_update_6003() {
   $ret = array();
 
+  // Bail out if Views doesn't exist.
+  if (!function_exists('views_get_view')) {
+    return $ret;
+  }
+
   $flags = flag_get_flags();
   foreach ($flags as $name => $flag) {
     if ($view = views_get_view('flags_'. $name)) {
