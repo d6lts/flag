@@ -378,6 +378,7 @@ function flag_update_5003() {
     return $ret;
   }
 
+  drupal_load('module', 'flag');
   $flags = flag_get_flags();
   $disabled_views = variable_get('views_defaults', array());
   foreach ($flags as $name => $flag) {
