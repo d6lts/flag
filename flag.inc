@@ -328,6 +328,9 @@ class flag_flag {
    * Derived classes are likely to implement this.
    */
   function uses_hook_link($teaser) {
+    if ($this->show_on_profile){
+      return TRUE;
+    }
     return FALSE;
   }
 
@@ -1130,6 +1133,9 @@ class flag_user extends flag_flag {
   }
 
   function uses_hook_link($teaser) {
+    if ($this->show_on_profile){
+      return TRUE;
+    }
     return FALSE;
   }
 

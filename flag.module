@@ -355,6 +355,10 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
           // Flag does not apply to this content.
           continue;
         }
+        if (!$flag->uses_hook_link(array())){
+          // Flag not set to appear on profile.
+          continue;
+        }
         $items[$flag->get_title($account->uid)] = array(
           array(
             'value' => $flag->theme($flag->is_flagged($account->uid) ? 'unflag' : 'flag', $account->uid),
