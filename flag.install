@@ -419,6 +419,7 @@ function flag_update_6003() {
     return $ret;
   }
 
+  drupal_load('module', 'flag');
   $flags = flag_get_flags();
   foreach ($flags as $name => $flag) {
     if ($view = views_get_view('flags_'. $name)) {
