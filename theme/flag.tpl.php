@@ -41,7 +41,7 @@
   }
 ?>
 <span class="flag-wrapper flag-<?php echo $flag_name_css; ?>">
-  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="<?php print $flag_classes ?>"><?php echo $link_text; ?></a><span class="flag-throbber">&nbsp;</span>
+  <a href="<?php echo $link_href; ?>" title="<?php echo $link_title; ?>" class="<?php print $flag_classes ?>" rel="nofollow"><?php echo $link_text; ?></a><span class="flag-throbber">&nbsp;</span>
   <?php if ($after_flagging): ?>
     <span class="flag-message flag-<?php echo $last_action; ?>-message">
       <?php echo $message_text; ?>
