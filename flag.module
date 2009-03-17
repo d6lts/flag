@@ -83,7 +83,7 @@ function flag_menu() {
 function flag_init() {
   $path = drupal_get_path('module', 'flag');
   if (module_exists('trigger')) {
-    include_once $path .'/flag.actions.inc';
+    include_once $path .'/includes/flag.actions.inc';
   }
   if (module_exists('token')) {
     include_once $path .'/includes/flag.token.inc';
