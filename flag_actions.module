@@ -108,11 +108,13 @@ function flag_actions_get_actions($flag_name = NULL, $reset = FALSE) {
 
   // Filter actions to a specified flag.
   if (isset($flag_name)) {
+    $specific_flag_actions = array();
     foreach ($flag_actions as $aid => $action) {
-      if ($action->flag != $flag_name) {
-        unset($flag_actions[$aid]);
+      if ($action->flag == $flag_name) {
+        $specific_flag_actions[$aid] = $action;
       }
     }
+    return $specific_flag_actions;
   }
 
   return $flag_actions;
