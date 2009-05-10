@@ -356,6 +356,7 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
       break;
     case 'view';
       $flags = flag_get_flags('user');
+      $flag_items = array();
       foreach ($flags as $flag) {
         if (!$flag->user_access()) {
           // User has no permission to use this flag.
@@ -369,14 +370,22 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
           // Flag not set to appear on profile.
           continue;
         }
-        $account->content['flags'][$flag->name] = array(
-          // @todo Make this better
-          '#type' => 'item',
+        $flag_items[$flag->name] = array(
+          '#type' => 'user_profile_item',
           '#title' => $flag->get_title($account->uid),
           '#value' => $flag->theme($flag->is_flagged($account->uid) ? 'unflag' : 'flag', $account->uid),
           '#attributes' => array('class' => 'flag-profile-' . $flag->name),
         );
       }
+      if (!empty($flag_items)) {
+        $account->content['flags'] = $flag_items;
+        $account->content['flags'] += array(
+          '#type' => 'user_profile_category',
+          '#title' => t('Actions'),
+          '#attributes' => array('class' => 'flag-profile'),
+        );
+      }
+      break;
   }
 }
 
