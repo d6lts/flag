@@ -217,6 +217,32 @@ function flag_flag_link_types() {
 }
 
 /**
+ * Implementation of hook_content_extra_fields().
+ *
+ * Informations for non-CCK 'node fields' defined in core.
+ */
+function flag_content_extra_fields($type_name) {
+  $extra = array();
+  $flags = flag_get_flags('node', $type_name);
+
+  // Filter out flags which need to be included on the node form.
+  foreach ($flags as $name => $flag) {
+    if (!$flag->show_on_form) {
+      unset($flags[$name]);
+    }
+  }
+
+  if (!empty($flags)) {
+    $extra['flag'] = array(
+      'label' => t('Flags'),
+      'description' => t('Flags fieldset.'),
+      'weight' => 0
+    );
+  }
+  return $extra;
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function flag_form_alter(&$form, &$form_state, $form_id) {
@@ -267,7 +293,7 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
     if (count($flags)) {
       $form['flag'] = array(
         '#type' => 'fieldset',
-        '#weight' => 1,
+        '#weight' => module_exists('content') ? content_extra_field_weight($form['#node']->type, 'flags') : 1,
         '#tree' => TRUE,
         '#title' => t('Flags'),
         '#collapsible' => TRUE,
