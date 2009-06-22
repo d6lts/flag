@@ -433,6 +433,23 @@ function flag_update_6003() {
   return $ret;
 }
 
+/**
+ * Add auto-increment to the flags.fid column for users upgrading from Drupal 5.
+ */
+function flag_update_6004() {
+  $ret = array();
+
+  db_drop_primary_key($ret, 'flags');
+  db_change_field($ret, 'flags', 'fid', 'fid', array(
+    'type' => 'serial',
+    'size' => 'small',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  ), array('primary key' => array('fid')));
+
+  return $ret;
+}
+
 // This is a replacement for update_sql(). The latter doesn't support placeholders.
 function _flag_update_sql($sql) {
   $args = func_get_args();
