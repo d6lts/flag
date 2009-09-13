@@ -573,6 +573,26 @@ function flag_flag($action, $flag, $content_id, $account) {
 }
 
 /**
+ * Trim a flag to a certain size.
+ *
+ * @param $fid
+ *   The flag object.
+ * @param $uid
+ *   The user ID on behalf the trimming will occur.
+ * @param $cutoff_size
+ *   The number of flaggings allowed. Any flaggings beyond that will be trimmed.
+ */
+function flag_trim_flag($flag, $uid, $cutoff_size) {
+  $result = db_query("SELECT * FROM {flag_content} WHERE fid = %d AND (uid = %d OR uid = 0) ORDER BY timestamp DESC", $flag->fid, $uid);
+  $i = 1;
+  while ($row = db_fetch_object($result)) {
+    if ($i++ > $cutoff_size) {
+      flag('unflag', $flag->name, $row->content_id, $uid);
+    }
+  }
+}
+
+/**
  * Implementation of hook_node_operations().
  *
  * Add additional options on the admin/build/node page.
