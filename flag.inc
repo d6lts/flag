@@ -184,8 +184,8 @@ class flag_flag {
    *
    * Derived classes should want to override this.
    */
-  function default_options() {
-    return array(
+  function options() {
+    $options = array(
       'flag_short' => '',
       'flag_long' => '',
       'flag_message' => '',
@@ -196,6 +196,9 @@ class flag_flag {
       'unflag_confirmation' => '',
       'link_type' => 'toggle',
     );
+    // Allow other modules to change the flag options.
+    drupal_alter('flag_options', $options);
+    return $options;
   }
 
   /**
@@ -210,7 +213,7 @@ class flag_flag {
    * Default constructor. Loads the default options.
    */
   function construct() {
-    $options = $this->default_options();
+    $options = $this->options();
     foreach ($options as $option => $value) {
       $this->$option = $value;
     }
@@ -724,7 +727,7 @@ class flag_flag {
    * Options are stored serialized in the database.
    */
   function get_serialized_options() {
-    $option_names = array_keys($this->default_options());
+    $option_names = array_keys($this->options());
     $options = array();
     foreach ($option_names as $option) {
       $options[$option] = $this->$option;
@@ -798,8 +801,8 @@ class flag_flag {
  * Implements a node flag.
  */
 class flag_node extends flag_flag {
-  function default_options() {
-    $options = parent::default_options();
+  function options() {
+    $options = parent::options();
     $options += array(
       'show_on_page' => TRUE,
       'show_on_teaser' => TRUE,
@@ -975,8 +978,8 @@ class flag_node extends flag_flag {
  * Implements a comment flag.
  */
 class flag_comment extends flag_flag  {
-  function default_options() {
-    $options = parent::default_options();
+  function options() {
+    $options = parent::options();
     $options += array(
       'show_on_comment' => TRUE,
     );
@@ -1089,8 +1092,8 @@ class flag_comment extends flag_flag  {
  * Implements a user flag.
  */
 class flag_user extends flag_flag {
-  function default_options() {
-    $options = parent::default_options();
+  function options() {
+    $options = parent::options();
     $options += array(
       'show_on_profile' => TRUE,
     );
