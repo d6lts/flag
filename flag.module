@@ -432,7 +432,7 @@ function flag_node_type($op, $info) {
  *
  * Used both for the regular callback as well as the JS version.
  */
-function flag_page($action, $flag_name, $content_id) {
+function flag_page($action = NULL, $flag_name = NULL, $content_id = NULL) {
   $js = isset($_REQUEST['js']);
   $token = $_REQUEST['token'];
 
