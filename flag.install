@@ -275,6 +275,8 @@ function flag_schema() {
 }
 
 /**
+ * Add auto-increment to the flags.fid column for users upgrading from Drupal 5.
+ *
  * Delete obsolete actions provided by beta3.
  *
  * Note: To ease maintenance, this code is compatible with both D5 and D6.
@@ -283,6 +285,16 @@ function flag_schema() {
  */
 function flag_update_6000() {
   $ret = array();
+
+  // Convert the flags.fid column to auto-increment.
+  db_drop_primary_key($ret, 'flags');
+  db_change_field($ret, 'flags', 'fid', 'fid', array(
+    'type' => 'serial',
+    'size' => 'small',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  ), array('primary key' => array('fid')));
+
   // This conditional ensures we have Actions 2.x, not Actions 1.x.
   //
   // At the beginning we had only db_table_exists() checks here. However, it
@@ -437,17 +449,8 @@ function flag_update_6003() {
  * Add auto-increment to the flags.fid column for users upgrading from Drupal 5.
  */
 function flag_update_6004() {
-  $ret = array();
-
-  db_drop_primary_key($ret, 'flags');
-  db_change_field($ret, 'flags', 'fid', 'fid', array(
-    'type' => 'serial',
-    'size' => 'small',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-  ), array('primary key' => array('fid')));
-
-  return $ret;
+  // Update removed and included in flag_update_6000()
+  return array();
 }
 
 // This is a replacement for update_sql(). The latter doesn't support placeholders.
