@@ -197,7 +197,7 @@ class flag_flag {
       'link_type' => 'toggle',
     );
     // Allow other modules to change the flag options.
-    drupal_alter('flag_options', $options);
+    drupal_alter('flag_options', $this, $options);
     return $options;
   }
 
