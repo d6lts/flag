@@ -202,9 +202,18 @@ function flag_flag_link(&$flag, $action, $content_id) {
  */
 function flag_flag_link_types() {
   return array(
-    'toggle' => t('JavaScript toggle'),
-    'normal' => t('Normal link'),
-    'confirm' => t('Confirmation form'),
+    'toggle' => array(
+      'title' => t('JavaScript toggle'),
+      'description' => t('An AJAX request will be made and degrades to type "Normal link" if JavaScript is not available.'),
+    ),
+    'normal' => array(
+      'title' => t('Normal link'),
+      'description' => t('A normal non-JavaScript request will be made and the current page will be reloaded.'),
+    ),
+    'confirm' => array(
+      'title' => t('Confirmation form'),
+      'description' => t('The user will be taken to a confirmation form on a separate page to confirm the flag.'),
+    ),
   );
 }
 
@@ -799,6 +808,30 @@ function _flag_link_type_options() {
   return $options;
 }
 
+/**
+ * Return an array of flag link type descriptions.
+ */
+function _flag_link_type_descriptions() {
+  $options = array();
+  $types = flag_get_link_types();
+  foreach ($types as $type_name => $type) {
+    $options[$type_name] = $type['description'];
+  }
+  return $options;
+}
+
+/**
+ * FormAPI process function to add descriptions to radio buttons.
+ */
+function flag_expand_option_description($element) {
+  foreach (element_children($element) as $key) {
+    if (isset($element['#option_descriptions'][$key])) {
+      $element[$key]['#description'] = $element['#option_descriptions'][$key];
+    }
+  }
+  return $element;
+}
+
 // ---------------------------------------------------------------------------
 // Non-Views public API
 
@@ -1162,10 +1195,11 @@ function flag_get_link_types($reset = FALSE) {
     $link_types = array();
     foreach (module_implements('flag_link_types') as $module) {
       $module_types = module_invoke($module, 'flag_link_types');
-      foreach ($module_types as $type_name => $type_title) {
+      foreach ($module_types as $type_name => $info) {
         $link_types[$type_name] = array(
           'module' => $module,
-          'title' => $type_title,
+          'title' => $info['title'],
+          'description' => $info['description']
         );
       }
     }
