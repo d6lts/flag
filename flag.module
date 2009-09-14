@@ -941,6 +941,11 @@ function flag_get_flags($content_type = NULL, $content_subtype = NULL, $account 
         }
       }
     }
+
+    // Allow modules implementing hook_flag_alter(&$flag) to modify each flag.
+    foreach ($flags as $flag) {
+      drupal_alter('flag', $flag);
+    }
   }
 
   // Make a variable copy to filter types and account.
