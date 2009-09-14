@@ -403,7 +403,7 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'delete':
       // Remove flags by this user.
-      $result = db_query("SELECT fc.fid, fc.content_id, c.count FROM {flag_content} fc LEFT JOIN {flag_counts} c ON fc.content_id = c.content_id WHERE fc.uid = %d", $account->uid);
+      $result = db_query("SELECT fc.fid, fc.content_id, c.count FROM {flag_content} fc LEFT JOIN {flag_counts} c ON fc.content_id = c.content_id AND fc.content_type = c.content_type WHERE fc.uid = %d", $account->uid);
       while ($flag_data = db_fetch_object($result)) {
         $flag_data->count--;
         db_query("UPDATE {flag_counts} SET count = %d WHERE fid = %d AND content_id = %d", $flag_data->count, $flag_data->fid, $flag_data->content_id);
