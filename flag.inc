@@ -361,7 +361,7 @@ class flag_flag {
       $account = $GLOBALS['user'];
     }
 
-    if (!$this->applies_to_content_id($content_id) ){
+    if (isset($content_id) && !$this->applies_to_content_id($content_id) ){
       // Flag does not apply to this content.
       return FALSE;
     }

@@ -285,23 +285,13 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
     $flags = flag_get_flags('node', $form['type']['#value'], $user);
 
     // Filter out flags which need to be included on the node form.
+    $flags_in_form = 0;
+    $flags_visible = 0;
     foreach ($flags as $name => $flag) {
       if (!$flag->show_on_form) {
-        unset($flags[$name]);
+        continue;
       }
-    }
 
-    if (count($flags)) {
-      $form['flag'] = array(
-        '#type' => 'fieldset',
-        '#weight' => module_exists('content') ? content_extra_field_weight($form['#node']->type, 'flags') : 1,
-        '#tree' => TRUE,
-        '#title' => t('Flags'),
-        '#collapsible' => TRUE,
-      );
-    }
-
-    foreach ($flags as $flag) {
       if (isset($form['#node']->flag[$flag->name])) {
         $flag_status = $form['#node']->flag[$flag->name];
       }
@@ -309,6 +299,17 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
         $flag_status_default = variable_get('flag_' . $flag->name . '_default_' . $form['type']['#value'], 0);
         $flag_status = $nid ? $flag->is_flagged($nid) : $flag_status_default;
       }
+
+      // If the flag is not global and the user doesn't have access, skip it.
+      // Global flags have their value set even if the user doesn't have access
+      // to it, similar to the way "published" and "promote" keep the default
+      // values even if the user doesn't have "administer nodes" permission.
+      $access = $flag->access($nid, $flag_status ? 'unflag' : 'flag', $user);
+      if (!$access && !$flag->global) {
+        continue;
+      }
+
+      // Add the flag checkbox if displaying on the form.
       $form['flag'][$flag->name] = array(
         '#type' => 'checkbox',
         '#title' => $flag->get_label('flag_short', $nid),
@@ -316,7 +317,30 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => $flag_status,
         '#return_value' => 1,
       );
+      // If the user does not have access to the flag, set as a value.
+      if (!$access) {
+        $form['flag'][$flag->name]['#type'] = 'value';
+        $form['flag'][$flag->name]['#value'] = $flag_status;
+      }
+      else {
+        $flags_visible++;
+      }
+      $flags_in_form++;
     }
+    if ($flags_in_form) {
+      $form['flag'] += array(
+        '#weight' => module_exists('content') ? content_extra_field_weight($form['#node']->type, 'flags') : 1,
+        '#tree' => TRUE,
+      );
+    }
+    if ($flags_visible) {
+      $form['flag'] += array(
+        '#type' => 'fieldset',
+        '#title' => t('Flags'),
+        '#collapsible' => TRUE,
+      );
+    }
+
   }
 }
 
@@ -341,7 +365,7 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
             // modification:
             $remembered = TRUE;
           }
-          flag($state ? 'flag' : 'unflag', $name, $node->nid);
+          flag($state ? 'flag' : 'unflag', $name, $node->nid, $user, TRUE);
         }
       }
       break;
