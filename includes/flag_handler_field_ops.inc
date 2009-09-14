@@ -101,33 +101,24 @@ class flag_handler_field_ops extends views_handler_field {
   function pre_render($values) {
     $flag = $this->get_flag();
 
-    if (!$flag->user_access()) {
-      // User has no permission to use this flag.
-      return;
-    }
-
     $ids = array();
     foreach ($values as $row) {
       $content_id = $row->{$this->aliases['content_id']};
+      $is_flagged = $row->{$this->aliases['is_flagged']};
       if (isset($content_id)) {
-        $ids[$content_id] = TRUE;
+        $ids[$content_id] = $is_flagged ? 'unflag' : 'flag';
       }
     }
-    $this->flag_applies = $ids ? $flag->applies_to_content_id_array(array_keys($ids)) : array();
+    $this->flag_applies = $ids ? $flag->access_multiple($ids) : array();
   }
 
   function render($values) {
     $flag = $this->get_flag();
 
-    if (!$flag->user_access()) {
-      // User has no permission to use this flag.
-      return;
-    }
-
     $content_id = $values->{$this->aliases['content_id']};
     $is_flagged = $values->{$this->aliases['is_flagged']};
 
-    if (!isset($this->flag_applies[$content_id])) {
+    if (empty($this->flag_applies[$content_id])) {
       // Flag does not apply to this content.
       return;
     }

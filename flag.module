@@ -144,29 +144,21 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
   }
   global $user;
 
-  // Anonymous users can't create flags with this system.
-  if (!$user->uid) {
-    return;
-  }
-
   // Get all possible flags for this content-type.
   $flags = flag_get_flags($type);
 
   foreach ($flags as $flag) {
-    if (!$flag->user_access($user)) {
-      // User has no permission to use this flag.
-      continue;
-    }
+    $content_id = $flag->get_content_id($object);
+
     if (!$flag->uses_hook_link($teaser)) {
       // Flag is not configured to show its link here.
       continue;
     }
-    if (!$flag->applies_to_content_object($object)) {
-      // Flag does not apply to this content.
+    if (!$flag->access($content_id)) {
+      // User has no permission to use this flag or flag does not apply to this content.
       continue;
     }
 
-    $content_id = $flag->get_content_id($object);
     // The flag links are actually fully rendered theme functions.
     // The HTML attribute is set to TRUE to allow whatever the themer desires.
     $links['flag-'. $flag->name] = array(
@@ -384,12 +376,8 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
       $flags = flag_get_flags('user');
       $flag_items = array();
       foreach ($flags as $flag) {
-        if (!$flag->user_access()) {
+        if (!$flag->access($account->uid)) {
           // User has no permission to use this flag.
-          continue;
-        }
-        if (!$flag->applies_to_content_object($account)) {
-          // Flag does not apply to this content.
           continue;
         }
         if (!$flag->uses_hook_link(array())){
@@ -1085,12 +1073,8 @@ function flag_create_link($flag_name, $content_id) {
     // Flag does not exist.
     return;
   }
-  if (!$flag->user_access()) {
+  if (!$flag->access($content_id)) {
     // User has no permission to use this flag.
-    return;
-  }
-  if (!$flag->applies_to_content_id($content_id)) {
-    // Flag does not apply to this content.
     return;
   }
   return $flag->theme($flag->is_flagged($content_id) ? 'unflag' : 'flag', $content_id);

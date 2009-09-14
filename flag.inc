@@ -296,6 +296,11 @@ class flag_flag {
   }
 
   /**
+   * @defgroup access Access control
+   * @{
+   */
+
+  /**
    * Returns TRUE if the flag applies to the given content.
    * Derived classes must implement this.
    *
@@ -317,6 +322,90 @@ class flag_flag {
   }
 
   /**
+   * Returns TRUE if user has access to use this flag.
+   *
+   * @param $account
+   *   Optional. The user object. If none given, the current user will be used.
+   *
+   * @return
+   *   Boolean TRUE if the user is allowed to flag/unflag. FALSE otherwise.
+   */
+  function user_access($account = NULL) {
+    if (!isset($account)) {
+      $account = $GLOBALS['user'];
+    }
+
+    // Anonymous user can't use this system. For now.
+    if ($account->uid == 0) {
+      return FALSE;
+    }
+
+    $matched_roles = array_intersect($this->roles, array_keys($account->roles));
+    return !empty($matched_roles) || empty($this->roles) || $account->uid == 1;
+  }
+
+  /**
+   * Returns TRUE if the user can flag, or unflag, the given content.
+   *
+   * @param $content_id
+   *   The content ID to flag/unflag.
+   * @param $account
+   *   The user on whose behalf to test the flagging action. Leave NULL for the
+   *   current user.
+   * @param $action
+   *   The action to test. Either 'flag' or 'unflag'. Leave NULL to determine
+   *   by flag status.
+   */
+  function access($content_id, $action = NULL, $account = NULL) {
+    if (!isset($account)) {
+      $account = $GLOBALS['user'];
+    }
+
+    if (!$this->applies_to_content_id($content_id) ){
+      // Flag does not apply to this content.
+      return FALSE;
+    }
+
+    // Allow modules to disallow (or allow) access to flagging.
+    if (!isset($action)) {
+      $action = $this->is_flagged($content_id, $account->uid) ? 'unflag' : 'flag';
+    }
+    $access_array = module_invoke_all('flag_access', $this, $content_id, $action, $account);
+    foreach ($access_array as $access) {
+      if (isset($access)) {
+        return $access;
+      }
+    }
+
+    // Fall back on the flag's user-specific access check.
+    return $this->user_access($account);
+  }
+
+  /**
+   * Similar to access() but works on multiple IDs at once. It is called in the
+   * pre_render() stage of the 'Flag links' field within Views to find out where
+   * that link applies. The reason we do a separate DB query, and not lump this
+   * test in the Views query, is to make 'many to one' tests possible without
+   * interfering with the rows, and also to reduce the complexity of the code.
+   *
+   * @param $content_ids
+   *   The array of content IDs to check. The keys are the content IDs, the
+   *   values are the actions to test: either 'flag' or 'unflag'.
+   * @param $account
+   *   Optional. The account for which the actions will be compared against.
+   *   If left empty, the current user will be used.
+   *
+   * @abstract
+   */
+  function access_multiple($content_ids, $account = NULL) {
+    return array();
+  }
+
+  /**
+   * @} End of "defgroup access".
+   */
+
+  /**
    * Given a content object, returns its ID.
    * Derived classes must implement this.
    *
@@ -332,23 +421,6 @@ class flag_flag {
    */
   function uses_hook_link($teaser) {
     return FALSE;
-  }
-
-  /**
-   * Returns TRUE if user has access to use this flag.
-   *
-   * @param $account
-   *   Optional. The user object. If none given, the current user will be used.
-   *
-   * @return
-   *   Boolean TRUE if the user is allowed to flag/unflag. FALSE otherwise.
-   */
-  function user_access($account = NULL) {
-    if (!isset($account)) {
-      $account = $GLOBALS['user'];
-    }
-    $matched_roles = array_intersect($this->roles, array_keys($account->roles));
-    return !empty($matched_roles) || empty($this->roles) || $account->uid == 1;
   }
 
   /**
@@ -373,23 +445,18 @@ class flag_flag {
     if (!$account) {
       return FALSE;
     }
-
-    if (!$account->uid) {
-      // Anonymous users can't flag with this system. For now.
-      //
-      // @todo This is legacy code. $flag->user_access() should handle this.
-      // This will also make it posible to have flags that do support anonymous
-      // users.
-      return FALSE;
+    if (!$skip_permission_check) {
+      if (!$this->access($content_id, $action, $account)) {
+        // User has no permission to flag/unflag this object.
+        return FALSE;
+      }
     }
-
-    if (!$skip_permission_check && !$this->user_access($account)) {
-      // User has no permission to use this flag.
-      return FALSE;
-    }
-    if (!$this->applies_to_content_id($content_id)) {
-      // Flag does not apply to this content.
-      return FALSE;
+    else {
+      // We are skipping permission checks. However, at a minimum we must make
+      // sure the flag applies to this content type:
+      if (!$this->applies_to_content_id($content_id)) {
+        return FALSE;
+      }
     }
 
     // Clear various caches; We don't want code running after us to report
@@ -637,7 +704,7 @@ class flag_flag {
   function rules_get_event_arguments_definition() {
     return array();
   }
-  
+
   /**
    * Defines the Rules argument for flag actions or conditions
    */
@@ -663,17 +730,6 @@ class flag_flag {
    * @static
    */
   function get_views_info() {
-    return array();
-  }
-
-  /**
-   * Similar to applies_to_content_id() but works on a bunch of IDs. It is
-   * called in the pre_render() stage of the 'Flag links' field to find out where
-   * that link applies. The reason we do a separate DB query, and not lump this
-   * test in the Views query, is to make 'many to one' tests possible without
-   * interfering with the rows, and also to reduce the complexity of the code.
-   */
-  function applies_to_content_id_array($content_ids) {
     return array();
   }
 
@@ -860,6 +916,31 @@ class flag_node extends flag_flag {
     return FALSE;
   }
 
+  function access_multiple($content_ids, $account = NULL) {
+    if (!isset($account)) {
+      $account = $GLOBALS['user'];
+    }
+
+    if (!$this->user_access($account)) {
+      // User has no permission to use this flag.
+      return FALSE;
+    }
+    $passed = array();
+    $nids  = implode(',', array_map('intval', array_keys($content_ids)));
+    $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
+    $result = db_query("SELECT nid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $this->types);
+    while ($row = db_fetch_object($result)) {
+      $passed[$row->nid] = $content_ids[$row->nid] == 'flag' ? FALSE : TRUE;
+      $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
+      foreach ($access_array as $access) {
+        if (isset($access)) {
+          $passed[$row->nid] = $access;
+        }
+      }
+    }
+    return $passed;
+  }
+
   function get_content_id($node) {
     return $node->nid;
   }
@@ -960,18 +1041,6 @@ class flag_node extends flag_flag {
       'counter help' => t('Include this to gain access to the flag counter field.'),
     );
   }
-
-  function applies_to_content_id_array($content_ids) {
-    $passed = array();
-    $content_ids  = implode(',', array_map('intval', $content_ids));
-    $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
-    $result = db_query("SELECT nid FROM {node} WHERE nid IN ($content_ids) AND type in ($placeholders)", $this->types);
-    while ($row = db_fetch_object($result)) {
-      $passed[$row->nid] = TRUE;
-    }
-    return $passed;
-  }
-
 }
 
 /**
@@ -1005,6 +1074,31 @@ class flag_comment extends flag_flag  {
       return TRUE;
     }
     return FALSE;
+  }
+
+  function access_multiple($content_ids, $account = NULL) {
+    if (!isset($account)) {
+      $account = $GLOBALS['user'];
+    }
+
+    if (!$this->user_access($account)) {
+      // User has no permission to use this flag.
+      return FALSE;
+    }
+    $passed = array();
+    $content_ids  = implode(',', array_map('intval', array_keys($content_ids)));
+    $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
+    $result = db_query("SELECT cid FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type IN ($placeholders)", $this->types);
+    while ($row = db_fetch_object($result)) {
+      $passed[$row->cid] = TRUE;
+      $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
+      foreach ($access_array as $access) {
+        if (isset($access)) {
+          $passed[$row->cid] = $access;
+        }
+      }
+    }
+    return $passed;
   }
 
   function get_content_id($comment) {
@@ -1075,17 +1169,6 @@ class flag_comment extends flag_flag  {
       'counter help' => t('Include this to gain access to the flag counter field.'),
     );
   }
-
-  function applies_to_content_id_array($content_ids) {
-    $passed = array();
-    $content_ids  = implode(',', array_map('intval', $content_ids));
-    $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
-    $result = db_query("SELECT cid FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type IN ($placeholders)", $this->types);
-    while ($row = db_fetch_object($result)) {
-      $passed[$row->cid] = TRUE;
-    }
-    return $passed;
-  }
 }
 
 /**
@@ -1126,6 +1209,30 @@ class flag_user extends flag_flag {
       return TRUE;
     }
     return FALSE;
+  }
+
+  function access_multiple($content_ids, $account = NULL) {
+    if (!isset($account)) {
+      $account = $GLOBALS['user'];
+    }
+
+    if (!$this->user_access($account)) {
+      // User has no permission to use this flag.
+      return FALSE;
+    }
+    // This user flag doesn't currently support subtypes so all users are
+    // applicable for flagging.
+    $passed = array();
+    foreach (array_keys($content_ids) as $uid) {
+      $passed[$uid] = (bool) $uid; // Exclude anonymous.
+      $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
+      foreach ($access_array as $access) {
+        if (isset($access)) {
+          $passed[$uid] = $access;
+        }
+      }
+    }
+    return $passed;
   }
 
   function get_content_id($user) {
@@ -1189,19 +1296,6 @@ class flag_user extends flag_flag {
       'counter help' => t('Include this to gain access to the flag counter field.'),
     );
   }
-
-  function applies_to_content_id_array($content_ids) {
-    // This user flag doesn't currently support subtypes so all users are
-    // applicable for flagging.
-    $passed = array();
-    foreach ($content_ids as $uid) {
-      if ($uid) { // Exclude anonymous.
-        $passed[$uid] = TRUE;
-      }
-    }
-    return $passed;
-  }
-
 }
 
 /**
