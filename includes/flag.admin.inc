@@ -307,7 +307,6 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#title' => t('Roles that may use this flag'),
     '#options' => user_roles(TRUE),
     '#default_value' => $flag->roles,
-    '#required' => TRUE,
     '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
     '#weight' => 5,
     '#access' => empty($flag->locked['roles']),
