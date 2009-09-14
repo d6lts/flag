@@ -583,7 +583,7 @@ class flag_flag {
   }
 
   /**
-   * @defgroup actions Actions integration
+   * @addtogroup actions
    * @{
    * Methods that can be overridden to support Actions.
    */
@@ -619,13 +619,14 @@ class flag_flag {
   }
 
   /**
-   * @} End of "defgroup actions".
+   * @} End of "addtogroup actions".
    */
 
   /**
-   * @defgroup rules Rules integration
-   * @{
    * Methods that can be overridden to support the Rules module.
+   *
+   * @addtogroup rules
+   * @{
    */
 
   /**
@@ -643,11 +644,11 @@ class flag_flag {
   }
   
   /**
-   * @} End of "defgroup rules".
+   * @} End of "addtogroup rules".
    */
 
   /**
-   * @defgroup views Views 2 integration
+   * @addtogroup views
    * @{
    * Methods that can be overridden to support the Views module.
    */
@@ -675,7 +676,7 @@ class flag_flag {
   }
 
   /**
-   * @} End of "defgroup views".
+   * @} End of "addtogroup views".
    */
 
   /**
