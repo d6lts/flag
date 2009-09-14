@@ -468,14 +468,14 @@ class flag_flag {
     $uid = $this->global ? 0 : $account->uid;
     $flagged = $this->_is_flagged($content_id, $uid);
     if ($action == 'unflag' && $flagged) {
-      $this->_unflag($content_id, $uid);
+      $fcid = $this->_unflag($content_id, $uid);
       // Let other modules perform actions.
-      module_invoke_all('flag', 'unflag', $this, $content_id, $account);
+      module_invoke_all('flag', 'unflag', $this, $content_id, $account, $fcid);
     }
     elseif ($action == 'flag' && !$flagged) {
-      $this->_flag($content_id, $uid);
+      $fcid = $this->_flag($content_id, $uid);
       // Let other modules perform actions.
-      module_invoke_all('flag', 'flag', $this, $content_id, $account);
+      module_invoke_all('flag', 'flag', $this, $content_id, $account, $fcid);
     }
 
     return TRUE;
@@ -524,7 +524,9 @@ class flag_flag {
    */
   function _flag($content_id, $uid) {
     db_query("INSERT INTO {flag_content} (fid, content_type, content_id, uid, timestamp) VALUES (%d, '%s', %d, %d, %d)", $this->fid, $this->content_type, $content_id, $uid, time());
+    $fcid = db_last_insert_id('flag_content', 'fcid');
     $this->_update_count($content_id);
+    return $fcid;
   }
 
   /**
@@ -536,8 +538,12 @@ class flag_flag {
    * @private
    */
   function _unflag($content_id, $uid) {
-    db_query("DELETE FROM {flag_content} WHERE fid = %d AND uid = %d AND content_id = %d", $this->fid, $uid, $content_id);
-    $this->_update_count($content_id);
+    $fcid = db_result(db_query("SELECT fcid FROM {flag_content} WHERE fid = %d AND uid = %d AND content_id = %d", $this->fid, $uid, $content_id));
+    if ($fcid) {
+      db_query("DELETE FROM {flag_content} WHERE fcid = %d", $fcid);
+      $this->_update_count($content_id);
+    }
+    return $fcid;
   }
 
   /**
