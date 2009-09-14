@@ -596,11 +596,13 @@ function flag_node_operations() {
       'label' => $flag->get_label('flag_short'),
       'callback' => 'flag_nodes',
       'callback arguments' => array('flag', $flag->name),
+      'behavior' => array(),
     );
     $operations['unflag_'. $flag->name] = array(
       'label' => $flag->get_label('unflag_short'),
       'callback' => 'flag_nodes',
       'callback arguments' => array('unflag', $flag->name),
+      'behavior' => array(),
     );
   }
   return $operations;
