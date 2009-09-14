@@ -91,6 +91,7 @@ Drupal.flagLink = function(context) {
       },
       error: function (xmlhttp) {
         alert('An HTTP error '+ xmlhttp.status +' occurred.\n'+ element.href);
+        $wrapper.removeClass('flag-waiting');
       }
     });
     return false;
