@@ -837,6 +837,28 @@ function flag_get_counts($content_type, $content_id, $reset = FALSE) {
 }
 
 /**
+ * Get the total count of items flagged within a flag.
+ *
+ * @param $flag_name
+ *   The flag name for which to retrieve a flag count.
+ * @param $reset
+ *   Reset the internal cache and execute the SQL query another time.
+ */
+function flag_get_flag_counts($flag_name, $reset = FALSE) {
+  static $counts;
+
+  if ($reset) {
+    $counts = array();
+  }
+  if (!isset($counts[$flag_name])) {
+    $flag = flag_get_flag($flag_name);
+    $counts[$flag_name] = db_result(db_query("SELECT COUNT(*) FROM {flag_content} WHERE fid = %d", $flag->fid));
+  }
+
+  return $counts[$flag_name];
+}
+
+/**
  * Load a single flag either by name or by flag ID.
  *
  * @param $name
@@ -979,6 +1001,32 @@ function flag_get_default_flags($include_disabled = FALSE) {
 }
 
 /**
+ * Get all flagged content in a flag.
+ *
+ * @param
+ *   The flag name for which to retrieve flagged content.
+ */
+function flag_get_flagged_content($flag_name) {
+  $return = array();
+  $flag = flag_get_flag($flag_name);
+  $result = db_query("SELECT * FROM {flag_content} WHERE fid = %d", $flag->fid);
+  while ($row = db_fetch_object($result)) {
+    $return[] = $row;
+  }
+  return $return;
+}
+
+/**
+ * Get content ID from a flag content ID.
+ *
+ * @param $fcid
+ *   The flag content ID for which to look up the content ID.
+ */
+function flag_get_content_id($fcid) {
+  return db_result(db_query("SELECT content_id FROM {flag_content} WHERE fcid = %d", $fcid));
+}
+
+/**
  * Find what a user has flagged, either a single node or on the entire site.
  *
  * @param $content_type
@@ -1040,19 +1088,36 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
 
 /**
  * Return a list of users who have flagged a piece of content.
+ *
+ * @param $content_type
+ *   The type of content that will be retrieved. Usually 'node'.
+ * @param $content_id
+ *   The content ID to check for flagging.
+ * @param $flag_name
+ *   Optional. The name of a flag if wanting a list specific to a single flag.
+ * @param $reset
+ *   Reset the internal cache of flagged content.
+ * @return
+ *   If no flag name is given, an array of flagged content, keyed by the user
+ *   ID that flagged the content. Each flagged content array is structured as
+ *   an array of flag information for each flag, keyed by the flag name. If
+ *   a flag name is specified, only the information for that flag is returned.
  */
-function flag_get_content_flags($content_type, $content_id, $reset = FALSE) {
+function flag_get_content_flags($content_type, $content_id, $flag_name = NULL, $reset = FALSE) {
   static $content_flags;
 
   if (!isset($content_flags[$content_type][$content_id]) || $reset) {
     $flag_names = _flag_get_flag_names();
     $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d ORDER BY timestamp DESC", $content_type, $content_id);
     while ($flag_content = db_fetch_object($result)) {
+      // Build a list of flaggings for all flags by user. 
       $content_flags[$content_type][$content_id]['users'][$flag_content->uid][$flag_names[$flag_content->fid]] = $flag_content;
+      // Build a list of flaggings for each individual flag.
+      $content_flags[$content_type][$content_id]['flags'][$flag_names[$flag_content->fid]][$flag_content->uid] = $flag_content;
     }
   }
 
-  return $content_flags[$content_type][$content_id]['users'];
+  return isset($flag) ? $content_flags[$content_type][$content_id]['flags'][$flag_name] : $content_flags[$content_type][$content_id]['users'];
 }
 
 /**
