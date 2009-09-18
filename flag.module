@@ -721,6 +721,10 @@ function template_preprocess_flag(&$variables) {
 
   // Generate the link URL.
   $link_types = flag_get_link_types();
+  if (!isset($link_types[$flag->link_type])) {
+    // Provide a fallback if the link type no longer exists.
+    $flag->link_type = 'normal';
+  }
   $link_type_module = $link_types[$flag->link_type]['module'];
   $link = module_invoke($link_type_module, 'flag_link', $flag, $action, $content_id);
   if (isset($link['title']) && empty($link['html'])) {
@@ -847,18 +851,6 @@ function _flag_link_type_descriptions() {
     $options[$type_name] = $type['description'];
   }
   return $options;
-}
-
-/**
- * FormAPI process function to add descriptions to radio buttons.
- */
-function flag_expand_option_description($element) {
-  foreach (element_children($element) as $key) {
-    if (isset($element['#option_descriptions'][$key])) {
-      $element[$key]['#description'] = $element['#option_descriptions'][$key];
-    }
-  }
-  return $element;
 }
 
 // ---------------------------------------------------------------------------

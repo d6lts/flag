@@ -307,7 +307,6 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#title' => t('Roles that may use this flag'),
     '#options' => user_roles(TRUE),
     '#default_value' => $flag->roles,
-    '#required' => TRUE,
     '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
     '#weight' => 5,
     '#access' => empty($flag->locked['roles']),
@@ -347,7 +346,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#title' => t('Link type'),
     '#options' => _flag_link_type_options(),
     '#option_descriptions' => _flag_link_type_descriptions(),
-    '#after_build' => array('flag_expand_option_description'),
+    '#after_build' => array('flag_expand_option_description', 'flag_check_link_types'),
     '#default_value' => $flag->link_type,
     '#weight' => 2,
     '#access' => empty($flag->locked['link_type']),
@@ -428,6 +427,29 @@ function flag_delete_confirm_submit($form, &$form_state) {
   }
   drupal_set_message(t('Flag @name has been deleted.', array('@name' => $flag->get_title())));
   $form_state['redirect'] = 'admin/build/flags';
+}
+
+/**
+ * FormAPI after_build function to add descriptions to radio buttons.
+ */
+function flag_expand_option_description($element) {
+  foreach (element_children($element) as $key) {
+    if (isset($element['#option_descriptions'][$key])) {
+      $element[$key]['#description'] = $element['#option_descriptions'][$key];
+    }
+  }
+  return $element;
+}
+
+/**
+ * FormAPI after_build function to check that the link type exists.
+ */
+function flag_check_link_types($element) {
+  $link_types = flag_get_link_types();
+  if (!isset($link_types[$element['#value']])) {
+    drupal_set_message(t('This flag uses a link type of %type, which does not exist.', array('%type' => $element['#value'])), 'error');
+  }
+  return $element;
 }
 
 /**
