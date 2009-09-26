@@ -186,11 +186,11 @@ function flag_actions_do($event, $flag, $content_id, $account) {
   foreach ($actions as $aid => $action) {
     if ($action->event == 'flag') {
       $at_threshold = ($count == $action->threshold);
-      $repeat = ($count > $action->threshold) && (($count - $action->threshold) % $action->repeat_threshold == 0);
+      $repeat = $action->repeat_threshold ? (($count > $action->threshold) && (($count - $action->threshold) % $action->repeat_threshold == 0)) : FALSE;
     }
     elseif ($action->event == 'unflag') {
       $at_threshold = ($count == $action->threshold - 1);
-      $repeat = ($count < $action->threshold - 1) && (($count - $action->threshold - 1) % $action->repeat_threshold == 0);
+      $repeat = $action->repeat_threshold ? (($count < $action->threshold - 1) && (($count - $action->threshold - 1) % $action->repeat_threshold == 0)) : FALSE;
     }
     if (($at_threshold || $repeat) && $action->event == $event && !$action->missing) {
       $context = $action->parameters;
