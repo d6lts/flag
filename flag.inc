@@ -236,24 +236,35 @@ class flag_flag {
   }
 
   /**
-   * Validates a flag settings
+   * Validates this flag's options.
+   *
+   * @return
+   *   A list of errors encountered while validating this flag's options.
    */
   function validate() {
-    $this->validate_name();
+    return $this->validate_name();
   }
 
   function validate_name() {
+    $errors = array();
+
     // Ensure a safe machine name.
     if (!preg_match('/^[a-z_][a-z0-9_]*$/', $this->name)) {
-      form_set_error('name', t('The flag name may only contain lowercase letters, underscores, and numbers.'));
+      $errors['name'][] = array(
+        'error' => 'flag_name_characters',
+        'message' => t('The flag name may only contain lowercase letters, underscores, and numbers.'),
+      );
     }
     // Ensure the machine name is unique.
-    if (!isset($this->fid)) {
-      $flag = flag_get_flag($this->name);
-      if (!empty($flag)) {
-        form_set_error('name', t('Flag names must be unique. This flag name is already in use.'));
-      }
+    $flag = flag_get_flag($this->name);
+    if (!empty($flag) && (!isset($this->fid) || $flag->fid != $this->fid)) {
+      $errors['name'][] = array(
+        'error' => 'flag_name_unique',
+        'message' => t('Flag names must be unique. This flag name is already in use.'),
+      );
     }
+
+    return $errors;
   }
 
   /**

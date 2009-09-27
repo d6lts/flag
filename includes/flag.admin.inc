@@ -153,7 +153,12 @@ function flag_add_form(&$form_state) {
 function flag_add_form_validate($form, &$form_state) {
   $flag = flag_flag::factory_by_content_type($form_state['values']['type']);
   $flag->name = $form_state['values']['name'];
-  $flag->validate_name();
+  $errors = $flag->validate_name();
+  foreach ($errors as $field => $field_errors) {
+    foreach ($field_errors as $error) {
+      form_set_error($field, $error['message']);
+    }
+  }
 }
 
 function flag_add_form_submit($form, &$form_state) {
@@ -383,7 +388,12 @@ function flag_form_validate($form, &$form_state) {
 
   $flag = $form['#flag'];
   $flag->form_input($form_values);
-  $flag->validate();
+  $errors = $flag->validate();
+  foreach ($errors as $field => $field_errors) {
+    foreach ($field_errors as $error) {
+      form_set_error($field, $error['message']);
+    }
+  }
 }
 
 /**
