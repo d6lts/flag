@@ -788,7 +788,7 @@ function template_preprocess_flag(&$variables) {
   }
 
   $variables['link_href'] = isset($link['href']) ? check_url(url($link['href'], $link)) : FALSE;
-  $variables['link_text'] = isset($link['title']) ? $link['title'] : strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
+  $variables['link_text'] = isset($link['title']) ? $link['title'] : $flag->get_label($action . '_short', $content_id);
   $variables['link_title'] = isset($link['attributes']['title']) ? check_plain($link['attributes']['title']) : check_plain(strip_tags($flag->get_label($action . '_long', $content_id)));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
   $variables['last_action'] = ($action == 'flag' ? 'unflagged' : 'flagged');
