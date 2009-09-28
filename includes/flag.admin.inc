@@ -28,11 +28,11 @@ function theme_flag_admin_page($flags, $default_flags) {
       'flags_delete' =>  array('title' => t('delete'), 'href' => "admin/build/flags/delete/". $flag->name),
     ));
 
-    $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles));
+    $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles['flag']));
     $rows[] = array(
       $flag->name,
       $flag->content_type,
-      empty($flag->roles) ? '<em>' . t('No roles') . '</em>' : implode(', ', $roles),
+      empty($flag->roles['flag']) ? '<em>' . t('No roles') . '</em>' : implode(', ', $roles),
       $flag->types ? implode(', ', $flag->types) : '-',
       $flag->global ? t('Yes') : t('No'),
       $ops,
@@ -55,7 +55,7 @@ function theme_flag_admin_page($flags, $default_flags) {
         'flags_enable' =>  array('title' => t('enable'), 'href' => "admin/build/flags/edit/". $flag->name),
       ));
 
-      $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles));
+      $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles['flag']));
       $rows[] = array(
         $flag->name,
         $flag->module,
@@ -201,6 +201,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#maxlength' => 32,
     '#required' => TRUE,
     '#access' => empty($flag->locked['name']),
+    '#weight' => -3,
   );
 
   if (!empty($flag->fid)) {
@@ -215,9 +216,24 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#maxlength' => 255,
     '#required' => TRUE,
     '#access' => empty($flag->locked['title']),
+    '#weight' => -2,
   );
 
-  $form['flag_short'] = array(
+  $form['global'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Global flag'),
+    '#default_value' => $flag->global,
+    '#description' => t('If checked, flag is considered "global" and each node is either flagged or not. If unchecked, each user has individual flags on content.'),
+    '#access' => empty($flag->locked['global']),
+    '#weight' => -1,
+  );
+
+  $form['messages'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Messages'),
+  );
+
+  $form['messages']['flag_short'] = array(
     '#type' => 'textfield',
     '#title' => t('Flag link text'),
     '#default_value' => $flag->flag_short,
@@ -226,7 +242,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#access' => empty($flag->locked['flag_short']),
   );
 
-  $form['flag_long'] = array(
+  $form['messages']['flag_long'] = array(
     '#type' => 'textfield',
     '#title' => t('Flag link description'),
     '#default_value' => $flag->flag_long,
@@ -234,15 +250,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#access' => empty($flag->locked['flag_long']),
   );
 
-  $form['flag_confirmation'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Flag confirmation message'),
-    '#default_value' => $flag->flag_confirmation,
-    '#description' => t('Message displayed if the user has clicked the "flag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to flag this content?"'),
-    '#access' => empty($flag->locked['flag_confirmation']),
-  );
-
-  $form['flag_message'] = array(
+  $form['messages']['flag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Flagged message'),
     '#default_value' => $flag->flag_message,
@@ -250,7 +258,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#access' => empty($flag->locked['flag_message']),
   );
 
-  $form['unflag_short'] = array(
+  $form['messages']['unflag_short'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflag link text'),
     '#default_value' => $flag->unflag_short,
@@ -259,7 +267,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#access' => empty($flag->locked['unflag_short']),
   );
 
-  $form['unflag_long'] = array(
+  $form['messages']['unflag_long'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflag link description'),
     '#default_value' => $flag->unflag_long,
@@ -267,15 +275,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#access' => empty($flag->locked['unflag_long']),
   );
 
-  $form['unflag_confirmation'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Unflag confirmation message'),
-    '#default_value' => $flag->unflag_confirmation,
-    '#description' => t('Message displayed if the user has clicked the "unflag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to unflag this content?"'),
-    '#access' => empty($flag->locked['unflag_confirmation']),
-  );
-
-  $form['unflag_message'] = array(
+  $form['messages']['unflag_message'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflagged message'),
     '#default_value' => $flag->unflag_message,
@@ -284,7 +284,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
   );
 
   if (module_exists('token')) {
-    $form['token_help'] = array(
+    $form['messages']['token_help'] = array(
       '#title' => t('Token replacement'),
       '#type' => 'fieldset',
       '#description' => t('The above six options may contain the following wildcard replacements. For example, "Mark Link" could be entered as "Add [title] to your flags" or "Add this [type-name] to your flags". These wildcards will be replaced with the appropriate field from the node.') . theme('flag_token_help', $flag->get_labels_token_types()),
@@ -293,38 +293,21 @@ function flag_form(&$form_state, $name, $type = NULL) {
     );
   }
   else {
-    $form['token_help'] = array(
+    $form['messages']['token_help'] = array(
       '#value' => '<em>' . t('Note: You don\'t have the <a href="@token-url">Token</a> module installed. If you have it installed, and enabled, you\'ll be able to embed tokens in the six labels above.', array('@token-url' => 'http://drupal.org/project/token')) . '</em>',
     );
   }
 
-  $form['global'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Global flag'),
-    '#default_value' => $flag->global,
-    '#description' => t('If checked, flag is considered "global" and each node is either flagged or not. If unchecked, each user has individual flags on content.'),
-    '#weight' => 1,
-    '#access' => empty($flag->locked['global']),
+  $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Flag access'),
+    '#tree' => FALSE,
+    '#weight' => 10,
   );
 
-  $form['roles'] = array(
+  $form['access']['types'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Roles that may use this flag'),
-    '#options' => user_roles(TRUE),
-    '#default_value' => $flag->roles,
-    '#description' => t('Checking <em>authenticated user</em> will allow all logged-in users to flag content with this flag. Anonymous users may not flag content.'),
-    '#weight' => 5,
-    '#access' => empty($flag->locked['roles']),
-  );
-
-  // Disabled access breaks checkboxes unless #value is hard coded.
-  if (!empty($flag->locked['roles'])) {
-    $form['roles']['#value'] = $flag->roles;
-  }
-
-  $form['types'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('What nodes this flag may be used on'),
+    '#title' => t('Flaggable content'),
     '#options' => array_map('check_plain', node_get_types('names')),
     '#default_value' => $flag->types,
     '#description' => t('Check any node types that this flag may be used on. You must check at least one node type.'),
@@ -335,8 +318,43 @@ function flag_form(&$form_state, $name, $type = NULL) {
 
   // Disabled access breaks checkboxes unless #value is hard coded.
   if (!empty($flag->locked['types'])) {
-    $form['types']['#value'] = $flag->types;
+    $form['access']['types']['#value'] = $flag->types;
   }
+
+  $form['access']['roles'] = array(
+    '#title' => t('Roles that may use this flag'),
+    '#access' => empty($flag->locked['roles']),
+    '#description' => t('Users may only unflag content if they have access to flag the content initially. Checking <em>authenticated user</em> will allow access for all logged-in users. Anonymous users may not flag content.'),
+    '#theme' => 'flag_form_roles',
+    '#weight' => -2,
+  );
+  $form['access']['roles']['flag'] = array(
+    '#type' => 'checkboxes',
+    '#options' => user_roles(TRUE),
+    '#default_value' => $flag->roles['flag'],
+    '#parents' => array('roles', 'flag'),
+  );
+  $form['access']['roles']['unflag'] = array(
+    '#type' => 'checkboxes',
+    '#options' => user_roles(TRUE),
+    '#default_value' => $flag->roles['unflag'],
+    '#parents' => array('roles', 'unflag'),
+  );
+
+  // Disabled access breaks checkboxes unless #value is hard coded.
+  if (!empty($flag->locked['roles'])) {
+    $form['access']['roles']['#type'] = 'value';
+    $form['access']['roles']['#value'] = $flag->roles;
+  }
+
+  $form['access']['unflag_denied_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Unflag not allowed text'),
+    '#default_value' => $flag->unflag_denied_text,
+    '#description' => t('If a user is allowed to flag but not unflag, this text will be displayed after flagging. Often this is the past-tense of the link text, such as "flagged".'),
+    '#access' => empty($flag->locked['unflag_denied_text']),
+    '#weight' => -1,
+  );
 
   $form['display'] = array(
     '#type' => 'fieldset',
@@ -351,10 +369,35 @@ function flag_form(&$form_state, $name, $type = NULL) {
     '#title' => t('Link type'),
     '#options' => _flag_link_type_options(),
     '#option_descriptions' => _flag_link_type_descriptions(),
-    '#after_build' => array('flag_expand_option_description', 'flag_check_link_types'),
+    '#flag_link_fields' => _flag_link_type_fields(),
+    '#after_build' => array('flag_expand_link_option', 'flag_check_link_types'),
     '#default_value' => $flag->link_type,
     '#weight' => 2,
     '#access' => empty($flag->locked['link_type']),
+  );
+
+  $form['link_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Link options'),
+    '#description' => t('The selected link type may require these additional settings.'),
+    '#attributes' => array('id' => 'link-options'),
+    '#weight' => 21,
+  );
+
+  $form['link_options']['flag_confirmation'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Flag confirmation message'),
+    '#default_value' => $flag->flag_confirmation,
+    '#description' => t('Message displayed if the user has clicked the "flag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to flag this content?"'),
+    '#access' => empty($flag->locked['flag_confirmation']),
+  );
+
+  $form['link_options']['unflag_confirmation'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Unflag confirmation message'),
+    '#default_value' => $flag->unflag_confirmation,
+    '#description' => t('Message displayed if the user has clicked the "unflag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to unflag this content?"'),
+    '#access' => empty($flag->locked['unflag_confirmation']),
   );
 
   $form['submit'] = array(
@@ -410,6 +453,36 @@ function flag_form_submit($form, &$form_state) {
 }
 
 /**
+ * Output the access options for roles in a table.
+ */
+function theme_flag_form_roles($element) {
+  drupal_add_css(drupal_get_path('module', 'flag') . '/theme/flag-admin.css', 'module', 'all', FALSE);
+  drupal_add_js(drupal_get_path('module', 'flag') . '/theme/flag-admin.js', 'module', 'header', FALSE, TRUE, FALSE);
+
+  $header = array(
+    array('class' => 'checkbox', 'data' => t('Flag')),
+    array('class' => 'checkbox', 'data' => t('Unflag')),
+    t('Role'),
+  );
+  $rows = array();
+  foreach (element_children($element['flag']) as $role) {
+    $row = array();
+    $role_name = $element['flag'][$role]['#title'];
+    unset($element['flag'][$role]['#title']);
+    unset($element['unflag'][$role]['#title']);
+    $element['flag'][$role]['#attributes']['class'] = 'flag-access';
+    $element['unflag'][$role]['#attributes']['class'] = 'unflag-access';
+    $row[] = array('class' => 'checkbox', 'data' => drupal_render($element['flag'][$role]));
+    $row[] = array('class' => 'checkbox', 'data' => drupal_render($element['unflag'][$role]));
+    $row[] = $role_name;
+    $rows[] = $row;
+  }
+
+  $element['#children'] = theme('table', $header, $rows, array('class' => 'flag-admin-table', 'id' => 'flag-roles'));
+  return theme('form_element', $element, $element['#children']);
+}
+
+/**
  * Delete flag page.
  */
 function flag_delete_confirm(&$form_state, $name) {
@@ -442,12 +515,21 @@ function flag_delete_confirm_submit($form, &$form_state) {
 /**
  * FormAPI after_build function to add descriptions to radio buttons.
  */
-function flag_expand_option_description($element) {
+function flag_expand_link_option($element) {
+  drupal_add_js(drupal_get_path('module', 'flag') . '/theme/flag-admin.js', 'module', 'header', FALSE, TRUE, FALSE);
+
   foreach (element_children($element) as $key) {
+    // Add a description to the link option.
     if (isset($element['#option_descriptions'][$key])) {
       $element[$key]['#description'] = $element['#option_descriptions'][$key];
     }
+    // Add a list of fields dependent on this link type using the rel attribute.
+    if (isset($element['#flag_link_fields'][$key])) {
+      $element[$key]['#attributes']['rel'] = implode(' ', $element['#flag_link_fields'][$key]);
+    }
   }
+  $element['#attributes']['class'] = 'flag-link-options';
+
   return $element;
 }
 

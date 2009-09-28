@@ -109,7 +109,6 @@ class flag_flag {
   // Various non-serialized properties of the flag, corresponding directly to
   // database columns.
   var $title = '';
-  var $roles = array(DRUPAL_AUTHENTICATED_RID);
   var $global = FALSE;
   // The sub-types, e.g. node types, this flag applies to.
   var $types = array();
@@ -136,7 +135,10 @@ class flag_flag {
     // ...but skip the following two.
     unset($flag->options, $flag->type);
 
-    $options = (array)unserialize($row->options);
+    // Populate the options with the defaults.
+    $options = (array) unserialize($row->options);
+    $options += $flag->options();
+
     // Make the unserialized options accessible as normal properties.
     foreach ($options as $option => $value) {
       $flag->$option = $value;
@@ -146,8 +148,6 @@ class flag_flag {
       // The loop loading from the database should further populate this property.
       $flag->types[] = $row->type;
     }
-
-    $flag->roles = empty($row->roles) ? array() : explode(',', $row->roles);
 
     return $flag;
   }
@@ -189,13 +189,21 @@ class flag_flag {
       'flag_short' => '',
       'flag_long' => '',
       'flag_message' => '',
-      'flag_confirmation' => '',
       'unflag_short' => '',
       'unflag_long' => '',
       'unflag_message' => '',
-      'unflag_confirmation' => '',
+      'unflag_denied_text' => '',
       'link_type' => 'toggle',
+      'roles' => array(
+        'flag' => array(DRUPAL_AUTHENTICATED_RID),
+        'unflag' => array(DRUPAL_AUTHENTICATED_RID),
+      ),
     );
+
+    // Merge in options from the current link type.
+    $link_type = $this->get_link_type();
+    $options = array_merge($options, $link_type['options']);
+
     // Allow other modules to change the flag options.
     drupal_alter('flag_options', $this, $options);
     return $options;
@@ -229,7 +237,8 @@ class flag_flag {
       $this->$field = $value;
     }
     // But checkboxes need some massaging:
-    $this->roles = array_values(array_filter($this->roles));
+    $this->roles['flag'] = array_values(array_filter($this->roles['flag']));
+    $this->roles['unflag'] = array_values(array_filter($this->roles['unflag']));
     $this->types = array_values(array_filter($this->types));
     // Clear internal titles cache:
     $this->get_title(NULL, TRUE);
@@ -242,9 +251,17 @@ class flag_flag {
    *   A list of errors encountered while validating this flag's options.
    */
   function validate() {
-    return $this->validate_name();
+    // TODO: It might be nice if this used automatic method discovery rather
+    // than hard-coding the list of validate functions.
+    return array_merge_recursive(
+      $this->validate_name(),
+      $this->validate_access()
+    );
   }
 
+  /**
+   * Validates that the current flag's name is valid.
+   */
   function validate_name() {
     $errors = array();
 
@@ -262,6 +279,39 @@ class flag_flag {
         'error' => 'flag_name_unique',
         'message' => t('Flag names must be unique. This flag name is already in use.'),
       );
+    }
+
+    return $errors;
+  }
+
+  /**
+   * Validates that the current flag's access settings are valid.
+   */
+  function validate_access() {
+    $errors = array();
+
+    // Require an unflag access denied message a role is not allowed to unflag.
+    if (empty($this->unflag_denied_text)) {
+      foreach ($this->roles['flag'] as $key => $rid) {
+        if ($rid && empty($this->roles['unflag'][$key])) {
+          $errors['unflag_denied_text'][] = array(
+            'error' => 'flag_denied_text_required',
+            'message' => t('The "Unflag not allowed text" is required if any user roles are not allowed to unflag.'),
+          );
+          break;
+        }
+      }
+    }
+
+    // Do not allow unflag access without flag access.
+    foreach ($this->roles['unflag'] as $key => $rid) {
+      if ($rid && empty($this->roles['flag'][$key])) {
+        $errors['roles'][] = array(
+          'error' => 'flag_roles_unflag',
+          'message' => t('Any user role that has the ability to unflag must also have the ability to flag.'),
+        );
+        break;
+      }
     }
 
     return $errors;
@@ -335,13 +385,16 @@ class flag_flag {
   /**
    * Returns TRUE if user has access to use this flag.
    *
+   * @param $action
+   *   Optional. The action to test, either "flag" or "unflag". If none given,
+   *   "flag" will be tested, which is the minimum permission to use a flag.
    * @param $account
    *   Optional. The user object. If none given, the current user will be used.
    *
    * @return
    *   Boolean TRUE if the user is allowed to flag/unflag. FALSE otherwise.
    */
-  function user_access($account = NULL) {
+  function user_access($action = 'flag', $account = NULL) {
     if (!isset($account)) {
       $account = $GLOBALS['user'];
     }
@@ -351,8 +404,8 @@ class flag_flag {
       return FALSE;
     }
 
-    $matched_roles = array_intersect($this->roles, array_keys($account->roles));
-    return !empty($matched_roles) || empty($this->roles) || $account->uid == 1;
+    $matched_roles = array_intersect($this->roles[$action], array_keys($account->roles));
+    return !empty($matched_roles) || !empty($this->roles[$action]) || $account->uid == 1;
   }
 
   /**
@@ -377,19 +430,23 @@ class flag_flag {
       return FALSE;
     }
 
-    // Allow modules to disallow (or allow) access to flagging.
     if (!isset($action)) {
       $action = $this->is_flagged($content_id, $account->uid) ? 'unflag' : 'flag';
     }
+
+    // Base initial access on the user's basic permission to use this flag.
+    $access = $this->user_access($action, $account);
+
+    // Allow modules to disallow (or allow) access to flagging.
     $access_array = module_invoke_all('flag_access', $this, $content_id, $action, $account);
-    foreach ($access_array as $access) {
-      if (isset($access)) {
-        return $access;
+
+    foreach ($access_array as $set_access) {
+      if (isset($set_access)) {
+        $access = $set_access;
       }
     }
 
-    // Fall back on the flag's user-specific access check.
-    return $this->user_access($account);
+    return $access;
   }
 
   /**
@@ -618,6 +675,14 @@ class flag_flag {
   }
 
   /**
+   * Get the link type for this flag.
+   */
+  function get_link_type() {
+    $link_types = flag_get_link_types();
+    return isset($link_types[$this->link_type]) ? $link_types[$this->link_type] : $link_types['normal'];
+  }
+
+  /**
    * Replaces tokens in a label. Only the 'global' token context is regognized
    * by default, so derived classes should override this method to add all
    * token contexts they understand.
@@ -771,7 +836,7 @@ class flag_flag {
    * Saves an existing flag to the database. Better use save().
    */
   function update() {
-    db_query("UPDATE {flags} SET name = '%s', title = '%s', roles = '%s', global = %d, options = '%s' WHERE fid = %d", $this->name, $this->title, implode(',', $this->roles), $this->global, $this->get_serialized_options(), $this->fid);
+    db_query("UPDATE {flags} SET name = '%s', title = '%s', global = %d, options = '%s' WHERE fid = %d", $this->name, $this->title, $this->global, $this->get_serialized_options(), $this->fid);
     db_query("DELETE FROM {flag_types} WHERE fid = %d", $this->fid);
     foreach ($this->types as $type) {
       db_query("INSERT INTO {flag_types} (fid, type) VALUES (%d, '%s')", $this->fid, $type);
@@ -782,16 +847,8 @@ class flag_flag {
    * Saves a new flag to the database. Better use save().
    */
   function insert() {
-    if (function_exists('db_last_insert_id')) {
-      // Drupal 6. We have a 'serial' primary key.
-      db_query("INSERT INTO {flags} (content_type, name, title, roles, global, options) VALUES ('%s', '%s', '%s', '%s', %d, '%s')", $this->content_type, $this->name, $this->title, implode(',', $this->roles), $this->global, $this->get_serialized_options());
-      $this->fid = db_last_insert_id('flags', 'fid');
-    }
-    else {
-      // Drupal 5. We have an 'integer' primary key.
-      $this->fid = db_next_id('{flags}_fid');
-      db_query("INSERT INTO {flags} (fid, content_type, name, title, roles, global, options) VALUES (%d, '%s', '%s', '%s', '%s', %d, '%s')", $this->fid, $this->content_type, $this->name, $this->title, implode(',', $this->roles), $this->global, $this->get_serialized_options());
-    }
+    db_query("INSERT INTO {flags} (content_type, name, title, global, options) VALUES ('%s', '%s', '%s', %d, '%s')", $this->content_type, $this->name, $this->title, $this->global, $this->get_serialized_options());
+    $this->fid = db_last_insert_id('flags', 'fid');
     foreach ($this->types as $type) {
       db_query("INSERT INTO {flag_types} (fid, type) VALUES (%d, '%s')", $this->fid, $type);
     }
@@ -881,6 +938,7 @@ class flag_node extends flag_flag {
       'show_on_page' => TRUE,
       'show_on_teaser' => TRUE,
       'show_on_form' => FALSE,
+      'access_author' => '',
       'i18n' => 0,
     );
     return $options;
@@ -902,6 +960,19 @@ class flag_node extends flag_flag {
       '#access' => module_exists('translation_helpers'),
       '#weight' => 5,
     );
+
+    $form['access']['access_author'] = array(
+      '#type' => 'radios',
+      '#title' => t('Flag access by content authorship'),
+      '#options' => array(
+        '' => t('No additional restrictions'),
+        'own' => t('Users may only flag content they own'),
+        'others' => t('Users may only flag content of others'),
+      ),
+      '#default_value' => $this->access_author,
+      '#description' => t("Restrict access to this flag based on the user's ownership of the content. Users must also have access to the flag through the role settings."),
+    );
+
     $form['display']['show_on_teaser'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link on node teaser'),
@@ -939,16 +1010,15 @@ class flag_node extends flag_flag {
       $account = $GLOBALS['user'];
     }
 
-    if (!$this->user_access($account)) {
-      // User has no permission to use this flag.
-      return FALSE;
-    }
     $passed = array();
     $nids  = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
     $result = db_query("SELECT nid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $this->types);
     while ($row = db_fetch_object($result)) {
-      $passed[$row->nid] = $content_ids[$row->nid] == 'flag' ? FALSE : TRUE;
+      // First check basic user access for this action.
+      $passed[$row->nid] = $this->user_access($content_ids[$row->nid], $account);
+
+      // Allow other modules to modify access.
       $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
       foreach ($access_array as $access) {
         if (isset($access)) {
@@ -1099,16 +1169,15 @@ class flag_comment extends flag_flag  {
       $account = $GLOBALS['user'];
     }
 
-    if (!$this->user_access($account)) {
-      // User has no permission to use this flag.
-      return FALSE;
-    }
     $passed = array();
     $content_ids  = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
     $result = db_query("SELECT cid FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type IN ($placeholders)", $this->types);
     while ($row = db_fetch_object($result)) {
-      $passed[$row->cid] = TRUE;
+      // First check basic user access for this action.
+      $passed[$row->cid] = $this->user_access($content_ids[$row->cid], $account);
+
+      // Allow other modules to modify access.
       $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
       foreach ($access_array as $access) {
         if (isset($access)) {
@@ -1197,16 +1266,24 @@ class flag_user extends flag_flag {
     $options = parent::options();
     $options += array(
       'show_on_profile' => TRUE,
+      'access_uid' => '',
     );
     return $options;
   }
 
   function options_form(&$form) {
     parent::options_form($form);
-    $form['types'] = array(
-      // A user flag doesn't support node types. (Maybe will support roles instead, in the future.)
+    $form['access']['types'] = array(
+      // A user flag doesn't support node types.
+      // TODO: Maybe support roles instead of node types.
       '#type' => 'value',
       '#value' => array(0 => 0),
+    );
+    $form['access']['access_uid'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Users may flag themselves'),
+      '#description' => t('Disabling this option may be useful when setting up a "friend" flag, when a user flagging themself does not make sense.'),
+      '#default_value' => $this->access_uid ? 0 : 1,
     );
     $form['display']['show_on_profile'] = array(
       '#type' => 'checkbox',
@@ -1214,6 +1291,13 @@ class flag_user extends flag_flag {
       '#default_value' => $this->show_on_profile,
       '#access' => empty($this->locked['show_on_profile']),
     );
+  }
+
+  function form_input($form_values) {
+    parent::form_input($form_values);
+    // The access_uid value is intentionally backwards from the UI, to avoid
+    // confusion caused by checking a box to disable a feature.
+    $this->access_uid = empty($form_values['access_uid']) ? 'others' : '';
   }
 
   function _load_content($content_id) {
@@ -1229,20 +1313,41 @@ class flag_user extends flag_flag {
     return FALSE;
   }
 
+  function access($content_id, $action = NULL, $account = NULL) {
+    $access = parent::access($content_id, $action, $account);
+    $account = isset($account) ? $account : $GLOBALS['user'];
+
+    // Prevent users from flagging themselves.
+    if ($this->access_uid == 'others' && $content_id == $account->uid) {
+      $access = FALSE;
+    }
+
+    return $access;
+  }
+
   function access_multiple($content_ids, $account = NULL) {
     if (!isset($account)) {
       $account = $GLOBALS['user'];
     }
 
-    if (!$this->user_access($account)) {
-      // User has no permission to use this flag.
-      return FALSE;
-    }
     // This user flag doesn't currently support subtypes so all users are
     // applicable for flagging.
     $passed = array();
     foreach (array_keys($content_ids) as $uid) {
-      $passed[$uid] = (bool) $uid; // Exclude anonymous.
+      // First check basic user access for this action.
+      $passed[$uid] = $this->user_access($content_ids[$uid], $account);
+
+      // Exclude anonymous.
+      if ($uid == 0) {
+        $passed[$uid] = FALSE;
+      }
+
+      // Prevent users from flagging themselves.
+      if ($this->access_uid == 'others' && $uid == $account->uid) {
+        $passed[$uid] = FALSE;
+      }
+
+      // Allow other modules to modify access.
       $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
       foreach ($access_array as $access) {
         if (isset($access)) {

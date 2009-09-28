@@ -453,6 +453,29 @@ function flag_update_6004() {
   return array();
 }
 
+/**
+ * Convert role access to have separate "flag" and "unflag" permissions.
+ */
+function flag_update_6200() {
+  $ret = array();
+
+  if (db_column_exists('flags', 'roles')) {
+    $result = db_query('SELECT * FROM {flags}');
+    while ($flag = db_fetch_object($result)) {
+      $roles = array_filter(explode(',', $flag->roles));
+      $options = unserialize($flag->options);
+      $options['roles'] = array(
+        'flag' => $roles,
+        'unflag' => $roles,
+      );
+      db_query("UPDATE {flags} SET options = '%s' WHERE fid = %d", serialize($options), $flag->fid);
+    }
+    db_drop_field($ret, 'flags', 'roles');
+  }
+
+  return $ret;
+}
+
 // This is a replacement for update_sql(). The latter doesn't support placeholders.
 function _flag_update_sql($sql) {
   $args = func_get_args();

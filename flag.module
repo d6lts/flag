@@ -113,7 +113,7 @@ function flag_perm() {
  * See documentation for $flag->user_access().
  */
 function flag_access($flag, $account = NULL) {
-  return $flag->user_access($account);
+  return $flag->user_access('flag', $account);
 }
 
 /**
@@ -154,8 +154,10 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
       // Flag is not configured to show its link here.
       continue;
     }
-    if (!$flag->access($content_id)) {
-      // User has no permission to use this flag or flag does not apply to this content.
+    if (!$flag->access($content_id) && (!$flag->is_flagged($content_id) || !$flag->access($content_id, 'flag'))) {
+      // User has no permission to use this flag or flag does not apply to this
+      // content. The link is not skipped if the user has "flag" access but
+      // not "unflag" access (this way the unflag denied message is shown).
       continue;
     }
 
@@ -192,7 +194,7 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
 function flag_flag_link(&$flag, $action, $content_id) {
   $token = flag_get_token($content_id);
   return array(
-    'href' => "flag/". ($flag->link_type == 'confirm' ? 'confirm/' : '') ."$action/$flag->name/$content_id",
+    'href' => 'flag/'. ($flag->link_type == 'confirm' ? 'confirm/' : '') ."$action/$flag->name/$content_id",
     'query' => drupal_get_destination() . ($flag->link_type == 'confirm' ? '' : '&token='. $token),
   );
 }
@@ -213,6 +215,10 @@ function flag_flag_link_types() {
     'confirm' => array(
       'title' => t('Confirmation form'),
       'description' => t('The user will be taken to a confirmation form on a separate page to confirm the flag.'),
+      'options' => array(
+        'flag_confirmation' => '',
+        'unflag_confirmation' => '',
+      ),
     ),
   );
 }
@@ -599,6 +605,46 @@ function flag_flag($action, $flag, $content_id, $account) {
 }
 
 /**
+ * Implementation of hook_flag_access().
+ */
+function flag_flag_access($flag, $content_id, $action, $account) {
+  // Restrict access by authorship. It's important that TRUE is never returned
+  // here, otherwise we'd grant permission even if other modules denied access.
+  if ($flag->content_type == 'node') {
+    $node = node_load($content_id);
+    if ($flag->access_author == 'own' && $node->uid != $account->uid) {
+      return FALSE;
+    }
+    elseif ($flag->access_author == 'others' && $node->uid == $account->uid) {
+      return FALSE;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_flag_access_multiple().
+ */
+function flag_flag_access_multiple($flag, $content_ids, $account) {
+  if ($flag->content_type == 'node') {
+    // Restrict access by authorship. This is similar to flag_flag_access()
+    // above, but returns an array of 'nid' => $access values. Similarly, we
+    // should never return TRUE in any of these access values, only FALSE if we
+    // want to deny access, or use the current access value provided by Flag.
+    $nids  = implode(',', array_map('intval', array_keys($content_ids)));
+    $placeholders = implode(',', array_fill(0, sizeof($flag->types), "'%s'"));
+    $result = db_query("SELECT nid, uid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $flag->types);
+    while ($row = db_fetch_object($result)) {
+      if ($flag->access_author == 'own') {
+        $passed[$row->nid] = $row->uid != $account->uid ? FALSE : $passed[$row->nid];
+      }
+      elseif ($flag->access_author == 'others') {
+        $passed[$row->nid] = $row->uid == $account->uid ? FALSE : $passed[$row->nid];
+      }
+    }
+    return $passed;
+  }
+}
+/**
  * Trim a flag to a certain size.
  *
  * @param $fid
@@ -691,6 +737,9 @@ function flag_theme() {
     'flag_admin_page' => array(
       'arguments' => array('flags' => NULL, 'default_flags' => NULL),
     ),
+    'flag_form_roles' => array(
+      'arguments' => array('element' => NULL),
+    ),
     'flag_rules_radios' => array(
       'arguments' => array(),
     ),
@@ -720,15 +769,16 @@ function template_preprocess_flag(&$variables) {
   $content_id = $variables['content_id'];
 
   // Generate the link URL.
-  $link_types = flag_get_link_types();
-  if (!isset($link_types[$flag->link_type])) {
-    // Provide a fallback if the link type no longer exists.
-    $flag->link_type = 'normal';
-  }
-  $link_type_module = $link_types[$flag->link_type]['module'];
-  $link = module_invoke($link_type_module, 'flag_link', $flag, $action, $content_id);
+  $link_type = $flag->get_link_type();
+  $link = module_invoke($link_type['module'], 'flag_link', $flag, $action, $content_id);
   if (isset($link['title']) && empty($link['html'])) {
     $link['title'] = check_plain($link['title']);
+  }
+
+  // Replace the link with the access denied text if unable to flag.
+  if ($action == 'unflag' && !$flag->access($content_id, 'unflag')) {
+    $link['title'] = $flag->get_label('unflag_denied_text');
+    unset($link['href']);
   }
 
   if ($flag->link_type == 'toggle' && $first_time) {
@@ -739,7 +789,7 @@ function template_preprocess_flag(&$variables) {
     $variables['setup'] = FALSE;
   }
 
-  $variables['link_href'] = check_url(url($link['href'], $link));
+  $variables['link_href'] = isset($link['href']) ? check_url(url($link['href'], $link)) : FALSE;
   $variables['link_text'] = isset($link['title']) ? $link['title'] : strip_tags($flag->get_label($action . '_short', $content_id), '<em><strong><img>');
   $variables['link_title'] = isset($link['attributes']['title']) ? check_plain($link['attributes']['title']) : check_plain(strip_tags($flag->get_label($action . '_long', $content_id)));
   $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
@@ -849,6 +899,18 @@ function _flag_link_type_descriptions() {
   $types = flag_get_link_types();
   foreach ($types as $type_name => $type) {
     $options[$type_name] = $type['description'];
+  }
+  return $options;
+}
+
+/**
+ * Return an array of flag link fields that are dependent on a link type.
+ */
+function _flag_link_type_fields() {
+  $options = array();
+  $types = flag_get_link_types();
+  foreach ($types as $type_name => $type) {
+    $options[$type_name] = array_keys($type['options']);
   }
   return $options;
 }
@@ -1218,13 +1280,16 @@ function flag_get_link_types($reset = FALSE) {
     foreach (module_implements('flag_link_types') as $module) {
       $module_types = module_invoke($module, 'flag_link_types');
       foreach ($module_types as $type_name => $info) {
-        $link_types[$type_name] = array(
-          'module' => $module,
-          'title' => $info['title'],
-          'description' => $info['description']
+        $link_types[$type_name] = $info;
+        $link_types[$type_name]['module'] = $module;
+        $link_types[$type_name] += array(
+          'title' => '',
+          'description' => '',
+          'options' => array(),
         );
       }
     }
+    drupal_alter('flag_link_types', $link_types);
   }
 
   return $link_types;

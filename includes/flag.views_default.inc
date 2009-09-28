@@ -103,7 +103,7 @@ function flag_views_default_views() {
 
   $access = array(
     'type' => 'role',
-    'role' => drupal_map_assoc($flag->roles),
+    'role' => drupal_map_assoc($flag->roles['flag']),
     'perm' => '',
   );
 
