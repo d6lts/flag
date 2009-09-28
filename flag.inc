@@ -462,11 +462,27 @@ class flag_flag {
    * @param $account
    *   Optional. The account for which the actions will be compared against.
    *   If left empty, the current user will be used.
-   *
-   * @abstract
    */
   function access_multiple($content_ids, $account = NULL) {
-    return array();
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    $access = array();
+
+    // First check basic user access for this action.
+    foreach ($content_ids as $content_id => $action) {
+      $access[$content_id] = $this->user_access($content_ids[$content_id], $account);
+    }
+
+    // Merge in module-defined access.
+    foreach (module_implements('flag_access_multiple') as $module) {
+      $module_access = module_invoke($module, 'flag_access_multiple', $this, $content_ids, $account);
+      foreach ($module_access as $content_id => $content_access) {
+        if (isset($content_access)) {
+          $access[$content_id] = $content_access;
+        }
+      }
+    }
+
+    return $access;
   }
 
   /**
@@ -1006,27 +1022,18 @@ class flag_node extends flag_flag {
   }
 
   function access_multiple($content_ids, $account = NULL) {
-    if (!isset($account)) {
-      $account = $GLOBALS['user'];
-    }
+    $access = parent::access_multiple($content_ids, $account);
 
-    $passed = array();
-    $nids  = implode(',', array_map('intval', array_keys($content_ids)));
+    // Ensure that only flaggable node types are granted access. This avoids a
+    // node_load() on every type, usually done by applies_to_content_id().
+    $nids = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
-    $result = db_query("SELECT nid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $this->types);
+    $result = db_query("SELECT nid as content_id FROM {node} WHERE nid IN ($nids) AND type NOT IN ($placeholders)", $this->types);
     while ($row = db_fetch_object($result)) {
-      // First check basic user access for this action.
-      $passed[$row->nid] = $this->user_access($content_ids[$row->nid], $account);
-
-      // Allow other modules to modify access.
-      $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
-      foreach ($access_array as $access) {
-        if (isset($access)) {
-          $passed[$row->nid] = $access;
-        }
-      }
+      $access[$row->content_id] = FALSE;
     }
-    return $passed;
+
+    return $access;
   }
 
   function get_content_id($node) {
@@ -1165,27 +1172,19 @@ class flag_comment extends flag_flag  {
   }
 
   function access_multiple($content_ids, $account = NULL) {
-    if (!isset($account)) {
-      $account = $GLOBALS['user'];
-    }
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    $access = parent::access_multiple($content_ids, $account);
 
-    $passed = array();
+    // Ensurele node types are granted access. This avoids a
+    // node_load() on every type, usually done by applies_to_content_id().
     $content_ids  = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
-    $result = db_query("SELECT cid FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type IN ($placeholders)", $this->types);
+    $result = db_query("SELECT cid as content_id FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type NOT IN ($placeholders)", $this->types);
     while ($row = db_fetch_object($result)) {
-      // First check basic user access for this action.
-      $passed[$row->cid] = $this->user_access($content_ids[$row->cid], $account);
-
-      // Allow other modules to modify access.
-      $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
-      foreach ($access_array as $access) {
-        if (isset($access)) {
-          $passed[$row->cid] = $access;
-        }
-      }
+      $access[$row->content_id] = FALSE;
     }
-    return $passed;
+
+    return $access;
   }
 
   function get_content_id($comment) {
@@ -1326,36 +1325,20 @@ class flag_user extends flag_flag {
   }
 
   function access_multiple($content_ids, $account = NULL) {
-    if (!isset($account)) {
-      $account = $GLOBALS['user'];
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    $access = parent::access_multiple($content_ids, $account);
+
+    // Exclude anonymous.
+    if (array_key_exists(0, $access)) {
+      $access[0] = FALSE;
     }
 
-    // This user flag doesn't currently support subtypes so all users are
-    // applicable for flagging.
-    $passed = array();
-    foreach (array_keys($content_ids) as $uid) {
-      // First check basic user access for this action.
-      $passed[$uid] = $this->user_access($content_ids[$uid], $account);
-
-      // Exclude anonymous.
-      if ($uid == 0) {
-        $passed[$uid] = FALSE;
-      }
-
-      // Prevent users from flagging themselves.
-      if ($this->access_uid == 'others' && $uid == $account->uid) {
-        $passed[$uid] = FALSE;
-      }
-
-      // Allow other modules to modify access.
-      $access_array = module_invoke_all('flag_access_multiple', $this, $content_ids, $account);
-      foreach ($access_array as $access) {
-        if (isset($access)) {
-          $passed[$uid] = $access;
-        }
-      }
+    // Prevent users from flagging themselves.
+    if ($this->access_uid == 'others' && array_key_exists($account->uid, $access)) {
+      $access[$account->uid] = FALSE;
     }
-    return $passed;
+
+    return $access;
   }
 
   function get_content_id($user) {
@@ -1447,4 +1430,3 @@ function _flag_url($path, $fragment = NULL, $absolute = TRUE) {
     ? url($path, NULL, $fragment, $absolute)
     : url($path, array('absolute' => TRUE, 'fragment' => $fragment));
 }
-
