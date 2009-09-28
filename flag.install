@@ -374,7 +374,7 @@ function flag_update_6000() {
 function flag_update_6001() {
   $ret = array();
 
-  if (_flag_column_exists('flags', 'flag_short')) {
+  if (db_column_exists('flags', 'flag_short')) {
     $result = db_query("SELECT * FROM {flags}");
     while ($flag = db_fetch_object($result)) {
       $options = unserialize($flag->options);
@@ -403,7 +403,7 @@ function flag_update_6001() {
 function flag_update_6002() {
   $ret = array();
 
-  if (!_flag_column_exists('flag_content', 'fcid')) {
+  if (db_column_exists('flag_content', 'fcid')) {
     db_drop_primary_key($ret, 'flag_content');
     db_add_field($ret, 'flag_content', 'fcid', array(
         'type' => 'serial',
@@ -486,19 +486,4 @@ function _flag_update_sql($sql) {
   // suspicious.
   $sql = strtr($sql, array('%s' => '***', '%d' => '***'));
   return array('success' => $result !== FALSE, 'query' => check_plain($sql));
-}
-
-// D5/6 compatible version of db_column_exists().
-function _flag_column_exists($table, $column) {
-  if (function_exists('db_column_exists')) {
-    return db_column_exists($table, $column);
-  }
-
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      return (bool) db_fetch_object(db_query("SHOW COLUMNS FROM {flags} LIKE 'flag_short'"));
-    case 'pgsql':
-      return (bool) db_result(db_query("SELECT COUNT(pg_attribute.attname) FROM pg_class, pg_attribute WHERE pg_attribute.attrelid = pg_class.oid AND pg_class.relname = '{". db_escape_table($table) ."}' AND attname = '". db_escape_table($column) ."'"));
-  }
 }

@@ -37,10 +37,7 @@ Drupal.flagLink = function(context) {
     }
     // Replace the old link with the new one.
     $wrapper.after($newLink).remove();
-
-    if (Drupal.attachBehaviors) { // So it won't crash on Drupal 5.
-      Drupal.attachBehaviors($newLink.get(0));
-    }
+    Drupal.attachBehaviors($newLink.get(0));
 
     $('.flag-message', $newLink).fadeIn();
     setTimeout(function(){ $('.flag-message', $newLink).fadeOut() }, 3000);

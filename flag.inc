@@ -921,16 +921,7 @@ class flag_flag {
    * For parameters docmentation, see theme_flag().
    */
   function theme($action, $content_id, $after_flagging = FALSE) {
-    if (!_flag_is_drupal_5()) {
-      // We're running Drupal 6.
-      return theme($this->theme_suggestions(), $this, $action, $content_id, $after_flagging);
-    }
-    else {
-      // We're running Drupal 5. Noting to do: The theme_suggestions[] are
-      // handed to phptemplate in phptemplate_flag(), if the user bothered to
-      // copy that function into her 'template.php'.
-      return theme('flag', $this, $action, $content_id, $after_flagging);
-    }
+    return theme($this->theme_suggestions(), $this, $action, $content_id, $after_flagging);
   }
 
   /**
@@ -962,8 +953,7 @@ class flag_node extends flag_flag {
 
   function options_form(&$form) {
     parent::options_form($form);
-    // Note there isn't a translation helpers module in Drupal 5,
-    // this feature is essentially Drupal 6 only.
+    // Support for i18n flagging requires Translation helpers module.
     $form['i18n'] = array(
       '#type' => 'radios',
       '#title' => t('Internationalization'),
@@ -1416,17 +1406,9 @@ class flag_broken extends flag_flag {
   }
 }
 
-// Returns TRUE if we're running under Drupal 5.
-//
-// I use this function because I don't want to maintain two versions of a file
-// just because a handful of lines of code.
-function _flag_is_drupal_5() {
-  return !function_exists('theme_get_registry');
-}
-
-// That's ugly, but duplicating this logic is uglier.
+/**
+ * A shortcut function to output the link URL.
+ */
 function _flag_url($path, $fragment = NULL, $absolute = TRUE) {
-  return _flag_is_drupal_5()
-    ? url($path, NULL, $fragment, $absolute)
-    : url($path, array('absolute' => TRUE, 'fragment' => $fragment));
+  return url($path, array('fragment' => $fragment, 'absolute' => $absolute));
 }

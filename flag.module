@@ -757,8 +757,6 @@ function flag_theme() {
  * - $after_flagging
  *
  * See 'flag.tpl.php' for their documentation.
- *
- * Note: The Drupal 5 version of this module calls this function directly.
  */
 function template_preprocess_flag(&$variables) {
   static $first_time = TRUE;
