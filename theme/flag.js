@@ -43,6 +43,7 @@ Drupal.flagLink = function(context) {
     }
 
     $('.flag-message', $newLink).fadeIn();
+    setTimeout(function(){ $('.flag-message', $newLink).fadeOut() }, 3000);
     return $newLink.get(0);
   }
 
