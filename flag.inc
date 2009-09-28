@@ -1175,7 +1175,7 @@ class flag_comment extends flag_flag  {
     $account = isset($account) ? $account : $GLOBALS['user'];
     $access = parent::access_multiple($content_ids, $account);
 
-    // Ensurele node types are granted access. This avoids a
+    // Ensure node types are granted access. This avoids a
     // node_load() on every type, usually done by applies_to_content_id().
     $content_ids  = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
