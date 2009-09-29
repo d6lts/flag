@@ -583,18 +583,22 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
  */
 function flag_flag($action, $flag, $content_id, $account) {
   if (module_exists('trigger')) {
-
     $flag_action = $flag->get_flag_action($content_id);
     $flag_action->action = $action;
     $context = (array)$flag_action;
-    $aids = _trigger_get_hook_aids($action, $action);
-    foreach ($aids as $aid => $action_info) {
+    // Generic "all flags" actions.
+    foreach (_trigger_get_hook_aids($action, $action) as $aid => $action_info) {
       // The 'if ($aid)' is a safeguard against http://drupal.org/node/271460#comment-886564
       if ($aid) {
         actions_do($aid, $flag, $context);
       }
     }
-
+    // Actions specifically for this flag.
+    foreach (_trigger_get_hook_aids($action . '_' . $flag->name, $action) as $aid => $action_info) {
+      if ($aid) {
+        actions_do($aid, $flag, $context);
+      }
+    }
   }
 
   if (module_exists('rules')) {
