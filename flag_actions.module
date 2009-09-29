@@ -424,6 +424,7 @@ function flag_actions_form($form_state, $aid = NULL, $flag_name = NULL) {
     '#weight' => -9,
     '#theme' => 'flag_actions_flag_form',
     '#action' => $action,
+    '#flag' => $flag,
   );
 
   $form['flag']['flag'] = array(
@@ -464,6 +465,13 @@ function flag_actions_form($form_state, $aid = NULL, $flag_name = NULL) {
     '#maxlength' => 6,
     '#default_value' => $action->repeat_threshold,
   );
+
+  if ($flag->global) {
+    $form['flag']['threshold']['#disabled'] = 1;
+    $form['flag']['threshold']['#value'] = 1;
+    $form['flag']['repeat_threshold']['#access'] = FALSE;
+    $form['flag']['repeat_threshold']['#value'] = 0;
+  }
 
   // Merge in the standard flag action form.
   $action_form = $callback .'_form';
@@ -546,9 +554,14 @@ function theme_flag_actions_flag_form($form) {
   $output  = '';
   $output .= '<div class="container-inline">';
   $output .= t('Perform action when content !event !threshold flags', array('!event' => $event, '!threshold' => $threshold));
+  if ($form['#flag']->global) {
+    $output .= ' ' . t('(global flags always have a threshold of 1)');
+  }
   $output .= '</div>';
   $output .= '<div class="container-inline">';
-  $output .= t('Repeat this action every !repeat_threshold additional flags after the threshold is reached', array('!repeat_threshold' => $repeat_threshold));
+  if (!$form['#flag']->global) {
+    $output .= t('Repeat this action every !repeat_threshold additional flags after the threshold is reached', array('!repeat_threshold' => $repeat_threshold));
+  }
   $output .= '</div>';
 
   $element = array(
