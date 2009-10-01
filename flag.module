@@ -629,6 +629,7 @@ function flag_flag_access($flag, $content_id, $action, $account) {
  * Implementation of hook_flag_access_multiple().
  */
 function flag_flag_access_multiple($flag, $content_ids, $account) {
+  $access = array();
   if ($flag->content_type == 'node') {
     // Restrict access by authorship. This is similar to flag_flag_access()
     // above, but returns an array of 'nid' => $access values. Similarly, we
@@ -639,14 +640,15 @@ function flag_flag_access_multiple($flag, $content_ids, $account) {
     $result = db_query("SELECT nid, uid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $flag->types);
     while ($row = db_fetch_object($result)) {
       if ($flag->access_author == 'own') {
-        $passed[$row->nid] = $row->uid != $account->uid ? FALSE : $passed[$row->nid];
+        $access[$row->nid] = $row->uid != $account->uid ? FALSE : $access[$row->nid];
       }
       elseif ($flag->access_author == 'others') {
-        $passed[$row->nid] = $row->uid == $account->uid ? FALSE : $passed[$row->nid];
+        $access[$row->nid] = $row->uid == $account->uid ? FALSE : $access[$row->nid];
       }
     }
-    return $passed;
   }
+  // Always return an array (even if empty) of accesses.
+  return $access;
 }
 /**
  * Trim a flag to a certain size.
