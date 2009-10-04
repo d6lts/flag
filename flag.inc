@@ -405,7 +405,7 @@ class flag_flag {
     }
 
     $matched_roles = array_intersect($this->roles[$action], array_keys($account->roles));
-    return !empty($matched_roles) || !empty($this->roles[$action]) || $account->uid == 1;
+    return !empty($matched_roles) || $account->uid == 1;
   }
 
   /**
