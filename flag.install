@@ -212,7 +212,7 @@ function flag_schema() {
     ),
     'primary key' => array('fcid'),
     'unique keys' => array(
-      'fid_content_type_content_id_uid' => array('fid', 'content_type', 'content_id', 'uid'),
+      'fid_content_id_uid' => array('fid', 'content_id', 'uid'),
     ),
     'indexes' => array(
       'content_type_content_id' => array('content_type', 'content_id'),
@@ -274,6 +274,7 @@ function flag_schema() {
     'indexes' => array(
       'fid_content_type' => array('fid', 'content_type'),
       'content_type_content_id' => array('content_type', 'content_id'),
+      'count' => array('count'),
     ),
   );
 
@@ -478,6 +479,25 @@ function flag_update_6200() {
     }
     db_drop_field($ret, 'flags', 'roles');
   }
+
+  return $ret;
+}
+
+/**
+ * Refine the indexes.
+ *
+ * The content type inclusion actually slowed down on unique key. And a count
+ * index would be helpful for sorting by counts.
+ */
+function flag_update_6201() {
+  $ret = array();
+
+  // Remove "content type" from one key, see http://drupal.org/node/612602.
+  db_drop_unique_key($ret, 'flag_content', 'fid_content_type_content_id_uid');
+  db_add_unique_key($ret, 'flag_content', 'fid_content_id_uid', array('fid', 'content_id', 'uid'));
+
+  // Add a count index, see http://drupal.org/node/489610.
+  db_add_index($ret, 'flag_counts', 'count', array('count'));
 
   return $ret;
 }
