@@ -48,7 +48,7 @@ function flag_enable() {
   // Load the flag API in case we want to use it when enabling.
   include_once(drupal_get_path('module', 'flag') .'/flag.module');
 
-  if (empty(flag_get_flags())) {
+  if (!flag_get_flags()) {
     // Install a demonstration flag only if no flag exists. This is to prevent
     // a case where a disables and enables the module, and the demonstration
     // flag is overwritten or re-created.
