@@ -22,10 +22,36 @@ function flag_install() {
     }
   }
 
-  $success = drupal_install_schema('flag');
+  drupal_install_schema('flag');
+}
 
-  if ($success) {
-    // Install a demonstration flag.
+/**
+ * Implementation of hook_uninstall().
+ */
+function flag_uninstall() {
+  drupal_uninstall_schema('flag');
+  $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'flag_%'");
+  while ($row = db_fetch_object($result)) {
+    variable_del($row->name);
+  }
+
+  drupal_set_message(t('Flag has been uninstalled.'));
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * We create the demonstration flag on enable, so hook implementations in flag
+ * module will fire correctly, as the APIs are not available on install.
+ */
+function flag_enable() {
+  // Load the flag API in case we want to use it when enabling.
+  include_once(drupal_get_path('module', 'flag') .'/flag.module');
+
+  if (empty(flag_get_flags())) {
+    // Install a demonstration flag only if no flag exists. This is to prevent
+    // a case where a disables and enables the module, and the demonstration
+    // flag is overwritten or re-created.
     $flag = flag_flag::factory_by_content_type('node');
     $configuration = array(
       'name' => 'bookmarks',
@@ -48,26 +74,6 @@ function flag_install() {
     $flag->form_input($configuration);
     $flag->save();
   }
-
-  if ($success) {
-    drupal_set_message(st('Flag module installed tables successfully.'));
-  }
-  else {
-    drupal_set_message(st('The installation of Flag module failed.'), 'error');
-  }
-}
-
-/**
- * Implementation of hook_uninstall().
- */
-function flag_uninstall() {
-  drupal_uninstall_schema('flag');
-  $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'flag_%'");
-  while ($row = db_fetch_object($result)) {
-    variable_del($row->name);
-  }
-
-  drupal_set_message(t('Flag has been uninstalled.'));
 }
 
 /**
