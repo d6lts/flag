@@ -24,8 +24,9 @@ function theme_flag_admin_page($flags, $default_flags) {
   // Build out the list of normal, database flags.
   foreach ($flags as $flag) {
     $ops = theme('links', array(
-      'flags_edit' =>  array('title' => t('edit'), 'href' => "admin/build/flags/edit/". $flag->name),
-      'flags_delete' =>  array('title' => t('delete'), 'href' => "admin/build/flags/delete/". $flag->name),
+      'flags_edit' =>  array('title' => t('edit'), 'href' => 'admin/build/flags/edit/' . $flag->name),
+      'flags_delete' =>  array('title' => t('delete'), 'href' => 'admin/build/flags/delete/' . $flag->name),
+      'flags_export' =>  array('title' => t('export'), 'href' => 'admin/build/flags/export/' . $flag->name),
     ));
 
     $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles['flag']));
@@ -52,7 +53,7 @@ function theme_flag_admin_page($flags, $default_flags) {
   foreach ($default_flags as $name => $flag) {
     if (!isset($flags[$name])) {
       $ops = theme('links', array(
-        'flags_enable' =>  array('title' => t('enable'), 'href' => "admin/build/flags/edit/". $flag->name),
+        'flags_enable' =>  array('title' => t('enable'), 'href' => "admin/build/flags/edit/" . $flag->name),
       ));
 
       $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles['flag']));

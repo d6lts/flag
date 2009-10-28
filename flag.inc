@@ -939,9 +939,11 @@ class flag_flag {
   function save() {
     if (isset($this->fid)) {
       $this->update();
+      $this->is_new = FALSE;
     }
     else {
       $this->insert();
+      $this->is_new = TRUE;
     }
     // Clear the page cache for anonymous users.
     cache_clear_all('*', 'cache_page', TRUE);

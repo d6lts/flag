@@ -57,6 +57,25 @@ function flag_menu() {
     'access arguments' => array('administer flags'),
     'file' => 'includes/flag.admin.inc',
     'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['admin/build/flags/import'] = array(
+    'title' => 'Import',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flag_import_form'),
+    'access arguments' => array('administer flags'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/flag.export.inc',
+    'weight' => 2,
+  );
+  $items['admin/build/flags/export'] = array(
+    'title' => 'Export',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flag_export_form'),
+    'access arguments' => array('administer flags'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/flag.export.inc',
+    'weight' => 3,
   );
   $items['flag'] = array(
     'title' => 'Flag',
@@ -101,6 +120,19 @@ function flag_views_api() {
   return array(
     'api' => 2.0,
     'path' => drupal_get_path('module', 'flag') . '/includes',
+  );
+}
+
+/**
+ * Implementation of hook_features_api().
+ */
+function flag_features_api() {
+  return array(
+    'flag' => array(
+      'feature_source' => TRUE,
+      'default_hook' => 'flag_default_flags',
+      'file' => drupal_get_path('module', 'flag') . '/includes/flag.features.inc',
+    ),
   );
 }
 
