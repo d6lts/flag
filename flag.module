@@ -694,6 +694,24 @@ function flag_flag_access($flag, $content_id, $action, $account) {
       return FALSE;
     }
   }
+
+  // Restrict access by comment authorship.
+  if ($flag->content_type == 'comment') {
+    $comment = _comment_load($content_id);
+    $node = node_load($content_id);
+    if ($flag->access_author == 'node_own' && $node->uid != $account->uid) {
+      return FALSE;
+    }
+    elseif ($flag->access_author == 'node_others' && $node->uid == $account->uid) {
+      return FALSE;
+    }
+    elseif ($flag->access_author == 'comment_own' && $comment->uid != $account->uid) {
+      return FALSE;
+    }
+    elseif ($flag->access_author == 'comment_others' && $comment->uid == $account->uid) {
+      return FALSE;
+    }
+  }
 }
 
 /**
@@ -701,12 +719,13 @@ function flag_flag_access($flag, $content_id, $action, $account) {
  */
 function flag_flag_access_multiple($flag, $content_ids, $account) {
   $access = array();
+
   if ($flag->content_type == 'node') {
     // Restrict access by authorship. This is similar to flag_flag_access()
     // above, but returns an array of 'nid' => $access values. Similarly, we
     // should never return TRUE in any of these access values, only FALSE if we
     // want to deny access, or use the current access value provided by Flag.
-    $nids  = implode(',', array_map('intval', array_keys($content_ids)));
+    $nids = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($flag->types), "'%s'"));
     $result = db_query("SELECT nid, uid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $flag->types);
     while ($row = db_fetch_object($result)) {
@@ -718,6 +737,27 @@ function flag_flag_access_multiple($flag, $content_ids, $account) {
       }
     }
   }
+
+  if ($flag->content_type == 'comment') {
+    // Restrict access by comment ownership.
+    $nids = implode(',', array_map('intval', array_keys($content_ids)));
+    $result = db_query("SELECT c.cid, c.nid, c.uid as comment_uid, n.nid as node_uid FROM {comments} c LEFT JOIN {node} n ON c.nid = n.nid WHERE cid IN ($cids)");
+    while ($row = db_fetch_object($result)) {
+      if ($flag->access_author == 'node_own') {
+        $access[$row->cid] = $row->node_uid != $account->uid ? FALSE : NULL;
+      }
+      elseif ($flag->access_author == 'node_others') {
+        $access[$row->cid] = $row->node_uid == $account->uid ? FALSE : NULL;
+      }
+      elseif ($flag->access_author == 'comment_own') {
+        $access[$row->cid] = $row->comment_uid != $account->uid ? FALSE : NULL;
+      }
+      elseif ($flag->access_author == 'comment_others') {
+        $access[$row->cid] = $row->comment_uid == $account->uid ? FALSE : NULL;
+      }
+    }
+  }
+
   // Always return an array (even if empty) of accesses.
   return $access;
 }

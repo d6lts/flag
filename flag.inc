@@ -1248,6 +1248,7 @@ class flag_comment extends flag_flag  {
   function options() {
     $options = parent::options();
     $options += array(
+      'access_author' => '',
       'show_on_comment' => TRUE,
     );
     return $options;
@@ -1255,6 +1256,21 @@ class flag_comment extends flag_flag  {
 
   function options_form(&$form) {
     parent::options_form($form);
+
+    $form['access']['access_author'] = array(
+      '#type' => 'radios',
+      '#title' => t('Flag access by content authorship'),
+      '#options' => array(
+        '' => t('No additional restrictions'),
+        'comment_own' => t('Users may only flag own comments'),
+        'comment_others' => t('Users may only flag comments by others'),
+        'node_own' => t('Users may only flag comments of nodes they own'),
+        'node_others' => t('Users may only flag comments of nodes by others'),
+      ),
+      '#default_value' => $this->access_author,
+      '#description' => t("Restrict access to this flag based on the user's ownership of the content. Users must also have access to the flag through the role settings."),
+    );
+
     $form['display']['show_on_comment'] = array(
       '#type' => 'checkbox',
       '#title' => t('Display link under comment'),
