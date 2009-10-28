@@ -518,7 +518,7 @@ class flag_flag {
   }
 
   /**
-   * Flags, on unflags, an item.
+   * Flags, or unflags, an item.
    *
    * @param $action
    *   Either 'flag' or 'unflag'.
@@ -907,7 +907,7 @@ class flag_flag {
   function rules_get_element_argument_definition() {
     return array();
   }
-  
+
   /**
    * @} End of "addtogroup rules".
    */
@@ -1223,7 +1223,7 @@ class flag_node extends flag_flag {
       ),
     );
   }
-  
+
   function rules_get_element_argument_definition() {
     return array('type' => 'node', 'label' => t('Flagged content'));
   }
@@ -1342,7 +1342,7 @@ class flag_comment extends flag_flag  {
       ),
     );
   }
-  
+
   function rules_get_element_argument_definition() {
     return array('type' => 'comment', 'label' => t('Flagged comment'));
   }
@@ -1489,7 +1489,7 @@ class flag_user extends flag_flag {
       ),
     );
   }
-  
+
   function rules_get_element_argument_definition() {
     return array('type' => 'user', 'label' => t('Flagged user'));
   }
