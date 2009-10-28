@@ -227,7 +227,7 @@ function flag_link($type, $object = NULL, $teaser = FALSE) {
  * @return
  *   An array defining properties of the link.
  */
-function flag_flag_link(&$flag, $action, $content_id) {
+function flag_flag_link($flag, $action, $content_id) {
   $token = flag_get_token($content_id);
   return array(
     'href' => 'flag/'. ($flag->link_type == 'confirm' ? 'confirm/' : '') ."$action/$flag->name/$content_id",
