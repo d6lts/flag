@@ -88,6 +88,10 @@ function flag_init() {
   if (module_exists('token')) {
     include_once $path .'/includes/flag.token.inc';
   }
+  if (module_exists('session_api')) {
+    // Set the anonymous user SID immediately, in case the user logs in.
+    flag_set_sid();
+  }
 }
 
 /**
@@ -280,14 +284,8 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
       );
     }
   }
-  elseif (isset($form['type']) && isset($form['#node'])
-      && ($form_id == $form['type']['#value'] .'_node_form')) {
-    if (!$user->uid) {
-      return;
-    }
-
+  elseif (isset($form['type']) && isset($form['#node']) && ($form_id == $form['type']['#value'] .'_node_form')) {
     $nid = !empty($form['nid']['#value']) ? $form['nid']['#value'] : NULL;
-
     $flags = flag_get_flags('node', $form['type']['#value'], $user);
 
     // Filter out flags which need to be included on the node form.
@@ -407,6 +405,27 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
  */
 function flag_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
+    case 'login':
+      // Migrate anonymous flags to this user's account.
+      if (module_exists('session_api')) {
+        // The @ symbol suppresses errors if the user flags a piece of content
+        // they have already flagged as a logged-in user.
+        @db_query("UPDATE {flag_content} SET uid = %d, sid = 0 WHERE uid = 0 AND sid = %d", $account->uid, flag_get_sid(0));
+        // Delete any remaining flags this user had as an anonymous user.
+        db_query("DELETE FROM {flag_content} WHERE uid = 0 AND sid = %d", flag_get_sid(0));
+        // Clean up anonymous cookies.
+        if (isset($_COOKIE['flags'])) {
+          setcookie('flags', FALSE, 0, base_path());
+          unset($_COOKIE['flags']);
+        }
+        foreach ($_COOKIE as $key => $value) {
+          if (strpos($key, 'flag_global_') === 0) {
+            setcookie($key, FALSE, 0, base_path());
+            unset($_COOKIE[$key]);
+          }
+        }
+      }
+      break;
     case 'delete':
       // Remove flags by this user.
       $result = db_query("SELECT fc.fid, fc.content_id, c.count FROM {flag_content} fc LEFT JOIN {flag_counts} c ON fc.content_id = c.content_id AND fc.content_type = c.content_type WHERE fc.uid = %d", $account->uid);
@@ -444,6 +463,26 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
         );
       }
       break;
+  }
+}
+
+/**
+ * Implementation of hook_session_api_cleanup().
+ *
+ * Clear out anonymous user flaggings during Session API cleanup.
+ */
+function flag_session_api_cleanup($arg = 'run') {
+  // Session API 1.1 version:
+  if ($arg == 'run') {
+    $result = db_query("SELECT fc.sid FROM {flag_content} fc LEFT JOIN {session_api} s ON (fc.sid = s.sid) WHERE fc.sid <> 0 AND s.sid IS NULL");
+    while ($row = db_fetch_object($result)) {
+      db_query("DELETE FROM {flag_content} WHERE sid = %d", $row->sid);
+    }
+  }
+  // Session API 1.2+ version.
+  elseif (is_array($arg)) {
+    $outdated_sids = $arg;
+    db_query('DELETE FROM {flag_content} WHERE sid IN (' . implode(',', $outdated_sids) . ')');
   }
 }
 
@@ -640,10 +679,10 @@ function flag_flag_access_multiple($flag, $content_ids, $account) {
     $result = db_query("SELECT nid, uid FROM {node} WHERE nid IN ($nids) AND type in ($placeholders)", $flag->types);
     while ($row = db_fetch_object($result)) {
       if ($flag->access_author == 'own') {
-        $access[$row->nid] = $row->uid != $account->uid ? FALSE : $access[$row->nid];
+        $access[$row->nid] = $row->uid != $account->uid ? FALSE : NULL;
       }
       elseif ($flag->access_author == 'others') {
-        $access[$row->nid] = $row->uid == $account->uid ? FALSE : $access[$row->nid];
+        $access[$row->nid] = $row->uid == $account->uid ? FALSE : NULL;
       }
     }
   }
@@ -796,12 +835,14 @@ function flag_theme() {
  * See 'flag.tpl.php' for their documentation.
  */
 function template_preprocess_flag(&$variables) {
+  global $user;
   static $first_time = TRUE;
 
   // Some typing shotcuts:
   $flag =& $variables['flag'];
   $action = $variables['action'];
   $content_id = $variables['content_id'];
+  $flag_css_name = str_replace('_', '-', $flag->name);
 
   // Generate the link URL.
   $link_type = $flag->get_link_type();
@@ -816,7 +857,9 @@ function template_preprocess_flag(&$variables) {
     unset($link['href']);
   }
 
-  if ($flag->link_type == 'toggle' && $first_time) {
+  // Tell the template file to add JavaScript/CSS if using the toggle link type.
+  // Anonymous users always need the JavaScript to maintain their flag state.
+  if (($flag->link_type == 'toggle' || $user->uid == 0) && $first_time) {
     $variables['setup'] = $first_time;
     $first_time = FALSE;
   }
@@ -827,23 +870,26 @@ function template_preprocess_flag(&$variables) {
   $variables['link_href'] = isset($link['href']) ? check_url(url($link['href'], $link)) : FALSE;
   $variables['link_text'] = isset($link['title']) ? $link['title'] : $flag->get_label($action . '_short', $content_id);
   $variables['link_title'] = isset($link['attributes']['title']) ? check_plain($link['attributes']['title']) : check_plain(strip_tags($flag->get_label($action . '_long', $content_id)));
-  $variables['flag_name_css'] = str_replace('_', '-', $flag->name);
   $variables['last_action'] = ($action == 'flag' ? 'unflagged' : 'flagged');
+
+  $variables['flag_wrapper_classes_array'] = array();
+  $variables['flag_wrapper_classes_array'][] = 'flag-wrapper';
+  $variables['flag_wrapper_classes_array'][] = 'flag-' . $flag_css_name;
+  $variables['flag_wrapper_classes_array'][] = 'flag-' . $flag_css_name . '-' . $content_id;
+  $variables['flag_wrapper_classes'] = implode(' ', $variables['flag_wrapper_classes_array']);
+
   $variables['flag_classes_array'] = array();
   $variables['flag_classes_array'][] = 'flag';
   $variables['flag_classes_array'][] = $variables['action'] .'-action';
   $variables['flag_classes_array'][] = 'flag-link-'. $flag->link_type;
-
   if (isset($link['attributes']['class'])) {
     $variables['flag_classes_array'][] = $link['attributes']['class'];
   }
-
   if ($variables['after_flagging']) {
     $inverse_action = ($action == 'flag' ? 'unflag' : 'flag');
     $variables['message_text'] = $flag->get_label($inverse_action . '_message', $content_id);
     $variables['flag_classes_array'][] = $variables['last_action'];
   }
-
   $variables['flag_classes'] = implode(' ', $variables['flag_classes_array']);
 }
 
@@ -1194,6 +1240,10 @@ function flag_get_content_id($fcid) {
  * @param $uid
  *   Optional. The user ID whose flags we're checking. If none given, the
  *   current user will be used.
+ * @param $sid
+ *   Optional. The user SID (provided by Session API) whose flags we're
+ *   checking. If none given, the current user will be used. The SID is 0 for
+ *   logged in users.
  * @param $reset
  *   Reset the internal cache and execute the SQL query another time.
  *
@@ -1205,7 +1255,7 @@ function flag_get_content_id($fcid) {
  *   [nid] => [name] => Object from above.
  *
  */
-function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $reset = FALSE) {
+function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $sid = NULL, $reset = FALSE) {
   static $flagged_content;
 
   if ($reset) {
@@ -1216,29 +1266,30 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
   }
 
   $uid = !isset($uid) ? $GLOBALS['user']->uid : $uid;
+  $sid = !isset($sid) ? flag_get_sid($uid) : $sid;
 
   if (isset($content_id)) {
     if (!isset($flagged_content[$uid][$content_type][$content_id])) {
       $flag_names = _flag_get_flag_names();
-      $flagged_content[$uid][$content_type][$content_id] = array();
-      $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d AND (uid = %d OR uid = 0)", $content_type, $content_id, $uid);
+      $flagged_content[$uid][$sid][$content_type][$content_id] = array();
+      $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND content_id = %d AND (uid = %d OR uid = 0) AND sid = %s", $content_type, $content_id, $uid, $sid);
       while ($flag_content = db_fetch_object($result)) {
-        $flagged_content[$uid][$content_type][$content_id][$flag_names[$flag_content->fid]] = $flag_content;
+        $flagged_content[$uid][$sid][$content_type][$content_id][$flag_names[$flag_content->fid]] = $flag_content;
       }
     }
-    return $flagged_content[$uid][$content_type][$content_id];
+    return $flagged_content[$uid][$sid][$content_type][$content_id];
   }
 
   else {
-    if (!isset($flagged_content[$uid]['all'][$content_type])) {
+    if (!isset($flagged_content[$uid][$sid]['all'][$content_type])) {
       $flag_names = _flag_get_flag_names();
-      $flagged_content[$uid]['all'][$content_type] = TRUE;
-      $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0)", $content_type, $uid);
+      $flagged_content[$uid][$sid]['all'][$content_type] = TRUE;
+      $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0) AND sid = %s", $content_type, $uid, $sid);
       while ($flag_content = db_fetch_object($result)) {
-        $flagged_content[$uid][$content_type]['all'][$flag_names[$flag_content->fid]][$flag_content->content_id] = $flag_content;
+        $flagged_content[$uid][$sid][$content_type]['all'][$flag_names[$flag_content->fid]][$flag_content->content_id] = $flag_content;
       }
     }
-    return $flagged_content[$uid][$content_type]['all'];
+    return $flagged_content[$uid][$sid][$content_type]['all'];
   }
 
 }
@@ -1333,13 +1384,47 @@ function flag_get_link_types($reset = FALSE) {
 /**
  * Get a private token used to protect links from spoofing - CSRF.
  */
-function flag_get_token($nid) {
-  return drupal_get_token($nid);
+function flag_get_token($content_id) {
+  // Anonymous users get a less secure token, since it must be the same for all
+  // anonymous users on the entire site to work with page caching.
+  return ($GLOBALS['user']->uid) ? drupal_get_token($content_id) : md5(drupal_get_private_key() . $content_id);
 }
 
 /**
  * Check to see if a token value matches the specified node.
  */
-function flag_check_token($token, $seed) {
-  return drupal_get_token($seed) == $token;
+function flag_check_token($token, $content_id) {
+  return flag_get_token($content_id) == $token;
+}
+
+/**
+ * Set the Session ID for a user. Utilizes the Session API module.
+ *
+ * This function is only called in flag_init(), to set the current user's
+ * SID in case the user logs in during this request.
+ */
+function flag_set_sid($uid = NULL) {
+  static $sids = array();
+
+  if (!isset($uid)) {
+    $uid = $GLOBALS['user']->uid;
+  }
+
+  if (!isset($sids[$uid])) {
+    if (module_exists('session_api') && session_api_available() && $uid == 0) {
+      $sids[$uid] = session_api_get_sid();
+    }
+    else {
+      $sids[$uid] = 0;
+    }
+  }
+
+  return $sids[$uid];
+}
+
+/**
+ * Get the Session ID for a user. Utilizes the Session API module.
+ */
+function flag_get_sid($uid = NULL) {
+  return flag_set_sid($uid);
 }

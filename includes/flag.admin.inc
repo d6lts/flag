@@ -324,19 +324,26 @@ function flag_form(&$form_state, $name, $type = NULL) {
   $form['access']['roles'] = array(
     '#title' => t('Roles that may use this flag'),
     '#access' => empty($flag->locked['roles']),
-    '#description' => t('Users may only unflag content if they have access to flag the content initially. Checking <em>authenticated user</em> will allow access for all logged-in users. Anonymous users may not flag content.'),
+    '#description' => t('Users may only unflag content if they have access to flag the content initially. Checking <em>authenticated user</em> will allow access for all logged-in users.'),
     '#theme' => 'flag_form_roles',
     '#weight' => -2,
   );
+  if (module_exists('session_api')) {
+    $form['access']['roles']['#description'] .= ' ' . t('Support for anonymous users is being provided by <a href="http://drupal.org/project/session_api">Session API</a>.');
+  }
+  else {
+    $form['access']['roles']['#description'] .= ' ' . t('Anonymous users may flag content if the <a href="http://drupal.org/project/session_api">Session API</a> module is installed.');
+  }
+
   $form['access']['roles']['flag'] = array(
     '#type' => 'checkboxes',
-    '#options' => user_roles(TRUE),
+    '#options' => user_roles(!module_exists('session_api')),
     '#default_value' => $flag->roles['flag'],
     '#parents' => array('roles', 'flag'),
   );
   $form['access']['roles']['unflag'] = array(
     '#type' => 'checkboxes',
-    '#options' => user_roles(TRUE),
+    '#options' => user_roles(!module_exists('session_api')),
     '#default_value' => $flag->roles['unflag'],
     '#parents' => array('roles', 'unflag'),
   );

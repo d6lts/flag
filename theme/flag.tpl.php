@@ -40,7 +40,7 @@
     drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
   }
 ?>
-<span class="flag-wrapper flag-<?php print $flag_name_css; ?>">
+<span class="<?php print $flag_wrapper_classes; ?>">
   <?php if ($link_href): ?>
     <a href="<?php print $link_href; ?>" title="<?php print $link_title; ?>" class="<?php print $flag_classes ?>" rel="nofollow"><?php print $link_text; ?></a><span class="flag-throbber">&nbsp;</span>
   <?php else: ?>

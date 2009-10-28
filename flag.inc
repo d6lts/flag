@@ -399,8 +399,8 @@ class flag_flag {
       $account = $GLOBALS['user'];
     }
 
-    // Anonymous user can't use this system. For now.
-    if ($account->uid == 0) {
+    // Anonymous user can't use this system unless Session API is installed.
+    if ($account->uid == 0 && !module_exists('session_api')) {
       return FALSE;
     }
 
@@ -431,7 +431,9 @@ class flag_flag {
     }
 
     if (!isset($action)) {
-      $action = $this->is_flagged($content_id, $account->uid) ? 'unflag' : 'flag';
+      $uid = $account->uid;
+      $sid = flag_get_sid($uid);
+      $action = $this->is_flagged($content_id, $uid, $sid) ? 'unflag' : 'flag';
     }
 
     // Base initial access on the user's basic permission to use this flag.
@@ -508,6 +510,14 @@ class flag_flag {
   }
 
   /**
+   * Returns TRUE if this flag requires anonymous user cookies.
+   */
+  function uses_anonymous_cookies() {
+    global $user;
+    return $user->uid == 0 && variable_get('cache', CACHE_DISABLED) > 0;
+  }
+
+  /**
    * Flags, on unflags, an item.
    *
    * @param $action
@@ -546,20 +556,29 @@ class flag_flag {
     // Clear various caches; We don't want code running after us to report
     // wrong counts or false flaggings.
     flag_get_counts(NULL, NULL, TRUE);
-    flag_get_user_flags(NULL, NULL, NULL, TRUE);
+    flag_get_user_flags(NULL, NULL, NULL, NULL, TRUE);
 
     // Perform the flagging or unflagging of this flag.
     $uid = $this->global ? 0 : $account->uid;
-    $flagged = $this->_is_flagged($content_id, $uid);
-    if ($action == 'unflag' && $flagged) {
-      $fcid = $this->_unflag($content_id, $uid);
-      // Let other modules perform actions.
-      module_invoke_all('flag', 'unflag', $this, $content_id, $account, $fcid);
+    $sid = $this->global ? 0 : flag_get_sid($uid);
+    $flagged = $this->_is_flagged($content_id, $uid, $sid);
+    if ($action == 'unflag') {
+      if ($this->uses_anonymous_cookies()) {
+        $this->_unflag_anonymous($content_id);
+      }
+      if ($flagged) {
+        $fcid = $this->_unflag($content_id, $uid, $sid);
+        module_invoke_all('flag', 'unflag', $this, $content_id, $account, $fcid);
+      }
     }
-    elseif ($action == 'flag' && !$flagged) {
-      $fcid = $this->_flag($content_id, $uid);
-      // Let other modules perform actions.
-      module_invoke_all('flag', 'flag', $this, $content_id, $account, $fcid);
+    elseif ($action == 'flag') {
+      if ($this->uses_anonymous_cookies()) {
+        $this->_flag_anonymous($content_id);
+      }
+      if (!$flagged) {
+        $fcid = $this->_flag($content_id, $uid, $sid);
+        module_invoke_all('flag', 'flag', $this, $content_id, $account, $fcid);
+      }
     }
 
     return TRUE;
@@ -575,10 +594,12 @@ class flag_flag {
    *   Optional. The user ID whose flags we're checking. If none given, the
    *   current user will be used.
    */
-  function is_flagged($content_id, $uid = NULL) {
-    $uid = !isset($uid) ? $GLOBALS['user']->uid : $uid;
+  function is_flagged($content_id, $uid = NULL, $sid = NULL) {
+    $uid = $this->global ? 0 : (!isset($uid) ? $GLOBALS['user']->uid : $uid);
+    $sid = $this->global ? 0 : (!isset($sid) ? flag_get_sid($uid) : $sid);
+
     // flag_get_user_flags() does caching.
-    $user_flags = flag_get_user_flags($this->content_type, $content_id, $uid);
+    $user_flags = flag_get_user_flags($this->content_type, $content_id, $uid, $sid);
     return isset($user_flags[$this->name]);
   }
 
@@ -594,8 +615,8 @@ class flag_flag {
    *
    * @private
    */
-  function _is_flagged($content_id, $uid) {
-    return db_result(db_query("SELECT fid FROM {flag_content} WHERE fid = %d AND uid = %d AND content_id = %d", $this->fid, $uid, $content_id));
+  function _is_flagged($content_id, $uid, $sid) { 
+    return db_result(db_query("SELECT fid FROM {flag_content} WHERE fid = %d AND uid = %d AND sid = %d AND content_id = %d", $this->fid, $uid, $sid, $content_id));
   }
 
   /**
@@ -606,8 +627,8 @@ class flag_flag {
    *
    * @private
    */
-  function _flag($content_id, $uid) {
-    db_query("INSERT INTO {flag_content} (fid, content_type, content_id, uid, timestamp) VALUES (%d, '%s', %d, %d, %d)", $this->fid, $this->content_type, $content_id, $uid, time());
+  function _flag($content_id, $uid, $sid) {
+    db_query("INSERT INTO {flag_content} (fid, content_type, content_id, uid, sid, timestamp) VALUES (%d, '%s', %d, %d, %d, %d)", $this->fid, $this->content_type, $content_id, $uid, $sid, time());
     $fcid = db_last_insert_id('flag_content', 'fcid');
     $this->_update_count($content_id);
     return $fcid;
@@ -621,11 +642,15 @@ class flag_flag {
    *
    * @private
    */
-  function _unflag($content_id, $uid) {
-    $fcid = db_result(db_query("SELECT fcid FROM {flag_content} WHERE fid = %d AND uid = %d AND content_id = %d", $this->fid, $uid, $content_id));
+  function _unflag($content_id, $uid, $sid) {
+    $fcid = db_result(db_query("SELECT fcid FROM {flag_content} WHERE fid = %d AND content_id = %d AND uid = %d AND sid = %d", $this->fid, $content_id, $uid, $sid));
     if ($fcid) {
       db_query("DELETE FROM {flag_content} WHERE fcid = %d", $fcid);
       $this->_update_count($content_id);
+    }
+    // Remove anonymous cookies (if any).
+    if (isset($_COOKIE['flag'][$this->name . '_' . $content_id])) {
+      unset($_COOKIE['flags'][$this->name . '_' . $content_id]);
     }
     return $fcid;
   }
@@ -644,6 +669,78 @@ class flag_flag {
   }
 
   /**
+   * Set a cookie for anonymous users to record their flagging.
+   *
+   * @private
+   */
+  function _flag_anonymous($content_id) {
+    // Global flags persist for the length of the minimum cache lifetime.
+    if ($this->global) {
+      $cookie_key = 'flag_global_' . str_replace('_', '-', $this->name) . '_' . $content_id;
+      $cookie_lifetime = (variable_get('cache', 0) > CACHE_DISABLED) ? variable_get('cache_lifetime', 0) : -1;
+      // Do not let the cookie lifetime be 0 (which is the no cache limit on
+      // anonymous page caching), since it would expire immediately. Usually
+      // the no cache limit means caches are cleared on cron, which usually runs
+      // at least once an hour.
+      if ($cookie_lifetime == 0) {
+        $cookie_lifetime = 3600;
+      }
+      setcookie($cookie_key, 1, time() + $cookie_lifetime, base_path());
+      $_COOKIE[$cookie_key] = 1;
+    }
+    // The anonymous per-user flags are stored in a single cookie, so that all
+    // of them persist as long as the Drupal cookie lifetime.
+    else {
+      $cookie_flags = isset($_COOKIE['flags']) ? $_COOKIE['flags'] : '';
+      $cookie_flags = explode(' ', $cookie_flags);
+      $cookie_key = str_replace('_', '-', $this->name) . '_' . $content_id;
+      $cookie_lifetime = min((int) ini_get('session.cookie_lifetime'), (int) ini_get('session.gc_maxlifetime'));
+      if (array_search($cookie_key, $cookie_flags) === FALSE) {
+        $cookie_flags[] = $cookie_key;
+        $cookie_flags = implode(' ', array_filter($cookie_flags));
+        setcookie('flags', $cookie_flags, time() + $cookie_lifetime, base_path());
+        $_COOKIE['flags'] = $cookie_flags;
+      }
+    }
+  }
+
+  /**
+   * Remove the cookie for anonymous users to record their unflagging.
+   *
+   * @private
+   */
+  function _unflag_anonymous($content_id) {
+    // Global flags are easy, just delete the global cookie.
+    if ($this->global) {
+      $cookie_key = 'flag_global_' . str_replace('_', '-', $this->name) . '_' . $content_id;
+      $cookie_lifetime = (variable_get('cache', 0) > CACHE_DISABLED) ? variable_get('cache_lifetime', 0) : -1;
+      // Do not let the cookie lifetime be 0 (which is the no cache limit on
+      // anonymous page caching), since it would expire immediately. Usually
+      // the no cache limit means caches are cleared on cron, which usually runs
+      // at least once an hour.
+      if ($cookie_lifetime == 0) {
+        $cookie_lifetime = 3600;
+      }
+      setcookie($cookie_key, 0, time() + $cookie_lifetime, base_path());
+      $_COOKIE[$cookie_key] = 0;
+    }
+    // User flags, update the single cookie for all user-data.
+    else {
+      $cookie_flags = isset($_COOKIE['flags']) ? $_COOKIE['flags'] : '';
+      $cookie_flags = explode(' ', $cookie_flags);
+      $cookie_key = str_replace('_', '-', $this->name) . '_' . $content_id;
+      $cookie_lifetime = min((int) ini_get('session.cookie_lifetime'), (int) ini_get('session.gc_maxlifetime'));
+      $cookie_index = array_search($cookie_key, $cookie_flags);
+      if ($cookie_index !== FALSE) {
+        unset($cookie_flags[$cookie_index]);
+        $cookie_flags = implode(' ', $cookie_flags);
+        setcookie('flags', $cookie_flags, $cookie_lifetime, base_path());
+        $_COOKIE['flags'] = $cookie_flags;
+      }
+    }
+  }
+
+  /**
    * Returns the number of times an item is flagged.
    *
    * Thanks to using a cache, inquiring several different flags about the same
@@ -657,10 +754,10 @@ class flag_flag {
   /**
    * Returns the number of items a user has flagged.
    *
-   * For global flags, pass '0' as the user ID.
+   * For global flags, pass '0' as the user ID and session ID.
    */
-  function get_user_count($uid) {
-    return db_result(db_query('SELECT COUNT(*) FROM {flag_content} WHERE fid = %d AND uid = %d', $this->fid, $uid));
+  function get_user_count($uid, $sid) {
+    return db_result(db_query('SELECT COUNT(*) FROM {flag_content} WHERE fid = %d AND uid = %d AND sid = %d', $this->fid, $uid, $sid));
   }
 
   /**
@@ -846,6 +943,8 @@ class flag_flag {
     else {
       $this->insert();
     }
+    // Clear the page cache for anonymous users.
+    cache_clear_all('*', 'cache_page', TRUE);
   }
 
   /**
@@ -921,6 +1020,19 @@ class flag_flag {
    * For parameters docmentation, see theme_flag().
    */
   function theme($action, $content_id, $after_flagging = FALSE) {
+    static $js_added = array();
+
+    // If the flagging user is anonymous and the page cache is enabled, always
+    // show the "flag" link, and then set the unflag link through JavaScript.
+    if ($this->uses_anonymous_cookies() && !$after_flagging) {
+      $js_action = $this->global ? ($action == 'flag' ? 'unflag' : 'flag') : 'flag';
+      if (!isset($js_added[$this->name . '_' . $content_id])) {
+        $js_added[$this->name . '_' . $content_id] = TRUE;
+        $js_template = theme($this->theme_suggestions(), $this, 'unflag', $content_id, $after_flagging);
+        drupal_add_js(array('flag' => array('templates' => array($this->name . '_' . $content_id => $js_template))), 'setting');
+      }
+    }
+
     return theme($this->theme_suggestions(), $this, $action, $content_id, $after_flagging);
   }
 
@@ -1060,10 +1172,9 @@ class flag_node extends flag_flag {
     return parent::flag($action, $content_id, $account, $skip_permission_check);
   }
 
-
-  function is_flagged($content_id, $uid = NULL) {
+  function is_flagged($content_id, $uid = NULL, $sid = NULL) {
     $content_id = $this->get_translation_id($content_id);
-    return parent::is_flagged($content_id, $uid);
+    return parent::is_flagged($content_id, $uid, $sid);
   }
 
   function get_labels_token_types() {

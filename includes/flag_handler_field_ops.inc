@@ -81,6 +81,11 @@ class flag_handler_field_ops extends views_handler_field {
         'value' => '***CURRENT_USER***',
         'numeric' => TRUE,
       );
+      $join->extra[] = array(
+        'field' => 'sid',
+        'value' => flag_get_sid(),
+        'numeric' => TRUE,
+      );
     }
     $flag_table = $this->query->add_table('flag_content', $parent, $join);
     $this->aliases['is_flagged'] = $this->query->add_field($flag_table, 'content_id');
