@@ -531,6 +531,32 @@ function flag_node_type($op, $info) {
 }
 
 /**
+ * Implementation of hook_activity_info().
+ */
+function flag_activity_info() {
+  $info = new stdClass();
+  $info->api = 2;
+  $info->name = 'flag';
+  // The order of objects here matters. If a user is both the author and the
+  // flagging user, the flagging user message takes precedence.
+  $info->objects = array('node author' => 'node', 'flagging user' => 'account', 'comment author' => 'comment');
+  $info->hooks = array('flag' => array('flag', 'unflag'));
+
+  // Figure out the activity access control realms and the types.
+  $flags = flag_get_flags();
+  foreach ($flags as $fid => $flag) {
+    $info->realms["flag_" . $flag->fid] = $flag->title;
+    // Currently, flagging a user cannot be recorded.
+    if ($flag->content_type != 'user') {
+      $info->type_options[$flag->fid] = $flag->title;
+    }
+  }
+  $info->object_type = 'flag';
+  $info->path = drupal_get_path('module', 'flag') . '/includes';
+  return $info;
+}
+
+/**
  * Menu callback for (un)flagging a node.
  *
  * Used both for the regular callback as well as the JS version.
@@ -654,9 +680,14 @@ function flag($action, $flag_name, $content_id, $account = NULL) {
  */
 function flag_flag($action, $flag, $content_id, $account) {
   if (module_exists('trigger')) {
-    $flag_action = $flag->get_flag_action($content_id);
-    $flag_action->action = $action;
-    $context = (array)$flag_action;
+    $context['hook'] = 'flag';
+    $context['account'] = $account;
+    $context['flag'] = $flag;
+    $context['op'] = $action;
+
+    // We add to the $context all the objects we know about:
+    $context = array_merge($flag->get_relevant_action_objects($content_id), $context);
+
     // Generic "all flags" actions.
     foreach (_trigger_get_hook_aids($action, $action) as $aid => $action_info) {
       // The 'if ($aid)' is a safeguard against http://drupal.org/node/271460#comment-886564
