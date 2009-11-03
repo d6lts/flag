@@ -52,11 +52,19 @@ function theme_flag_admin_page($flags, $default_flags) {
   $rows = array();
   foreach ($default_flags as $name => $flag) {
     if (!isset($flags[$name])) {
-      $ops = theme('links', array(
-        'flags_enable' =>  array('title' => t('enable'), 'href' => "admin/build/flags/edit/" . $flag->name),
-      ));
-
-      $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles['flag']));
+      if ($flag->api_version < FLAG_API_VERSION) {
+        $flag_updates_needed = TRUE;
+        $ops = theme('links', array(
+          'flags_update' => array('title' => '<strong>' . t('update code') . '</strong>', 'href' => 'admin/build/flags/update/' . $flag->name, 'html' => TRUE),
+        ));
+      }
+      else {
+        $ops = theme('links', array(
+          'flags_enable' => array('title' => t('enable'), 'href' => 'admin/build/flags/edit/' . $flag->name),
+        ));
+      }
+      // $flag->roles['flag'] not exist on older flags.
+      $roles = array_flip(array_intersect(array_flip(user_roles()), !empty($flag->roles['flag']) ? $flag->roles['flag'] : array()));
       $rows[] = array(
         $flag->name,
         $flag->module,
@@ -64,6 +72,10 @@ function theme_flag_admin_page($flags, $default_flags) {
         $ops,
       );
     }
+  }
+
+  if (isset($flag_updates_needed)) {
+    drupal_set_message(t('Some flags provided by modules need to be updated to a new format before they can be used with this version of Flag. See the disabled flags for a list of flags that need updating.'), 'warning');
   }
 
   if (!empty($rows)) {

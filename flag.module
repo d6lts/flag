@@ -6,6 +6,8 @@
  * The Flag module.
  */
 
+define('FLAG_API_VERSION', 2);
+
 include_once dirname(__FILE__) .'/flag.inc';
 
 /**
@@ -76,6 +78,14 @@ function flag_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/flag.export.inc',
     'weight' => 3,
+  );
+  $items['admin/build/flags/update/%'] = array(
+    'title' => 'Update',
+    'page callback' => 'flag_update_page',
+    'page arguments' => array(4),
+    'access arguments' => array('administer flags'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/flag.export.inc',
   );
   $items['flag'] = array(
     'title' => 'Flag',
@@ -1374,11 +1384,19 @@ function flag_get_default_flags($include_disabled = FALSE) {
     foreach ($function() as $config) {
       $flag = flag_flag::factory_by_array($config);
       $flag->module = $module;
+
+      // Disable flags that are not at the current API version.
+      if (!isset($flag->api_version) || $flag->api_version < FLAG_API_VERSION) {
+        $flag->status = FALSE;
+        $flag->api_version = isset($flag->api_version) ? $flag->api_version : 1;
+      }
+
       // Add flags that have been enabled.
       if ((!isset($flag_status[$flag->name]) && (!isset($flag->status) || $flag->status)) || !empty($flag_status[$flag->name])) {
         $flag->status = TRUE;
         $default_flags[$flag->name] = $flag;
       }
+      // Add flags that have been disabled.
       elseif ($include_disabled) {
         $flag->status = FALSE;
         $default_flags[$flag->name] = $flag;

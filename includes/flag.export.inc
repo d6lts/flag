@@ -136,11 +136,11 @@ function flag_import_form_submit($form, &$form_state) {
 /**
  * Export a flag and display it in a form.
  */
-function flag_export_form(&$form_state, $flag_name = NULL) {
+function flag_export_form(&$form_state, $flag = NULL) {
   $form = array();
 
   // Convert a flag name (if any) to the list of export flags.
-  if ($flag = flag_get_flag($flag_name)) {
+  if (is_object($flag) || ($flag = flag_get_flag($flag))) {
     $flags = array($flag);
   }
 
@@ -192,4 +192,46 @@ function flag_export_form(&$form_state, $flag_name = NULL) {
  */
 function flag_export_form_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Page for displaying an upgrade message and export form for Flag 1.x flags.
+ */
+function flag_update_page($flag_name) {
+  $flags = flag_get_default_flags(TRUE);
+  if (!isset($flags[$flag_name])) {
+    drupal_not_found();
+    return;
+  }
+
+  if ($flags[$flag_name]->api_version == FLAG_API_VERSION) {
+    drupal_set_message(t('The flag %name is already up-to-date with the latest Flag API and does not need upgrading.'));
+    drupal_goto('admin/build/flags');
+  }
+
+  $flag = $flags[$flag_name];
+  drupal_set_message(t('The flag %name is currently using the Flag API version @version, which is not compatible with the current version of Flag. You can upgrade this flag by pasting the below code into <em>@module_flag_default_flags()</em> function in the @module.module file.', array('%name' => $flag->name, '@version' => $flag->api_version, '@module' => $flag->module)), 'warning');
+
+  flag_update_export($flag);
+
+  return drupal_get_form('flag_export_form', $flag);
+}
+
+/**
+ * Update a flag before export.
+ *
+ * @param $flag
+ *   The flag object passed by reference.
+ */
+function flag_update_export(&$flag) {
+  // Update differences.
+  if (empty($flag->api_version) || $flag->api_version == 1) {
+    if (isset($flag->roles) && !isset($flag->roles['flag'])) {
+      $flag->roles = array(
+        'flag' => $flag->roles,
+        'unflag' => $flag->roles,
+      );
+    }
+    $flag->api_version = FLAG_API_VERSION;
+  }
 }
