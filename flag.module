@@ -308,7 +308,7 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
         $var = 'flag_'. $flag->name .'_default';
         $form['workflow']['flag'][$var] = array(
           '#type' => 'checkbox',
-          '#title' => $flag->get_label('flag_short'),
+          '#title' => $flag->get_label('flag_short', $form['#node_type']->type),
           '#default_value' => variable_get($var .'_'. $form['#node_type']->type, 0),
           '#return_value' => 1,
         );
@@ -358,8 +358,8 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
       // Add the flag checkbox if displaying on the form.
       $form['flag'][$flag->name] = array(
         '#type' => 'checkbox',
-        '#title' => $flag->get_label('flag_short', $nid),
-        '#description' => $flag->get_label('flag_long', $nid),
+        '#title' => $flag->get_label('flag_short', $nid ? $nid : $form['type']['#value']),
+        '#description' => $flag->get_label('flag_long', $nid ? $nid : $form['type']['#value']),
         '#default_value' => $flag_status,
         '#return_value' => 1,
       );

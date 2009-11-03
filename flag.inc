@@ -1184,8 +1184,18 @@ class flag_node extends flag_flag {
   }
 
   function replace_tokens($label, $contexts, $content_id) {
-    if ($content_id && ($node = $this->fetch_content($content_id))) {
+    if (is_numeric($content_id) && ($node = $this->fetch_content($content_id))) {
       $contexts['node'] = $node;
+    }
+    // Nodes accept the node-type as a $content_id in the case that a new node
+    // is being created and a full node object does not yet exist.
+    elseif (!empty($content_id) && ($type = node_get_types('type', $content_id))) {
+      $content_id = NULL;
+      $contexts['node'] = (object) array(
+        'nid' => NULL,
+        'type' => $type->type,
+        'title' => '',
+      );
     }
     return parent::replace_tokens($label, $contexts, $content_id);
   }
