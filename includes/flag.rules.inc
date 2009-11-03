@@ -45,7 +45,7 @@ class flag_rules_data_type extends rules_data_type {
   }
 
   /**
-   * Returns radios for selecting a flag of the type given in 
+   * Returns radios for selecting a flag of the type given in
    * $info['flag_type'].
    */
   function get_default_input_form($info, $value) {
@@ -82,7 +82,7 @@ function flag_rules_event_info() {
 
   $flags = flag_get_flags();
   foreach ($flags as $flag) {
-    
+
     $arguments = array(
       // First, define ubiquitous arguments.
       'flag' => array(
@@ -165,7 +165,7 @@ function flag_rules_action_info() {
     $flag = flag_create_handler($type);
     if ($flag->rules_get_element_argument_definition()) {
       $args += array('object' => $flag->rules_get_element_argument_definition());
-      
+
       $items += array(
         'flag_rules_action_flag_'. $type => array(
           'label' => t('Flag a @type', array('@type' => $type)),
@@ -217,7 +217,7 @@ function flag_rules_action_unflag($flag, $object, $flagging_user, $settings) {
  * Base action implementation: Trim flag.
  */
 function flag_rules_action_trim($flag, $flagging_user, $cutoff_size, $settings) {
-  flag_trim_flag($flag, $flagging_user->uid, $cutoff_size);
+  flag_trim_flag($flag, $flagging_user, $cutoff_size);
 }
 
 /**
@@ -236,7 +236,7 @@ function flag_rules_condition_info() {
     $flag = flag_create_handler($type);
     if ($flag->rules_get_element_argument_definition()) {
       $args += array('object' => $flag->rules_get_element_argument_definition());
-  
+
       $items += array(
         'flag_rules_condition_threshold_'. $type => array(
           'label' => drupal_ucfirst(t('@type has flagging count', array('@type' => $type))),

@@ -797,17 +797,17 @@ function flag_flag_access_multiple($flag, $content_ids, $account) {
  *
  * @param $fid
  *   The flag object.
- * @param $uid
- *   The user ID on behalf the trimming will occur.
+ * @param $account
+ *   The user object on behalf the trimming will occur.
  * @param $cutoff_size
  *   The number of flaggings allowed. Any flaggings beyond that will be trimmed.
  */
-function flag_trim_flag($flag, $uid, $cutoff_size) {
-  $result = db_query("SELECT * FROM {flag_content} WHERE fid = %d AND (uid = %d OR uid = 0) ORDER BY timestamp DESC", $flag->fid, $uid);
+function flag_trim_flag($flag, $account, $cutoff_size) {
+  $result = db_query("SELECT * FROM {flag_content} WHERE fid = %d AND (uid = %d OR uid = 0) ORDER BY timestamp DESC", $flag->fid, $account->uid);
   $i = 1;
   while ($row = db_fetch_object($result)) {
     if ($i++ > $cutoff_size) {
-      flag('unflag', $flag->name, $row->content_id, $uid);
+      flag('unflag', $flag->name, $row->content_id, $account);
     }
   }
 }
