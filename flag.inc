@@ -205,7 +205,7 @@ class flag_flag {
     $options = array_merge($options, $link_type['options']);
 
     // Allow other modules to change the flag options.
-    drupal_alter('flag_options', $this, $options);
+    drupal_alter('flag_options', $options, $this);
     return $options;
   }
 
