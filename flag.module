@@ -1049,7 +1049,7 @@ function template_preprocess_flag(&$variables) {
 
   // Replace the link with the access denied text if unable to flag.
   if ($action == 'unflag' && !$flag->access($content_id, 'unflag')) {
-    $link['title'] = $flag->get_label('unflag_denied_text');
+    $link['title'] = $flag->get_label('unflag_denied_text', $content_id);
     unset($link['href']);
   }
 
