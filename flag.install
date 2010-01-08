@@ -480,10 +480,10 @@ function flag_update_6003() {
 }
 
 /**
- * Add auto-increment to the flags.fid column for users upgrading from Drupal 5.
+ * Remove count = 0 rows from the count tables.
  */
 function flag_update_6004() {
-  // Update removed and included in flag_update_6000()
+  // Same update as flag_update_6203()
   return array();
 }
 
@@ -546,6 +546,15 @@ function flag_update_6202() {
   db_add_unique_key($ret, 'flag_content', 'fid_content_id_uid_sid', array('fid', 'content_id', 'uid', 'sid'));
   db_add_index($ret, 'flag_content', 'content_type_uid_sid', array('content_type', 'uid', 'sid'));
 
+  return $ret;
+}
+
+/**
+ * Remove count = 0 rows from the count tables.
+ */
+function flag_update_6203() {
+  $ret = array();
+  $ret[] = update_sql("DELETE FROM {flag_counts} WHERE count = 0");
   return $ret;
 }
 
