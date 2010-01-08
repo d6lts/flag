@@ -1311,9 +1311,9 @@ class flag_comment extends flag_flag  {
 
     // Ensure node types are granted access. This avoids a
     // node_load() on every type, usually done by applies_to_content_id().
-    $content_ids  = implode(',', array_map('intval', array_keys($content_ids)));
+    $cids = implode(',', array_map('intval', array_keys($content_ids)));
     $placeholders = implode(',', array_fill(0, sizeof($this->types), "'%s'"));
-    $result = db_query("SELECT cid as content_id FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($content_ids) and n.type NOT IN ($placeholders)", $this->types);
+    $result = db_query("SELECT cid as content_id FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE cid IN ($cids) and n.type NOT IN ($placeholders)", $this->types);
     while ($row = db_fetch_object($result)) {
       $access[$row->content_id] = FALSE;
     }
