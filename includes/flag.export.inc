@@ -24,6 +24,7 @@ function flag_export_flags($flags = array(), $module = '') {
       // implementation.
       $flag = flag_get_flag($flag);
     }
+    $flag->api_version = FLAG_API_VERSION;
     $new_flag = (array) $flag;
 
     if (!empty($module)) {
