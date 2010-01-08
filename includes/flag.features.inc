@@ -19,10 +19,11 @@ function flag_features_export($data, &$export, $module_name = '') {
   $modules = flag_features_providing_module();
   foreach ($data as $key => $flag) {
     // Get the module that provided the flag definition.
-    $flag = flag_get_flag($flag);
-    $module = $modules[$flag->content_type];
-    $export['dependencies'][$module] = $module;
-    $export['features']['flag'][$flag->name] = $flag->name;
+    if ($flag = flag_get_flag($flag)) {
+      $module = $modules[$flag->content_type];
+      $export['dependencies'][$module] = $module;
+      $export['features']['flag'][$flag->name] = $flag->name;
+    }
   }
 
   return $pipe;
