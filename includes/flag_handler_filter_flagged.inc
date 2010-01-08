@@ -12,9 +12,10 @@
  * @ingroup views
  */
 class flag_handler_filter_flagged extends views_handler_filter_boolean_operator {
-  function options(&$options) {
-    parent::options($options);
-    $options['value'] = 1;
+  function option_definition() {
+    $options = parent::option_definition();
+    $options['value'] = array('default' => 1);
+    return $options;
   }
 
   function options_form(&$form, &$form_state) {
