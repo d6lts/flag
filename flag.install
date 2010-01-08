@@ -453,6 +453,15 @@ function flag_update_6004() {
   return array();
 }
 
+/**
+ * Remove count = 0 rows from the flag_counts table for consistency.
+ */
+function flag_update_6005() {
+  $ret = array();
+  $ret[] = update_sql("DELETE FROM {flag_counts} WHERE count = 0");
+  return $ret;
+}
+
 // This is a replacement for update_sql(). The latter doesn't support placeholders.
 function _flag_update_sql($sql) {
   $args = func_get_args();
