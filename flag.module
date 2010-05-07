@@ -449,10 +449,10 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'login':
       // Migrate anonymous flags to this user's account.
-      if (module_exists('session_api')) {
+      if (module_exists('session_api') && ($sid = flag_get_sid(0))) {
         // The @ symbol suppresses errors if the user flags a piece of content
         // they have already flagged as a logged-in user.
-        @db_query("UPDATE {flag_content} SET uid = %d, sid = 0 WHERE uid = 0 AND sid = %d", $account->uid, flag_get_sid(0));
+        @db_query("UPDATE {flag_content} SET uid = %d, sid = 0 WHERE uid = 0 AND sid = %d", $account->uid, $sid);
         // Delete any remaining flags this user had as an anonymous user.
         db_query("DELETE FROM {flag_content} WHERE uid = 0 AND sid = %d", flag_get_sid(0));
         // Clean up anonymous cookies.

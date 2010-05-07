@@ -558,9 +558,22 @@ class flag_flag {
     flag_get_counts(NULL, NULL, TRUE);
     flag_get_user_flags(NULL, NULL, NULL, NULL, TRUE);
 
-    // Perform the flagging or unflagging of this flag.
+    // Find out which user id to use.
     $uid = $this->global ? 0 : $account->uid;
-    $sid = $this->global ? 0 : flag_get_sid($uid);
+
+    // Find out which session id to use.
+    if ($this->global) {
+      $sid = 0;
+    }
+    else {
+      $sid = flag_get_sid($uid);
+      // Anonymous users must always have a session id.
+      if ($sid == 0 && $acount->uid == 0) {
+        return FALSE;
+      }
+    }
+
+    // Perform the flagging or unflagging of this flag.
     $flagged = $this->_is_flagged($content_id, $uid, $sid);
     if ($action == 'unflag') {
       if ($this->uses_anonymous_cookies()) {
