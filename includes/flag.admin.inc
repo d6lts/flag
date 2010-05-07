@@ -157,7 +157,7 @@ function flag_add_form_validate($form, &$form_state) {
 }
 
 function flag_add_form_submit($form, &$form_state) {
-  drupal_goto('admin/build/flags/add/'. $form_state['values']['type'] .'/'. $form_state['values']['name']);
+  $form_state['redirect'] = 'admin/build/flags/add/' . $form_state['values']['type'] . '/' . $form_state['values']['name'];
 }
 
 /**
