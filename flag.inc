@@ -1335,6 +1335,9 @@ class flag_comment extends flag_flag  {
   }
 
   function get_content_id($comment) {
+    // Store the comment object in the static cache, to avoid getting it
+    // again unneedlessly.
+    $this->remember_content($comment->cid, $comment);
     return $comment->cid;
   }
 

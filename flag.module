@@ -738,7 +738,7 @@ function flag_flag_access($flag, $content_id, $action, $account) {
 
   // Restrict access by comment authorship.
   if ($flag->content_type == 'comment') {
-    $comment = _comment_load($content_id);
+    $comment = $flag->fetch_content($content_id);
     $node = node_load($comment->nid);
     if ($flag->access_author == 'node_own' && $node->uid != $account->uid) {
       return FALSE;
