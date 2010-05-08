@@ -568,7 +568,7 @@ class flag_flag {
     else {
       $sid = flag_get_sid($uid);
       // Anonymous users must always have a session id.
-      if ($sid == 0 && $acount->uid == 0) {
+      if ($sid == 0 && $account->uid == 0) {
         return FALSE;
       }
     }
