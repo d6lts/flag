@@ -291,7 +291,7 @@ function flag_schema() {
         'disp-width' => '10',
       )
     ),
-    'primary key' => array('fid', 'content_type', 'content_id'),
+    'primary key' => array('fid', 'content_id'),
     'indexes' => array(
       'fid_content_type' => array('fid', 'content_type'),
       'content_type_content_id' => array('content_type', 'content_id'),
@@ -549,6 +549,16 @@ function flag_update_6202() {
 function flag_update_6203() {
   $ret = array();
   $ret[] = update_sql("DELETE FROM {flag_counts} WHERE count = 0");
+  return $ret;
+}
+
+/**
+ * Remove "content type" from the flag_counts primary key.
+ */
+function flag_update_6204() {
+  $ret = array();
+  db_drop_primary_key($ret, 'flag_counts');
+  db_add_primary_key($ret, 'flag_counts', array('fid', 'content_id'));
   return $ret;
 }
 
