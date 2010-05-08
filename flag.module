@@ -1574,7 +1574,7 @@ function flag_create_link($flag_name, $content_id) {
     // Flag does not exist.
     return;
   }
-  if (!$flag->access($content_id)) {
+  if (!$flag->access($content_id) && (!$flag->is_flagged($content_id) || !$flag->access($content_id, 'flag'))) {
     // User has no permission to use this flag.
     return;
   }
