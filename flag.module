@@ -802,6 +802,7 @@ function flag_flag_access_multiple($flag, $content_ids, $account) {
   // Always return an array (even if empty) of accesses.
   return $access;
 }
+
 /**
  * Trim a flag to a certain size.
  *
@@ -820,6 +821,27 @@ function flag_trim_flag($flag, $account, $cutoff_size) {
       flag('unflag', $flag->name, $row->content_id, $account);
     }
   }
+}
+
+/**
+ * Remove all flagged content from a flag.
+ *
+ * @param $flag
+ *   The flag object.
+ * @param $content_id
+ *   Optional. The content ID on which all flaggings will be removed. If left
+ *   empty, this will remove all of this flag's content.
+ */
+function flag_reset_flag($flag, $content_id = NULL) {
+  $result = db_query("SELECT * FROM {flag_content} WHERE fid = %d" . ($content_id ? " AND content_id = %d" : ''), $flag->fid, $content_id);
+  $rows = array();
+  while ($row = db_fetch_array($result)) {
+    $rows[] = $row;
+  }
+  module_invoke_all('flag_reset', $flag, $content_id, $rows);
+
+  db_query("DELETE FROM {flag_content} WHERE fid = %d" . ($content_id ? " AND content_id = %d" : ''), $flag->fid, $content_id);
+  return db_affected_rows();
 }
 
 /**
