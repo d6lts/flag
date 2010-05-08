@@ -168,12 +168,6 @@ function flag_schema() {
         'not null' => FALSE,
         'default' => '',
       ),
-      'roles' => array(
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => FALSE,
-        'default' => '',
-      ),
       'global' => array(
         'type' => 'int',
         'size' => 'tiny',
