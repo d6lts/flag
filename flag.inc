@@ -1041,6 +1041,13 @@ class flag_flag {
    */
   function theme($action, $content_id, $after_flagging = FALSE) {
     static $js_added = array();
+    global $user;
+
+    // If the flagging user is anonymous, set the global anonymous setting.
+    if ($user->uid == 0 && !isset($js_added['anonymous'])) {
+      $js_added['anonymous'] = TRUE;
+      drupal_add_js(array('flag' => array('anonymous' => 1)), 'setting');
+    }
 
     // If the flagging user is anonymous and the page cache is enabled, always
     // show the "flag" link, and then set the unflag link through JavaScript.

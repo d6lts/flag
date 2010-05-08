@@ -579,12 +579,21 @@ function flag_activity_info() {
  * Used both for the regular callback as well as the JS version.
  */
 function flag_page($action = NULL, $flag_name = NULL, $content_id = NULL) {
+  global $user;
+
+  // Shorten up the variables that affect the behavior of this page.
   $js = isset($_REQUEST['js']);
   $token = $_REQUEST['token'];
+
+  // Specifically $_GET to avoid getting the $_COOKIE variable by the same key.
+  $has_js = isset($_GET['has_js']);
 
   // Check the flag token, then perform the flagging.
   if (!flag_check_token($token, $content_id)) {
     $error = t('Bad token. You seem to have followed an invalid link.');
+  }
+  elseif ($user->uid == 0 && !$has_js) {
+    $error = t('You must have JavaScript and cookies enabled in your browser to flag content.');
   }
   else {
     $result = flag($action, $flag_name, $content_id);

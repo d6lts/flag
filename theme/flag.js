@@ -98,13 +98,23 @@ Drupal.flagLink = function(context) {
     return false;
   }
 
-  $('a.flag-link-toggle:not(.flag-processed)').addClass('flag-processed').click(flagClick);
+  $('a.flag-link-toggle:not(.flag-processed)', context).addClass('flag-processed').click(flagClick);
 };
 
 /**
- * A behvior specifically for anonymous users. Update links to the proper state.
+ * Prevent anonymous flagging unless the user has JavaScript enabled.
  */
 Drupal.flagAnonymousLinks = function(context) {
+  $('a.flag:not(.flag-anonymous-processed)', context).each(function() {
+    this.href += (this.href.match(/\?/) ? '&' : '?') + 'has_js=1';
+    $(this).addClass('flag-anonymous-processed');
+  });
+}
+
+/**
+ * A behavior specifically for anonymous users. Update links to the proper state.
+ */
+Drupal.flagAnonymousLinkTemplates = function(context) {
   // Swap in current links. Cookies are set by PHP's setcookie() upon flagging.
 
   // Build a list of user-flags.
@@ -191,9 +201,16 @@ Drupal.flagCookie = function(name, value, options) {
 };
 
 Drupal.behaviors.flagLink = function(context) {
-  // For anonymous users, swap out links with their current state for the user.
-  if (Drupal.settings.flag && Drupal.settings.flag.templates) {
+  // For all anonymous users, require JavaScript for flagging to prevent spiders
+  // from flagging things inadvertently.
+  if (Drupal.settings.flag && Drupal.settings.flag.anonymous) {
     Drupal.flagAnonymousLinks(context);
+  }
+
+  // For anonymous users with the page cache enabled, swap out links with their
+  // current state for the user.
+  if (Drupal.settings.flag && Drupal.settings.flag.templates) {
+    Drupal.flagAnonymousLinkTemplates(context);
   }
 
   // On load, bind the click behavior for all links on the page.
