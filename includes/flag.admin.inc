@@ -407,7 +407,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
   $form['link_options']['flag_confirmation'] = array(
     '#type' => 'textfield',
     '#title' => t('Flag confirmation message'),
-    '#default_value' => $flag->flag_confirmation,
+    '#default_value' => isset($flag->flag_confirmation) ? $flag->flag_confirmation : '',
     '#description' => t('Message displayed if the user has clicked the "flag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to flag this content?"'),
     '#access' => empty($flag->locked['flag_confirmation']),
   );
@@ -415,7 +415,7 @@ function flag_form(&$form_state, $name, $type = NULL) {
   $form['link_options']['unflag_confirmation'] = array(
     '#type' => 'textfield',
     '#title' => t('Unflag confirmation message'),
-    '#default_value' => $flag->unflag_confirmation,
+    '#default_value' => isset($flag->unflag_confirmation) ? $flag->unflag_confirmation : '',
     '#description' => t('Message displayed if the user has clicked the "unflag this" link and confirmation is required. Usually presented in the form of a question such as, "Are you sure you want to unflag this content?"'),
     '#access' => empty($flag->locked['unflag_confirmation']),
   );
