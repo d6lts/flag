@@ -65,3 +65,24 @@ Drupal.behaviors.flagLinkOptions = function(context) {
     $('#link-options').css('display', 'none');
   }
 };
+
+/**
+ * Vertical tabs integration.
+ */
+Drupal.verticalTabs = Drupal.verticalTabs || {};
+
+Drupal.verticalTabs.flag = function() {
+  var flags = [];
+  $('fieldset.vertical-tabs-flag input.form-checkbox').each(function() {
+    if (this.checked) {
+      flags.push(this.name.replace(/flag\[([a-z0-9]+)\]/, '$1'));
+    }
+  });
+
+  if (flags.length) {
+    return flags.join(', ');
+  }
+  else {
+    return Drupal.t('No flags');
+  }
+}

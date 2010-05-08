@@ -384,6 +384,13 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'fieldset',
         '#title' => t('Flags'),
         '#collapsible' => TRUE,
+        // Vertical tabs support:
+        '#group' => 'additional_settings',
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'flag') . '/theme/flag-admin.js',
+          ),
+        ),
       );
     }
 
