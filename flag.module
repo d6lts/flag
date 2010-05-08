@@ -727,7 +727,12 @@ function flag_flag_access($flag, $content_id, $action, $account) {
   // Restrict access by authorship. It's important that TRUE is never returned
   // here, otherwise we'd grant permission even if other modules denied access.
   if ($flag->content_type == 'node') {
-    $node = node_load($content_id);
+    // For non-existent nodes (such as on the node add form), assume that the
+    // current user is creating the content.
+    if (empty($content_id) || !($node = node_load($content_id))) {
+      return $flag->access_author == 'others' ? FALSE : NULL;
+    }
+
     if ($flag->access_author == 'own' && $node->uid != $account->uid) {
       return FALSE;
     }
@@ -738,7 +743,12 @@ function flag_flag_access($flag, $content_id, $action, $account) {
 
   // Restrict access by comment authorship.
   if ($flag->content_type == 'comment') {
-    $comment = $flag->fetch_content($content_id);
+    // For non-existent comments (such as on the comment add form), assume that
+    // the current user is creating the content.
+    if (empty($content_id) || !($comment = $flag->fetch_content($content_id))) {
+      return $flag->access_author == 'comment_others' ? FALSE : NULL;
+    }
+
     $node = node_load($comment->nid);
     if ($flag->access_author == 'node_own' && $node->uid != $account->uid) {
       return FALSE;
