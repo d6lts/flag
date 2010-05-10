@@ -162,7 +162,7 @@ class flag_flag {
       $flag->$option = $value;
     }
 
-    if (is_array($config['locked'])) {
+    if (isset($config['locked']) && is_array($config['locked'])) {
       $flag->locked = drupal_map_assoc($config['locked']);
     }
 
@@ -814,7 +814,7 @@ class flag_flag {
   }
 
   /**
-   * Replaces tokens in a label. Only the 'global' token context is regognized
+   * Replaces tokens in a label. Only the 'global' token context is recognized
    * by default, so derived classes should override this method to add all
    * token contexts they understand.
    */
@@ -1457,7 +1457,7 @@ class flag_user extends flag_flag {
   }
 
   function _load_content($content_id) {
-    return user_load(array('uid' => $content_id));
+    return user_load($content_id);
   }
 
   function applies_to_content_object($user) {
@@ -1503,7 +1503,7 @@ class flag_user extends flag_flag {
   }
 
   function uses_hook_link($teaser) {
-    if ($this->show_on_profile){
+    if ($this->show_on_profile) {
       return TRUE;
     }
     return FALSE;

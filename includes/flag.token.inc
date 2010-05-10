@@ -73,7 +73,7 @@ function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = '
   token_include();
   $tokens = flag_token_get_list($types);
 
-  $headers = array(t('Token'), t('Replacement value'));
+  $header = array(t('Token'), t('Replacement value'));
   $rows = array();
   foreach ($tokens as $key => $category) {
     $rows[] = array(array('data' => drupal_ucfirst($key) . ' ' . t('tokens'), 'class' => 'region', 'colspan' => 2));
@@ -85,7 +85,7 @@ function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = '
     }
   }
 
-  $output = theme('table', $headers, $rows, array('class' => 'description'));
+  $output = theme('table', $header, $rows, array('class' => 'description'));
   return $output;
 }
 

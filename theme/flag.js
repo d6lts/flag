@@ -1,4 +1,5 @@
 // $Id$
+(function ($) {
 
 /**
  * Terminology:
@@ -216,3 +217,5 @@ Drupal.behaviors.flagLink = function(context) {
   // On load, bind the click behavior for all links on the page.
   Drupal.flagLink(context);
 };
+
+})(jQuery);

@@ -384,6 +384,7 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'fieldset',
         '#title' => t('Flags'),
         '#collapsible' => TRUE,
+        '#attributes' => array('class' => 'flag-fieldset'),
         // Vertical tabs support:
         '#group' => 'additional_settings',
         '#attached' => array(
@@ -1052,16 +1053,20 @@ function flag_theme() {
       'path' => $path,
     ),
     'flag_token_help' => array(
-      'arguments' => array('types' => NULL, 'prefix' => NULL, 'suffix' => NULL),
+      'variables' => array('types' => array('all'), 'prefix' => '[', 'suffix' => ']'),
+      'file' => 'includes/flag.token.inc',
     ),
     'flag_admin_page' => array(
       'arguments' => array('flags' => NULL, 'default_flags' => NULL),
+      'file' => 'includes/flag.admin.inc',
     ),
     'flag_form_roles' => array(
       'arguments' => array('element' => NULL),
+      'file' => 'includes/flag.admin.inc',
     ),
     'flag_rules_radios' => array(
-      'arguments' => array(),
+      'arguments' => array('element' => NULL),
+      'file' => 'includes/flag.rules_forms.inc',
     ),
   );
 }

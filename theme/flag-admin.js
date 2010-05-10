@@ -1,4 +1,5 @@
 // $Id$
+(function ($) {
 
 /**
  * Behavior to disable the "unflag" option if "flag" is not available.
@@ -25,7 +26,7 @@ Drupal.behaviors.flagRoles = function(context) {
   });
 
   $('#flag-roles input.unflag-access', context).change(function() {
-    if ($(this).parents('tr:first').find('input.unflag-access:checked:not(:disabled)').size() > 0) {
+    if ($(this).parents('table:first').find('input.unflag-access:enabled:not(:checked)').size() == 0) {
       $('#edit-unflag-denied-text-wrapper').slideUp();
     }
     else {
@@ -34,7 +35,7 @@ Drupal.behaviors.flagRoles = function(context) {
   });
 
   // Hide the link options by default if needed.
-  if ($('#flag-roles input.unflag-access:checked:not(:disabled)').size() > 0) {
+  if ($('#flag-roles input.unflag-access:enabled:not(:checked)').size() == 0) {
     $('#edit-unflag-denied-text-wrapper').css('display', 'none');
   }
 };
@@ -86,3 +87,5 @@ Drupal.verticalTabs.flag = function() {
     return Drupal.t('No flags');
   }
 }
+
+})(jQuery);
