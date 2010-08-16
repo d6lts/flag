@@ -297,10 +297,18 @@ function flag_form(&$form_state, $name, $type = NULL) {
   );
 
   if (module_exists('token')) {
-    $form['messages']['token_help'] = array(
+    $form['messages']['tokens_help'] = array(
       '#title' => t('Token replacement'),
       '#type' => 'fieldset',
-      '#description' => t('The above six options may contain the following wildcard replacements. For example, "Mark Link" could be entered as "Add [title] to your flags" or "Add this [type-name] to your flags". These wildcards will be replaced with the appropriate field from the node.') . theme('flag_token_help', $flag->get_labels_token_types()),
+      '#description' =>
+        '<p>' . t('The above six texts may contain any of the tokens listed below. For example, <em>"Flag link text"</em> could be entered as:') . '</p>' .
+        theme('item_list', array(
+          t('Add &lt;em&gt;[title]&lt;/em&gt; to your favorites'),
+          t('Add this [type] to your favorites'),
+          t('Vote for this proposal ([flag-vote-count] people have already done so)'),
+        ), NULL, 'ul', array('class' => 'token-examples')) .
+        '<p>' . t('These tokens will be replaced with the appropriate fields from the node (or user, or comment).') . '</p>' .
+        theme('flag_tokens_browser', $flag->get_labels_token_types()),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );

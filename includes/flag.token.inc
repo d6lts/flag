@@ -69,7 +69,7 @@ function flag_token_values($type, $object = NULL) {
  *
  * @todo Incorporate this feature into the Token module(?)
  */
-function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = ']') {
+function theme_flag_tokens_browser($types = array('all'), $prefix = '[', $suffix = ']') {
   token_include();
   $tokens = flag_token_get_list($types);
 
@@ -92,7 +92,7 @@ function theme_flag_token_help($types = array('all'), $prefix = '[', $suffix = '
 /**
  * This is a replacement for Token's token_get_list().
  *
- * It is used only by theme_flag_token_help(), above.
+ * It is used only by theme_flag_tokens_browser(), above.
  *
  * This is a duplicate of the Token's function, but with a small modification:
  * the $type parameter is now $types, allowing for listing tokens from several

@@ -659,14 +659,14 @@ function flag_actions_token_actions_send_email_action_form(&$form, &$flag, $cont
     '#collapsed' => TRUE,
   );
   $form['help']['basic'] = array(
-    '#value' => theme('flag_token_help', array('flag', 'flag-action')),
+    '#value' => theme('flag_tokens_browser', array('flag', 'flag-action')),
   );
 
   $form['help']['tokens'] = array(
     '#type' => 'fieldset',
     '#title' => t('More tokens'),
     '#description' => t("Depending on the type of the content being flagged, the following tokens can be used in the recipients, subject, or message. For example, if the content being flagged is a node, you can use any of the node tokens --but you can't use the comment tokens: they won't be recognized. Similarly, if the content being flagged is a user, you can use only the user tokens."),
-    '#value' => theme('flag_token_help', $flag->get_labels_token_types()),
+    '#value' => theme('flag_tokens_browser', $flag->get_labels_token_types()),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
