@@ -598,7 +598,7 @@ class flag_flag {
   }
 
   /**
-   * Returns TRUE if a certain user has flagged this content.
+   * Determines if a certain user has flagged this content.
    *
    * Thanks to using a cache, inquiring several different flags about the same
    * item results in only one SQL query.
@@ -606,6 +606,9 @@ class flag_flag {
    * @param $uid
    *   Optional. The user ID whose flags we're checking. If none given, the
    *   current user will be used.
+   *
+   * @return
+   *   TRUE if the content is flagged, FALSE otherwise.
    */
   function is_flagged($content_id, $uid = NULL, $sid = NULL) {
     $uid = $this->global ? 0 : (!isset($uid) ? $GLOBALS['user']->uid : $uid);
@@ -617,7 +620,7 @@ class flag_flag {
   }
 
   /**
-   * Returns TRUE if a certain user has flagged this content.
+   * Determines if a certain user has flagged this content.
    *
    * You probably shouldn't call this raw private method: call the
    * is_flagged() method instead.
@@ -626,10 +629,14 @@ class flag_flag {
    * doesn't do caching. Use it when you want to not affect the cache, or to
    * bypass it.
    *
+   * @return
+   *   If the content is flagged, returns the value of the 'fcid' column.
+   *   Else, returns FALSE.
+   *
    * @private
    */
   function _is_flagged($content_id, $uid, $sid) { 
-    return db_result(db_query("SELECT fid FROM {flag_content} WHERE fid = %d AND uid = %d AND sid = %d AND content_id = %d", $this->fid, $uid, $sid, $content_id));
+    return db_result(db_query("SELECT fcid FROM {flag_content} WHERE fid = %d AND uid = %d AND sid = %d AND content_id = %d", $this->fid, $uid, $sid, $content_id));
   }
 
   /**
@@ -637,6 +644,9 @@ class flag_flag {
    *
    * You probably shouldn't call this raw private method: call the flag()
    * function instead.
+   *
+   * @return
+   *   The 'fcid' column of the new {flag_content} record.
    *
    * @private
    */
@@ -652,6 +662,10 @@ class flag_flag {
    *
    * You probably shouldn't call this raw private method: call the flag()
    * function instead.
+   *
+   * @return
+   *   If the content was flagged, returns the value of the now deleted 'fcid'
+   *   column. Else, returns FALSE.
    *
    * @private
    */
