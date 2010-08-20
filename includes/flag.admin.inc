@@ -24,9 +24,9 @@ function theme_flag_admin_page($flags, $default_flags) {
   // Build out the list of normal, database flags.
   foreach ($flags as $flag) {
     $ops = theme('links', array(
-      'flags_edit' =>  array('title' => t('edit'), 'href' => 'admin/build/flags/edit/' . $flag->name),
-      'flags_delete' =>  array('title' => t('delete'), 'href' => 'admin/build/flags/delete/' . $flag->name),
-      'flags_export' =>  array('title' => t('export'), 'href' => 'admin/build/flags/export/' . $flag->name),
+      'flags_edit' =>  array('title' => t('edit'), 'href' => $flag->admin_path('edit')),
+      'flags_delete' =>  array('title' => t('delete'), 'href' => $flag->admin_path('delete')),
+      'flags_export' =>  array('title' => t('export'), 'href' => $flag->admin_path('export')),
     ));
 
     $roles = array_flip(array_intersect(array_flip(user_roles()), $flag->roles['flag']));
@@ -55,12 +55,12 @@ function theme_flag_admin_page($flags, $default_flags) {
       if ($flag->api_version < FLAG_API_VERSION) {
         $flag_updates_needed = TRUE;
         $ops = theme('links', array(
-          'flags_update' => array('title' => '<strong>' . t('update code') . '</strong>', 'href' => 'admin/build/flags/update/' . $flag->name, 'html' => TRUE),
+          'flags_update' => array('title' => '<strong>' . t('update code') . '</strong>', 'href' => $flag->admin_path('update'), 'html' => TRUE),
         ));
       }
       else {
         $ops = theme('links', array(
-          'flags_enable' => array('title' => t('enable'), 'href' => 'admin/build/flags/edit/' . $flag->name),
+          'flags_enable' => array('title' => t('enable'), 'href' => $flag->admin_path('edit')),
         ));
       }
       // $flag->roles['flag'] not exist on older flags.
@@ -119,8 +119,11 @@ function theme_flag_admin_page($flags, $default_flags) {
  * Menu callback for adding a new flag.
  */
 function flag_add_page($type = NULL, $name = NULL) {
+  drupal_set_title(t('Add new flag'));
   if (isset($type) && isset($name)) {
-    return drupal_get_form('flag_form', $name, $type);
+    $flag = flag_flag::factory_by_content_type($type);
+    $flag->name = $name;
+    return drupal_get_form('flag_form', $flag);
   }
   else {
     return drupal_get_form('flag_add_form');
@@ -181,29 +184,7 @@ function flag_add_form_submit($form, &$form_state) {
 /**
  * Add/Edit flag page.
  */
-function flag_form(&$form_state, $name, $type = NULL) {
-  if (isset($type)) {
-    // Adding a new flag.
-    $flag = flag_flag::factory_by_content_type($type);
-    $flag->name = $name;
-    drupal_set_title(t('Add new flag'));
-  }
-  else {
-    // Editing an existing flag.
-    $flag = flag_get_flag($name);
-    if (empty($flag)) {
-      // Check if we're overriding a default flag.
-      $default_flags = flag_get_default_flags(TRUE);
-      if (isset($default_flags[$name])) {
-        $flag = $default_flags[$name];
-      }
-      else {
-        drupal_goto('admin/build/flags');
-      }
-    }
-    drupal_set_title(t('Edit @title flag', array('@title' => $flag->get_title())));
-  }
-
+function flag_form(&$form_state, $flag) {
   $form['#flag'] = $flag;
 
   $form['name'] = array(
@@ -521,12 +502,7 @@ function theme_flag_form_roles($element) {
 /**
  * Delete flag page.
  */
-function flag_delete_confirm(&$form_state, $name) {
-  $flag = flag_get_flag($name);
-  if (empty($flag)) {
-    drupal_goto('admin/build/flags');
-  }
-
+function flag_delete_confirm(&$form_state, $flag) {
   $form['fid'] = array('#type' => 'value', '#value' => $flag->fid);
 
   return confirm_form($form,
