@@ -991,10 +991,10 @@ function flag_get_default_flags($include_disabled = FALSE) {
  *
  * @return $flags
  *   If returning a single node's flags, an array of the structure
- *   [name] => (fid => [fid], uid => [uid] nid => [nid], timestamp => [timestamp])
+ *   [flag_name] => (fcid => [fcid], uid => [uid], content_id => [content_id], timestamp => [timestamp], ...)
  *
- *   If returning all nodes, an array of the arrays for each node.
- *   [nid] => [name] => Object from above.
+ *   If returning all nodes, an array of arrays for each flag:
+ *   [flag_name] => [content_id] => Object from above.
  *
  */
 function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $reset = FALSE) {
@@ -1022,9 +1022,9 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $re
   }
 
   else {
-    if (!isset($flagged_content[$uid]['all'][$content_type])) {
+    if (!isset($flagged_content[$uid][$content_type]['all'])) {
       $flag_names = _flag_get_flag_names();
-      $flagged_content[$uid]['all'][$content_type] = TRUE;
+      $flagged_content[$uid][$content_type]['all'] = array();
       $result = db_query("SELECT * FROM {flag_content} WHERE content_type = '%s' AND (uid = %d OR uid = 0)", $content_type, $uid);
       while ($flag_content = db_fetch_object($result)) {
         $flagged_content[$uid][$content_type]['all'][$flag_names[$flag_content->fid]][$flag_content->content_id] = $flag_content;
