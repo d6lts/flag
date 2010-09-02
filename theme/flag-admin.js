@@ -73,10 +73,8 @@ Drupal.verticalTabs = Drupal.verticalTabs || {};
 
 Drupal.verticalTabs.flag = function() {
   var flags = [];
-  $('fieldset.vertical-tabs-flag input.form-checkbox').each(function() {
-    if (this.checked) {
-      flags.push(this.name.replace(/flag\[([a-z0-9]+)\]/, '$1'));
-    }
+  $('fieldset.vertical-tabs-flag input:checkbox:checked').each(function() {
+    flags.push(this.title);
   });
 
   if (flags.length) {
