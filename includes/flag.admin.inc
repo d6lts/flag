@@ -19,7 +19,7 @@ function flag_admin_page() {
  * Theme the output for the main flag administration page.
  */
 function theme_flag_admin_page($flags, $default_flags) {
-  $output = '<p>' . t('This page lists all the <em>flags</em> that are currently defined on this system. You may <a href="@add-url">add new flags</a>.', array('@add-url' => url('admin/build/flags/add'))) . '</p>';
+  $output = '';
 
   // Build out the list of normal, database flags.
   foreach ($flags as $flag) {

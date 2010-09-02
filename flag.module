@@ -162,6 +162,17 @@ function _flag_menu_title($flag) {
 }
 
 /**
+ * Implements hook_help().
+ */
+function flag_help($path, $arg) {
+  switch ($path) {
+    case FLAG_ADMIN_PATH:
+      $output = '<p>' . t('This page lists all the <em>flags</em> that are currently defined on this system. You may <a href="@add-url">add new flags</a>.', array('@add-url' => url(FLAG_ADMIN_PATH . '/add'))) . '</p>';
+      return $output;
+  }
+}
+
+/**
  * Implements hook_init().
  */
 function flag_init() {
