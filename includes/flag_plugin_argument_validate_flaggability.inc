@@ -169,7 +169,7 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
       }
     }
 
-    $ids = views_break_phrase($argument);
+    $ids = views_break_phrase($argument, $this);
     if ($ids->value == array(-1)) {
       // Malformed argument syntax. Invalidate.
       return FALSE;
