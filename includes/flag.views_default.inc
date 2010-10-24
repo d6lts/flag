@@ -204,7 +204,7 @@ function flag_views_default_views() {
   $handler->override_option('access', $access);
   $handler->override_option('title', 'User bookmarks');
   $handler->override_option('empty', 'This user has not yet bookmarked any content.');
-  $handler->override_option('empty_format', '1');
+  $handler->override_option('empty_format', FILTER_FORMAT_DEFAULT);
   $handler->override_option('items_per_page', '25');
   $handler->override_option('use_pager', TRUE);
   $handler->override_option('style_plugin', 'table');
