@@ -1039,6 +1039,7 @@ class flag_flag {
     db_query('DELETE FROM {flag_content} WHERE fid = %d', $this->fid);
     db_query('DELETE FROM {flag_types} WHERE fid = %d', $this->fid);
     db_query('DELETE FROM {flag_counts} WHERE fid = %d', $this->fid);
+    module_invoke_all('flag_delete', $this);
   }
 
   /**
