@@ -782,7 +782,7 @@ class flag_flag {
       if ($cookie_index !== FALSE) {
         unset($cookie_flags[$cookie_index]);
         $cookie_flags = implode(' ', $cookie_flags);
-        setcookie('flags', $cookie_flags, $cookie_lifetime, base_path());
+        setcookie('flags', $cookie_flags, time() + $cookie_lifetime, base_path());
         $_COOKIE['flags'] = $cookie_flags;
       }
     }
