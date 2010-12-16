@@ -691,10 +691,6 @@ class flag_flag {
       db_query("DELETE FROM {flag_content} WHERE fcid = %d", $fcid);
       $this->_update_count($content_id);
     }
-    // Remove anonymous cookies (if any).
-    if (isset($_COOKIE['flag'][$this->name . '_' . $content_id])) {
-      unset($_COOKIE['flags'][$this->name . '_' . $content_id]);
-    }
     return $fcid;
   }
 
