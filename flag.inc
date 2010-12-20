@@ -1670,7 +1670,7 @@ class FlagGlobalCookieStorage extends FlagCookieStorage {
   }
 
   protected function cookie_key($content_id) {
-    return 'flag_global_' . str_replace('_', '-', $this->flag->name) . '_' . $content_id;
+    return 'flag_global_' . $this->flag->name . '_' . $content_id;
   }
 
   /**
@@ -1718,7 +1718,7 @@ class FlagNonGlobalCookieStorage extends FlagCookieStorage {
   }
 
   protected function cookie_key($content_id) {
-    return str_replace('_', '-', $this->flag->name) . '_' . $content_id;
+    return $this->flag->name . '_' . $content_id;
   }
 
   protected function write() {
