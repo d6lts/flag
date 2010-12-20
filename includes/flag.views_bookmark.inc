@@ -138,7 +138,8 @@ function flag_views_bookmark_update_tables() {
   $ret[] = update_sql("ALTER TABLE {flag_content} ADD INDEX content_type_uid (content_type, uid)");
 
   // Change fid to a serial column.
-  $ret[] = update_sql("ALTER TABLE {flags} CHANGE COLUMN fid fid int(10) unsigned NOT NULL auto_increment");
+  $ret[] = update_sql("ALTER TABLE {flags} DROP PRIMARY KEY");
+  $ret[] = update_sql("ALTER TABLE {flags} CHANGE COLUMN fid fid int(10) unsigned NOT NULL auto_increment, ADD PRIMARY KEY (fid)");
 
   // Give each flag a "name" attribute.
   $result = db_query("SELECT fid, title FROM {flags}");
