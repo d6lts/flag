@@ -748,7 +748,10 @@ class flag_flag {
    *
    * For global flags, pass '0' as the user ID and session ID.
    */
-  function get_user_count($uid, $sid) {
+  function get_user_count($uid, $sid = NULL) {
+    if (!isset($sid)) {
+      $sid = flag_get_sid($uid);
+    }
     return db_result(db_query('SELECT COUNT(*) FROM {flag_content} WHERE fid = %d AND uid = %d AND sid = %d', $this->fid, $uid, $sid));
   }
 
