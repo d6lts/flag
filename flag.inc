@@ -345,7 +345,7 @@ class flag_flag {
       $account = $GLOBALS['user'];
     }
     $matched_roles = array_intersect($this->roles, array_keys($account->roles));
-    return !empty($matched_roles) || empty($this->roles) || $account->uid == 1;
+    return !empty($matched_roles) || $account->uid == 1;
   }
 
   /**
