@@ -193,6 +193,7 @@ class flag_flag {
         'flag' => array(DRUPAL_AUTHENTICATED_RID),
         'unflag' => array(DRUPAL_AUTHENTICATED_RID),
       ),
+      'weight' => 0,
     );
 
     // Merge in options from the current link type.
@@ -1779,7 +1780,6 @@ class FlagGlobalCookieStorage extends FlagCookieStorage {
     }
   }
 }
-
 /**
  * Storage handler for non-global flags.
  */
