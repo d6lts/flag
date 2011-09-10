@@ -463,7 +463,7 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
             // modification:
             $remembered = TRUE;
           }
-          flag($state ? 'flag' : 'unflag', $name, $node->nid, $user, TRUE);
+          flag($state ? 'flag' : 'unflag', $name, $node->nid, $user);
         }
       }
       break;
