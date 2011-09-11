@@ -520,7 +520,7 @@ class flag_flag {
    * @abstract
    */
   function type_access_multiple($content_ids, $account) {
-    return NULL;
+    return array();
   }
 
   /**
@@ -1431,6 +1431,8 @@ class flag_comment extends flag_flag  {
   }
 
   function type_access_multiple($content_ids, $account) {
+    $access = array();
+
     // Ensure node types are granted access. This avoids a
     // node_load() on every type, usually done by applies_to_content_id().
     $cids = implode(',', array_map('intval', array_keys($content_ids)));
