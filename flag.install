@@ -261,10 +261,10 @@ function flag_schema() {
     'primary key' => array('fcid'),
     'unique keys' => array(
       'fid_content_id_uid_sid' => array('fid', 'content_id', 'uid', 'sid'),
-      'content_type_content_id_uid_sid' => array('content_type', 'content_id', 'uid', 'sid'),
     ),
     'indexes' => array(
       'content_type_uid_sid' => array('content_type', 'uid', 'sid'),
+      'content_type_content_id_uid_sid' => array('content_type', 'content_id', 'uid', 'sid'),
     ),
   );
 
@@ -601,10 +601,26 @@ function flag_update_6204() {
  * Provide a better index on the flag_content table to include 'uid' and 'sid'.
  */
 function flag_update_6205() {
+  // This update has been removed and corrected in flag_update_6206.
+  // See http://drupal.org/node/1105490.
+  return array();
+}
+
+/**
+ * Correction to flag_update_6205(). Convert unique key to an index.
+ */
+function flag_update_6206() {
   $ret = array();
 
-  db_drop_index($ret, 'flag_content', 'content_type_content_id');
-  db_add_unique_key($ret, 'flag_content', 'content_type_content_id_uid_sid', array('content_type', 'content_id', 'uid', 'sid'));
+  // These two indexes may or may not exist depending on if flag_update_6205
+  // was run or not. Surpress errors if the indexes don't exist.
+  @db_drop_index($ret, 'flag_content', 'content_type_content_id');
+  @db_drop_unique_key($ret, 'flag_content', 'content_type_content_id_uid_sid');
+
+  // Empty out the errors.
+  $ret = array();
+
+  db_add_index($ret, 'flag_content', 'content_type_content_id_uid_sid', array('content_type', 'content_id', 'uid', 'sid'));
 
   return $ret;
 }
