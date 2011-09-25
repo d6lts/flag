@@ -519,6 +519,10 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
         db_query("UPDATE {flag_counts} SET count = %d WHERE fid = %d AND content_id = %d", $flag_data->count, $flag_data->fid, $flag_data->content_id);
       }
       db_query("DELETE FROM {flag_content} WHERE uid = %d", $account->uid);
+
+      // Remove flags that have been done to this user.
+      db_query("DELETE FROM {flag_counts} WHERE content_type = 'user' AND content_id = %d", $account->uid);
+      db_query("DELETE FROM {flag_content} WHERE content_type = 'user' AND content_id = %d", $account->uid);
       break;
     case 'view';
       $flags = flag_get_flags('user');
