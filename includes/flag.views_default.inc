@@ -13,7 +13,7 @@ function flag_views_default_views() {
   // If it's been deleted, don't create any views.
   $flag = flag_get_flag('bookmarks');
   if (!$flag) {
-    return;
+    return array();
   }
 
   // Set up properties that are used for both views.
