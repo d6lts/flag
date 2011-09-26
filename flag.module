@@ -501,8 +501,17 @@ function flag_user($op, &$edit, &$account, $category = NULL) {
         // The @ symbol suppresses errors if the user flags a piece of content
         // they have already flagged as a logged-in user.
         @db_query("UPDATE {flag_content} SET uid = %d, sid = 0 WHERE uid = 0 AND sid = %d", $account->uid, $sid);
-        // Delete any remaining flags this user had as an anonymous user.
-        db_query("DELETE FROM {flag_content} WHERE uid = 0 AND sid = %d", flag_get_sid(0));
+
+        // Delete any remaining flags this user had as an anonymous user. We use the
+        // proper unflag action here to make sure the count gets decremented again
+        // and so that other modules can clean up their tables if needed.
+        $result = db_query("SELECT fcid, fid, content_id FROM {flag_content} WHERE uid = 0 AND sid = %d", $sid);
+        $anonymous_user = drupal_anonymous_user();
+        while ($row = db_fetch_array($result)) {
+          $flag = flag_get_flag(NULL, $row['fid']);
+          $flag->flag('unflag', $row['content_id'], $anonymous_user, TRUE);
+        }
+
         // Clean up anonymous cookies.
         FlagCookieStorage::drop();
       }

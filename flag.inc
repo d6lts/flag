@@ -706,7 +706,7 @@ class flag_flag {
   function _flag($content_id, $uid, $sid) {
     db_query("INSERT INTO {flag_content} (fid, content_type, content_id, uid, sid, timestamp) VALUES (%d, '%s', %d, %d, %d, %d)", $this->fid, $this->content_type, $content_id, $uid, $sid, time());
     $fcid = db_last_insert_id('flag_content', 'fcid');
-    $this->_update_count($content_id);
+    $this->_increase_count($content_id);
     return $fcid;
   }
 
@@ -726,28 +726,42 @@ class flag_flag {
     $fcid = db_result(db_query("SELECT fcid FROM {flag_content} WHERE fid = %d AND content_id = %d AND uid = %d AND sid = %d", $this->fid, $content_id, $uid, $sid));
     if ($fcid) {
       db_query("DELETE FROM {flag_content} WHERE fcid = %d", $fcid);
-      $this->_update_count($content_id);
+      $this->_decrease_count($content_id);
     }
     return $fcid;
   }
 
   /**
-   * Updates the flag count for this content
+   * Increases the flag count for a piece of content.
+   *
+   * @param $content_id
+   *   For which item should the count be increased.
+   * @param $number
+   *   The amount of counts to increasing. Defaults to 1.
    *
    * @private
    */
-  function _update_count($content_id) {
-    $count = db_result(db_query("SELECT COUNT(*) FROM {flag_content} WHERE fid = %d AND content_id = %d", $this->fid, $content_id));
-    if ($count == 0) {
-      db_query("DELETE FROM {flag_counts} WHERE fid = %d AND content_id = %d", $this->fid, $content_id);
+  function _increase_count($content_id, $number = 1) {
+    db_query("UPDATE {flag_counts} SET count = count + %d WHERE fid = %d AND content_id = %d", $number, $this->fid, $content_id);
+    if (!db_affected_rows()) {
+      db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count) VALUES (%d, '%s', %d, %d)", $this->fid, $this->content_type, $content_id, $number);
     }
-    else {
-      $time = time();
-      db_query("UPDATE {flag_counts} SET count = %d, last_updated = %d WHERE fid = %d AND content_id = %d", $count, $time, $this->fid, $content_id);
-      if (!db_affected_rows()) {
-        db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count, last_updated) VALUES (%d, '%s', %d, %d, %d)", $this->fid, $this->content_type, $content_id, $count, $time);
-      }
-    }
+  }
+
+  /**
+   * Decreases the flag count for a piece of content.
+   *
+   * @param $content_id
+   *   For which item should the count be descreased.
+   * @param $number
+   *   The amount of counts to decrease. Defaults to 1.
+   *
+   * @private
+   */
+  function _decrease_count($content_id, $number = 1) {
+    db_query("UPDATE {flag_counts} SET count = count - %d WHERE fid = %d AND content_id = %d", $number, $this->fid, $content_id);
+    // Delete rows with count 0, for data consistency and space-saving.
+    db_query("DELETE FROM {flag_counts} WHERE fid = %d and content_id = %d AND count = %d", $this->fid, $content_id, 0);
   }
 
   /**
