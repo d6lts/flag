@@ -338,8 +338,8 @@ function flag_schema() {
     'indexes' => array(
       'fid_content_type' => array('fid', 'content_type'),
       'content_type_content_id' => array('content_type', 'content_id'),
-      'count' => array('count'),
-      'last_updated' => array('last_updated'),
+      'fid_count' => array('fid', 'count'),
+      'fid_last_updated' => array('fid', 'last_updated'),
     ),
   );
 
@@ -641,6 +641,21 @@ function flag_update_6207() {
   $ret = array();
 
   db_add_field($ret, 'flag_counts', 'last_updated', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-size' => 11), array('indexes' => array('last_updated' => array('last_updated'))));
+
+  return $ret;
+}
+
+/**
+ * Convert flag_count indexes to include FID for more efficient indexing.
+ */
+function flag_update_6208() {
+  $ret = array();
+
+  db_drop_index($ret, 'flag_counts', 'count');
+  db_drop_index($ret, 'flag_counts', 'last_updated');
+
+  db_add_index($ret, 'flag_counts', 'fid_count', array('fid', 'count'));
+  db_add_index($ret, 'flag_counts', 'fid_last_updated', array('fid', 'last_updated'));
 
   return $ret;
 }
