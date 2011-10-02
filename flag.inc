@@ -742,9 +742,10 @@ class flag_flag {
    * @private
    */
   function _increase_count($content_id, $number = 1) {
-    db_query("UPDATE {flag_counts} SET count = count + %d WHERE fid = %d AND content_id = %d", $number, $this->fid, $content_id);
+    $time = time();
+    db_query("UPDATE {flag_counts} SET count = count + %d, last_updated = %d WHERE fid = %d AND content_id = %d", $number, $time, $this->fid, $content_id);
     if (!db_affected_rows()) {
-      db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count) VALUES (%d, '%s', %d, %d)", $this->fid, $this->content_type, $content_id, $number);
+      db_query("INSERT INTO {flag_counts} (fid, content_type, content_id, count, last_updated) VALUES (%d, '%s', %d, %d, %d)", $this->fid, $this->content_type, $content_id, $number, $time);
     }
   }
 
@@ -759,7 +760,8 @@ class flag_flag {
    * @private
    */
   function _decrease_count($content_id, $number = 1) {
-    db_query("UPDATE {flag_counts} SET count = count - %d WHERE fid = %d AND content_id = %d", $number, $this->fid, $content_id);
+    $time = time();
+    db_query("UPDATE {flag_counts} SET count = count - %d, last_updated = %d WHERE fid = %d AND content_id = %d", $number, $time, $this->fid, $content_id);
     // Delete rows with count 0, for data consistency and space-saving.
     db_query("DELETE FROM {flag_counts} WHERE fid = %d and content_id = %d AND count = %d", $this->fid, $content_id, 0);
   }
