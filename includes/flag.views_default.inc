@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_views_default_views().
+ * Implements hook_views_default_views().
  */
 function flag_views_default_views() {
   // Only setup views for the "bookmarks" flag.
@@ -248,7 +248,7 @@ function flag_views_default_views() {
   );
 
   $view = new view;
-  $view->name = 'flag_'. $flag->name;
+  $view->name = 'flag_' . $flag->name;
   $view->description = 'A page listing the current user\'s bookmarks at /bookmarks.';
   $view->tag = 'flag';
   $view->view_php = '';

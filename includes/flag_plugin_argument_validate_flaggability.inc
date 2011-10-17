@@ -86,7 +86,7 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
       '#process' => array('expand_radios', 'views_process_dependency'),
     );
 
-    foreach(array('flag_name', 'flag_test', 'flag_id_type') as $option) {
+    foreach (array('flag_name', 'flag_test', 'flag_id_type') as $option) {
       $form[$this->_option_name($option)] += array(
         '#dependency' => array('edit-options-validate-type' => array($this->id)),
         '#process' => array('views_process_dependency'),

@@ -423,7 +423,7 @@ class flag_flag {
       $account = $GLOBALS['user'];
     }
 
-    if (isset($content_id) && !$this->applies_to_content_id($content_id) ){
+    if (isset($content_id) && !$this->applies_to_content_id($content_id)) {
       // Flag does not apply to this content.
       return FALSE;
     }
@@ -506,7 +506,7 @@ class flag_flag {
   }
 
   /**
-   * An implementation of access() implemented by each child class.
+   * Implements access() implemented by each child class.
    *
    * @abstract
    */
@@ -515,7 +515,7 @@ class flag_flag {
   }
 
   /**
-   * An implementation of access_multiple() implemented by each child class.
+   * Implements access_multiple() implemented by each child class.
    *
    * @abstract
    */
@@ -688,7 +688,7 @@ class flag_flag {
    *
    * @private
    */
-  function _is_flagged($content_id, $uid, $sid) { 
+  function _is_flagged($content_id, $uid, $sid) {
     return db_result(db_query("SELECT fcid FROM {flag_content} WHERE fid = %d AND uid = %d AND sid = %d AND content_id = %d", $this->fid, $uid, $sid, $content_id));
   }
 

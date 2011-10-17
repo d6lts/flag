@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file flag.rules.inc
+ * @file
  * Rules integration for the Flag module.
  */
 
