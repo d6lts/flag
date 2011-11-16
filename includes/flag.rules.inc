@@ -122,9 +122,24 @@ function flag_rules_get_event_argument($flag, $content_id, $account) {
   return $flag->fetch_content($content_id);
 }
 
+function flag_rules_get_node_author($flag, $content_id, $account) {
+  $node = $flag->fetch_content($content_id);
+  return rules_events_argument_node_author($node);
+}
+
+function flag_rules_get_comment_author($flag, $content_id, $account) {
+  $comment = $flag->fetch_content($content_id);
+  return rules_events_argument_comment_author($comment);
+}
+
 function flag_rules_get_comment_content($flag, $content_id, $account) {
   $comment = $flag->fetch_content($content_id);
   return node_load($comment->nid);
+}
+
+function flag_rules_get_comment_node_author($flag, $content_id, $account) {
+  $comment = $flag->fetch_content($content_id);
+  return rules_events_argument_comment_node_author($comment);
 }
 
 /**
