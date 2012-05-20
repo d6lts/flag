@@ -415,7 +415,7 @@ function flag_form_alter(&$form, &$form_state, $form_id) {
     }
     if ($flags_in_form) {
       $form['flag'] += array(
-        '#weight' => module_exists('content') ? content_extra_field_weight($form['#node']->type, 'flags') : 1,
+        '#weight' => module_exists('content') ? content_extra_field_weight($form['#node']->type, 'flag') : 1,
         '#tree' => TRUE,
       );
     }
