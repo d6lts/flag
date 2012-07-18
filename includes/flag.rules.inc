@@ -47,7 +47,7 @@ class flag_rules_data_type extends rules_data_type {
    * Returns radios for selecting a flag of the type given in
    * $info['flag_type'].
    */
-  function get_default_input_form($info, $value) {
+  function get_default_input_form($info, $value, &$form_state) {
     $options = _flag_rules_flags_options(isset($info['flag_type']) ? $info['flag_type'] : NULL);
     $form = array(
       '#type' => 'radios',
