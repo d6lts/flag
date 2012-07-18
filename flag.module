@@ -43,7 +43,7 @@ function flag_menu() {
     'title' => 'Import',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('flag_import_form'),
-    'access arguments' => array('administer flags'),
+    'access arguments' => array('use flag import'),
     'file' => 'includes/flag.export.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
@@ -211,7 +211,7 @@ function flag_features_api() {
  * Implementation of hook_perm().
  */
 function flag_perm() {
-  return array('administer flags');
+  return array('administer flags', 'use flag import');
 }
 
 /**
