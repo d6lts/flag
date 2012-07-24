@@ -660,6 +660,22 @@ function flag_update_6208() {
   return $ret;
 }
 
+/**
+ * Clean up orphaned flags due to node and comment deletion.
+ */
+function flag_update_6209() {
+  // Clean-up for nodes.
+  db_query("DELETE FROM {flag_content} WHERE content_type = 'node' AND NOT EXISTS (SELECT 1 FROM {node} n WHERE content_id = n.nid)");
+  db_query("DELETE FROM {flag_counts} WHERE content_type = 'node' AND NOT EXISTS (SELECT 1 FROM {node} n WHERE content_id = n.nid)");
+
+  // Clean-up for comments. Do not use module_exists() because comment module
+  // could be disabled.
+  if (db_table_exists('comment')) {
+    db_query("DELETE FROM {flag_content} WHERE content_type = 'comment' AND NOT EXISTS (SELECT 1 FROM {comment} c WHERE content_id = c.cid)");
+    db_query("DELETE FROM {flag_counts} WHERE content_type = 'comment' AND NOT EXISTS (SELECT 1 FROM {comment} c WHERE content_id = c.cid)");
+  }
+}
+
 // This is a replacement for update_sql(). The latter doesn't support placeholders.
 function _flag_update_sql($sql) {
   $args = func_get_args();

@@ -474,6 +474,14 @@ function flag_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
         if (!$flag->i18n || empty($node->tnid)) {
           db_query("DELETE FROM {flag_content} WHERE fid = %d AND content_id = %d", $flag->fid, $node->nid);
           db_query("DELETE FROM {flag_counts} WHERE fid = %d AND content_id = %d", $flag->fid, $node->nid);
+
+          // Delete comments.
+          db_query("DELETE FROM {flag_content}
+                     WHERE content_type = 'comment'
+                       AND content_id IN(
+                    SELECT cid
+                      FROM {comments}
+                     WHERE nid = %d)", $node->nid);
         }
       }
       break;
@@ -975,6 +983,23 @@ function flag_user_operations() {
 function flag_users($users, $action, $flag_name) {
   foreach ($users as $uid) {
     flag($action, $flag_name, $uid);
+  }
+}
+
+/**
+ * Implements hook_comment().
+ */
+function flag_comment(&$comment, $op) {
+  switch ($op) {
+    case 'delete':
+      db_query("DELETE FROM {flag_content}
+                 WHERE content_type = 'comment'
+                   AND content_id = %d", $comment->cid);
+
+      db_query("DELETE FROM {flag_counts}
+                 WHERE content_type = 'comment'
+                   AND content_id = %d", $comment->cid);
+      break;
   }
 }
 
