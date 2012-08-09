@@ -1104,7 +1104,11 @@ function flag_flag($action, $flag, $content_id, $account) {
     $event_name = ($action == 'flag' ? 'flag_flagged_' : 'flag_unflagged_') . $flag->name;
     // We only support flags on entities.
     if (entity_get_info($flag->content_type)) {
-      $variables = array('flag' => $flag, 'flagged_' . $flag->content_type => $content_id, 'flagging_user' => $account);
+      $variables = array(
+        'flag' => $flag,
+        'flagged_' . $flag->content_type => $content_id,
+        'flagging_user' => $account,
+      );
       rules_invoke_event_by_args($event_name, $variables);
     }
   }
