@@ -1799,10 +1799,8 @@ class flag_user extends flag_entity {
  */
 class flag_broken extends flag_flag {
   function options_form(&$form) {
+    drupal_set_message(t("The module providing this flag wasn't found, or this flag type, %type, isn't valid.", array('%type' => $this->content_type)), 'error');
     $form = array();
-    $form['error'] = array(
-      '#markup' => '<div class="error">' . t("The module providing this flag wasn't found, or this flag type, %type, isn't valid.", array('%type' => $this->content_type)) . '</div>',
-    );
   }
 }
 
