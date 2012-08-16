@@ -97,20 +97,48 @@ function flag_create_handler($content_type) {
  */
 class flag_flag {
 
-  // The database ID. Null for flags that haven't been saved to the database yet.
+  /**
+   * The database ID.
+   *
+   * NULL for flags that haven't been saved to the database yet.
+   *
+   * @var integer
+   */
   var $fid = NULL;
 
-  // The content-type this flag works with.
+  /**
+   * The content type (aka entity type) this flag works with.
+   *
+   * @var string
+   */
   var $content_type = NULL;
 
-  // The flag's "machine readable" name.
+  /**
+   * The flag's "machine readable" name.
+   *
+   * @var string
+   */
   var $name = '';
 
-  // Various non-serialized properties of the flag, corresponding directly to
-  // database columns.
+  /**
+   * The human-readable title for this flag.
+   *
+   * @var string
+   */
   var $title = '';
+
+  /**
+   * Whether this flag state should act as a single toggle to all users.
+   *
+   * @var bool
+   */
   var $global = FALSE;
-  // The sub-types, e.g. node types, this flag applies to.
+
+  /**
+   * The sub-types, AKA bundles, this flag applies to.
+   *
+   * @var array
+   */
   var $types = array();
 
   /**
