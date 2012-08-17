@@ -928,6 +928,8 @@ function flag_reset_flag($flag, $content_id = NULL) {
   }
   module_invoke_all('flag_reset', $flag, $content_id, $rows);
 
+  // Update the flag_counts table.
+  db_query("DELETE FROM {flag_counts} WHERE fid = %d" . ($content_id ? " AND content_id = %d" : ''), $flag->fid, $content_id);
   db_query("DELETE FROM {flag_content} WHERE fid = %d" . ($content_id ? " AND content_id = %d" : ''), $flag->fid, $content_id);
   return db_affected_rows();
 }
