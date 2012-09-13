@@ -216,7 +216,7 @@ function flag_export_form_submit($form, &$form_state) {
  */
 function flag_update_page($flag) {
   if ($flag->is_compatible()) {
-    drupal_set_message(t('The flag %name is already up-to-date with the latest Flag API and does not need upgrading.'));
+    drupal_set_message(t('The flag %name is already up-to-date with the latest Flag API and does not need upgrading.'), array('%name' => $flag->name));
     drupal_goto('admin/build/flags');
   }
 
