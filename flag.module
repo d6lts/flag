@@ -1947,6 +1947,7 @@ function flag_get_user_flags($content_type, $content_id = NULL, $uid = NULL, $si
  *   ID that flagged the content. Each flagged content array is structured as
  *   an array of flag information for each flag, keyed by the flag name. If
  *   a flag name is specified, only the information for that flag is returned.
+ *   If no flags were found an empty array is returned.
  */
 function flag_get_content_flags($content_type, $content_id, $flag_name = NULL) {
   $content_flags = &drupal_static(__FUNCTION__, array());
@@ -1959,6 +1960,7 @@ function flag_get_content_flags($content_type, $content_id, $flag_name = NULL) {
       ->condition('content_id', $content_id)
       ->orderBy('timestamp', 'DESC')
       ->execute();
+    $content_flags[$content_type][$content_id] = array();
     foreach ($result as $flag_content) {
       // Build a list of flaggings for all flags by user.
       $content_flags[$content_type][$content_id]['users'][$flag_content->uid][$flag_names[$flag_content->fid]] = $flag_content;
@@ -1966,8 +1968,13 @@ function flag_get_content_flags($content_type, $content_id, $flag_name = NULL) {
       $content_flags[$content_type][$content_id]['flags'][$flag_names[$flag_content->fid]][$flag_content->uid] = $flag_content;
     }
   }
-
-  return isset($flag_name) ? $content_flags[$content_type][$content_id]['flags'][$flag_name] : $content_flags[$content_type][$content_id]['users'];
+  if (empty($content_flags[$content_type][$content_id])) {
+    return array();
+  }
+  if (isset($flag_name)) {
+    return $content_flags[$content_type][$content_id]['flags'][$flag_name];
+  }
+  return $content_flags[$content_type][$content_id]['users'];
 }
 
 /**
