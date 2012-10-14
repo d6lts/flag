@@ -1545,7 +1545,7 @@ class flag_node extends flag_entity {
     unset($form['display']['show_on_entity']);
   }
 
-  function type_access_multiple($content_ids, $account = NULL) {
+  function type_access_multiple($content_ids, $account) {
     $access = array();
 
     // Ensure that only flaggable node types are granted access. This avoids a
