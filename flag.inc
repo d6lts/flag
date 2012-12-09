@@ -1310,6 +1310,7 @@ class flag_flag {
   function theme_suggestions() {
     $suggestions = array();
     $suggestions[] = 'flag__' . $this->name;
+    $suggestions[] = 'flag__' . $this->link_type;
     $suggestions[] = 'flag';
     return $suggestions;
   }
