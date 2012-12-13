@@ -645,7 +645,8 @@ class flag_flag {
   function flag($action, $content_id, $account = NULL, $skip_permission_check = FALSE) {
      // Get the user.
     if (!isset($account)) {
-      $account = $GLOBALS['user'];
+      // Load a fresh user entity as the global user entity is not complete.
+      $account = user_load($GLOBALS['user']->uid);
     }
     if (!$account) {
       return FALSE;
