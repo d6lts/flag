@@ -10,6 +10,7 @@ files[] = flag.rules.inc
 files[] = includes/flag_handler_argument_content_id.inc
 files[] = includes/flag_handler_field_ops.inc
 files[] = includes/flag_handler_filter_flagged.inc
+files[] = includes/flag_handler_sort_flagged.inc
 files[] = includes/flag_handler_relationships.inc
 files[] = includes/flag_plugin_argument_validate_flaggability.inc
 files[] = tests/flag.test
