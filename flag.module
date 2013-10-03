@@ -616,7 +616,14 @@ function flag_field_extra_fields() {
       continue;
     }
 
-    foreach ($flag->types as $bundle_name) {
+    $applicable_bundles = $flag->types;
+    // If the list of bundles is empty, it indicates all bundles apply.
+    if (empty($applicable_bundles)) {
+      $entity_info = entity_get_info($flag->entity_type);
+      $applicable_bundles = array_keys($entity_info['bundles']);
+    }
+
+    foreach ($applicable_bundles as $bundle_name) {
       if ($flag->show_on_form) {
         $extra[$flag->entity_type][$bundle_name]['form']['flag'] = array(
           'label' => t('Flags'),
