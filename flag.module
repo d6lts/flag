@@ -730,7 +730,8 @@ function flag_field_attach_form($entity_type, $entity, &$form, &$form_state, $la
       $flag_status = FALSE;
       // Apply the per-bundle defaults for nodes.
       if ($entity_type == 'node') {
-        $flag_status = variable_get('flag_' . $flag->name . '_default_' . $form['type']['#value'], 0);
+        $node_type = $entity->type;
+        $flag_status = variable_get('flag_' . $flag->name . '_default_' . $node_type, 0);
       }
 
       // For a new, unsaved entity, make a dummy entity ID so that the flag
