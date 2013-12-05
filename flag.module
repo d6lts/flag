@@ -705,6 +705,10 @@ function flag_field_attach_form($entity_type, $entity, &$form, &$form_state, $la
     $id = NULL;
   }
 
+  // Keep track of whether the entity is new or not, as we're about to fiddle
+  // with the entity id for the flag's entity cache.
+  $is_existing_entity = !empty($id);
+
   // Get all possible flags for this entity type.
   $flags = flag_get_flags($entity_type);
 
@@ -717,7 +721,7 @@ function flag_field_attach_form($entity_type, $entity, &$form, &$form_state, $la
     }
 
     // Get the flag status.
-    if (isset($id)) {
+    if ($is_existing_entity) {
       $flag_status = $flag->is_flagged($id);
     }
     else {
