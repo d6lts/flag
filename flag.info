@@ -4,6 +4,8 @@ core = 7.x
 package = Flags
 configure = admin/structure/flags
 
+test_dependencies[] = token
+
 ; Files that contain classes.
 ; Flag classes
 files[] = includes/flag/flag_flag.inc
