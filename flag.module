@@ -33,6 +33,7 @@ function flag_entity_info() {
       // The following tells EntityAPI how to save flaggings, thus allowing use
       // of Entity metadata wrappers (if present).
       'save callback' => 'flagging_save',
+      'creation callback' => 'flagging_create',
     ),
   );
 
@@ -70,6 +71,37 @@ function flagging_load($flagging_id, $reset = FALSE) {
   // The flag machine name is loaded in by FlaggingController::buildQuery().
   $result = entity_load('flagging', array($flagging_id), array(), $reset);
   return reset($result);
+}
+
+/**
+ * Entity API creation callback.
+ *
+ * Creates an unsaved flagging object for use with $flag->flag().
+ *
+ * @param $values
+ *   An array of values as described by the entity's property info. Only
+ *   'flag_name' or 'fid' must be specified, since $flag->flag() does the rest.
+ *
+ * @return
+ *   An unsaved flagging object containing the property values.
+ */
+function flagging_create($values = array()) {
+  $flagging = (object) array();
+
+  if (!isset($values['flag_name'])) {
+    if (isset($values['fid'])) {
+      // Add flag_name, determined from fid.
+      $flag = flag_get_flag(NULL, $values['fid']);
+      $values['flag_name'] = $flag->name;
+    }
+  }
+
+  // Apply the given values.
+  foreach ($values as $key => $value) {
+    $flagging->$key = $value;
+  }
+
+  return $flagging;
 }
 
 /**
