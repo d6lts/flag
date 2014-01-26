@@ -2148,11 +2148,17 @@ function flag_get_entity_flags($entity_type, $entity_id, $flag_name = NULL) {
  *   The "machine readable" name of the flag; e.g. 'bookmarks'.
  * @param $entity_id
  *   The entity ID to check for flagging, for example a node ID.
+ * @param $variables
+ *  An array of further variables to pass to theme('flag'). For the full list
+ *  of parameters, see flag.tpl.php. Of particular interest:
+ *  - after_flagging: Set to TRUE if this flag link is being displayed as the
+ *    result of a flagging action.
+ *  - errors: An array of error messages.
  *
  * @return
  *   The HTML for the themed flag link.
  */
-function flag_create_link($flag_name, $entity_id) {
+function flag_create_link($flag_name, $entity_id, $variables = array()) {
   $flag = flag_get_flag($flag_name);
   if (!$flag) {
     // Flag does not exist.
@@ -2162,7 +2168,7 @@ function flag_create_link($flag_name, $entity_id) {
     // User has no permission to use this flag.
     return;
   }
-  return $flag->theme($flag->is_flagged($entity_id) ? 'unflag' : 'flag', $entity_id);
+  return $flag->theme($flag->is_flagged($entity_id) ? 'unflag' : 'flag', $entity_id, $variables);
 }
 
 /**
