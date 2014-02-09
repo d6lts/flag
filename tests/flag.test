@@ -464,6 +464,161 @@ class FlagAccessFormTestCase extends FlagTestCaseBase {
 }
 
 /**
+ * Tokens we provide on generic entities.
+ */
+class FlagEntityTokensTestCase extends FlagTestCaseBase {
+
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Flag: Entity tokens',
+      'description' => 'Tokens for flag count on entities.',
+      'group' => 'Flag',
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  function setUp() {
+    // Our entity tokens require token module.
+    parent::setUp('flag', 'token');
+  }
+
+  /**
+   * Test tokens on nodes.
+   */
+  function testNodeFlagToken() {
+    // Create a flag on article nodes.
+    $flag_data = array(
+      'entity_type' => 'node',
+      'name' => 'node_flag',
+      'title' => 'Node Flag',
+      'global' => 0,
+      'types' => array(
+        0 => 'article',
+      ),
+      'flag_short' => 'Flag this item',
+      'flag_long' => '',
+      'flag_message' => '',
+      'unflag_short' => 'Unflag this item',
+      'unflag_long' => '',
+      'unflag_message' => '',
+      'unflag_denied_text' => 'You may not unflag this item',
+      'link_type' => 'normal',
+      'weight' => 0,
+      // Show the flag on the form.
+      'show_on_form' => 1,
+      'access_author' => '',
+      'show_contextual_link' => 0,
+      'show_in_links' => array(
+        'full' => 1,
+        'teaser' => 1,
+      ),
+      'i18n' => 0,
+      'api_version' => 3,
+    );
+    $flag = $this->createFlag($flag_data);
+
+    // Create a node to flag.
+    $node = (object) array(
+      'type' => 'article',
+      'title' => $this->randomName(),
+    );
+    node_save($node);
+
+    // Flag it by several users.
+    $flag_user_1 = $this->drupalCreateUser(array('flag node_flag',));
+
+    // Flag the node as the user.
+    $flag = flag_get_flag('node_flag');
+    $flag->flag('flag', $node->nid, $flag_user_1);
+
+    $flag_user_2 = $this->drupalCreateUser(array('flag node_flag',));
+
+    // Flag the node as the user.
+    $flag->flag('flag', $node->nid, $flag_user_2);
+
+    $text = '[node:flag-node-flag-count]';
+
+    $replaced_text = token_replace($text, array('node' => $node));
+
+    $this->assertEqual($replaced_text, 2, "The flag count token for the node is correct.");
+  }
+
+  /**
+   * Test tokens on taxonomy terms.
+   *
+   * These are worthy of a separate test, as the token type is a special case.
+   */
+  function testTaxonomyTermFlagToken() {
+    // Create a flag on tag terms.
+    $flag_data = array(
+      'entity_type' => 'taxonomy_term',
+      'name' => 'term_flag',
+      'title' => 'Term Flag',
+      'global' => 0,
+      'types' => array(
+        0 => 'tags',
+      ),
+      'flag_short' => 'Flag this item',
+      'flag_long' => '',
+      'flag_message' => '',
+      'unflag_short' => 'Unflag this item',
+      'unflag_long' => '',
+      'unflag_message' => '',
+      'unflag_denied_text' => 'You may not unflag this item',
+      'link_type' => 'normal',
+      'weight' => 0,
+      // Show the flag on the form.
+      'show_on_form' => 1,
+      'access_author' => '',
+      'show_contextual_link' => 0,
+      'show_in_links' => array(
+        'full' => 1,
+        'teaser' => 1,
+      ),
+      'i18n' => 0,
+      'api_version' => 3,
+    );
+    $flag = $this->createFlag($flag_data);
+
+    $vocabulary = taxonomy_vocabulary_load(1);
+
+    // Create a term to flag.
+    $term = (object) array(
+      'name' => $this->randomName(),
+      'vid' => 1,
+    );
+    taxonomy_term_save($term);
+
+    // Flag it by several users.
+    $flag_user_1 = $this->drupalCreateUser(array('flag term_flag',));
+
+    // Flag the term as the user.
+    $flag = flag_get_flag('term_flag');
+    $flag->flag('flag', $term->tid, $flag_user_1);
+
+    $flag_user_2 = $this->drupalCreateUser(array('flag term_flag',));
+
+    // Flag the term as the user.
+    $flag = flag_get_flag('term_flag');
+    $flag->flag('flag', $term->tid, $flag_user_2);
+
+    $text = '[term:flag-term-flag-count]';
+
+    $replaced_text = token_replace($text, array('term' => $term));
+
+    debug($replaced_text);
+
+    $this->assertEqual($replaced_text, 2, "The flag count token for the term is correct.");
+  }
+
+}
+
+/**
  * Access to flags using the basic flag link.
  */
 class FlagAccessLinkTestCase extends FlagTestCaseBase {
