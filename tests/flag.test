@@ -1124,3 +1124,90 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
   }
 
 }
+
+/**
+ * Verifies the invocation of hooks when performing flagging and unflagging.
+ */
+class FlagHookInvocationsTestCase extends FlagTestCaseBase {
+
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+     return array(
+      'name' => 'Flag hook invocations',
+      'description' => 'Invocation of flag and entity hooks and rules during flagging and unflagging.',
+      'group' => 'Flag',
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  function setUp() {
+    parent::setUp('flag', 'rules', 'flag_hook_test');
+
+    // Note the test module contains our test flag.
+
+    // Create test user who can flag and unflag.
+    $this->flag_unflag_user = $this->drupalCreateUser(array('flag flag_hook_test_flag', 'unflag flag_hook_test_flag'));
+    $this->drupalLogin($this->flag_unflag_user);
+  }
+
+  function testHookInvocation() {
+    // @todo: Expand this test to check the values returned by API functions and
+    // flag counts within each hook implementation.
+
+    // Create an article node that we try to create a flagging entity for.
+    $title = $this->randomName(8);
+    $node = array(
+      'title' => $title,
+      'body' => array(LANGUAGE_NONE => array(array('value' => $this->randomName(32)))),
+      'uid' => 1,
+      'type' => 'article',
+      'is_new' => TRUE,
+    );
+    $node = node_submit((object) $node);
+    node_save($node);
+
+    // Initialize a tracking variable. The test module will update this when
+    // its hooks are invoked.
+    variable_set('flag_hook_test_hook_tracking', array());
+
+    // Flag the node as the user.
+    $flag = flag_get_flag('flag_hook_test_flag');
+    $flag->flag('flag', $node->nid, $this->flag_unflag_user);
+
+    // Get the variable the test module sets the hook order into.
+    $hook_order_variable = variable_get('flag_hook_test_hook_tracking', array());
+    //debug($hook_order_variable);
+
+    $expected_hook_order = array(
+      'hook_entity_presave',
+      'hook_entity_insert',
+      'hook_flag_flag',
+      'rules_event',
+    );
+
+    $this->assertEqual($expected_hook_order, $hook_order_variable, "The hooks are invoked in the correct order when flagging a node.");
+
+    // Clear the tracking variable.
+    variable_set('flag_hook_test_hook_tracking', array());
+
+    // Unflag the node as the user.
+    $flag->flag('unflag', $node->nid, $this->flag_unflag_user);
+
+    // Get the variable the test module sets the hook order into.
+    $hook_order_variable = variable_get('flag_hook_test_hook_tracking', array());
+    //debug($hook_order_variable);
+
+    $expected_hook_order = array(
+      'hook_flag_unflag',
+      'rules_event',
+      'hook_entity_delete',
+    );
+
+    $this->assertEqual($expected_hook_order, $hook_order_variable, "The hooks are invoked in the correct order when unflagging a node.");
+  }
+
+}

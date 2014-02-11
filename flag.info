@@ -5,6 +5,7 @@ package = Flags
 configure = admin/structure/flags
 
 test_dependencies[] = token
+test_dependencies[] = rules
 
 ; Files that contain classes.
 ; Flag classes

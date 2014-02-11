@@ -1,0 +1,6 @@
+name = Flag Hooks Test
+description = Test module for invocation of flag hooks.
+dependencies[] = flag
+dependencies[] = rules
+core = 7.x
+hidden = TRUE
