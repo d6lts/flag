@@ -6,11 +6,18 @@
  */
 
 /**
+ * Store the hook name and parameters into a variable for retrieval by the test.
  *
+ * Hook implementations should call this with their hook name and parameters.
+ *
+ * @param $hook_name
+ *  The name of the hook invoked.
+ * @param $function_parameters
+ *  The array of parameters the hook received.
  */
-function _flag_hook_test_record_invocation($hook_name) {
+function _flag_hook_test_record_invocation($hook_name, $function_parameters) {
   $variable = variable_get('flag_hook_test_hook_tracking', array());
-  $variable[] = $hook_name;
+  $variable[$hook_name] = $function_parameters;
   variable_set('flag_hook_test_hook_tracking', $variable);
 }
 
@@ -18,14 +25,14 @@ function _flag_hook_test_record_invocation($hook_name) {
  * Implements hook_flag_flag().
  */
 function flag_hook_test_flag_flag($flag, $entity_id, $account, $flagging) {
-  _flag_hook_test_record_invocation('hook_flag_flag');
+  _flag_hook_test_record_invocation('hook_flag_flag', func_get_args());
 }
 
 /**
  * Implements hook_flag_unflag().
  */
 function flag_hook_test_flag_unflag($flag, $entity_id, $account, $flagging) {
-  _flag_hook_test_record_invocation('hook_flag_unflag');
+  _flag_hook_test_record_invocation('hook_flag_unflag', func_get_args());
 }
 
 /**
@@ -33,7 +40,7 @@ function flag_hook_test_flag_unflag($flag, $entity_id, $account, $flagging) {
  */
 function flag_hook_test_entity_presave($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_presave');
+    _flag_hook_test_record_invocation('hook_entity_presave', func_get_args());
   }
 }
 
@@ -42,7 +49,7 @@ function flag_hook_test_entity_presave($entity, $type) {
  */
 function flag_hook_test_entity_insert($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_insert');
+    _flag_hook_test_record_invocation('hook_entity_insert', func_get_args());
   }
 }
 
@@ -51,7 +58,7 @@ function flag_hook_test_entity_insert($entity, $type) {
  */
 function flag_hook_test_entity_update($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_update');
+    _flag_hook_test_record_invocation('hook_entity_update', func_get_args());
   }
 }
 
@@ -60,7 +67,7 @@ function flag_hook_test_entity_update($entity, $type) {
  */
 function flag_hook_test_entity_delete($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_delete');
+    _flag_hook_test_record_invocation('hook_entity_delete', func_get_args());
   }
 }
 
@@ -118,7 +125,7 @@ function flag_hook_test_rules_action_info() {
  * Test action for flagging.
  */
 function flag_test_action() {
-  _flag_hook_test_record_invocation('rules_event');
+  _flag_hook_test_record_invocation('rules_event', func_get_args());
 }
 
 /**

@@ -1179,8 +1179,9 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag->flag('flag', $node->nid, $this->flag_unflag_user);
 
     // Get the variable the test module sets the hook order into.
-    $hook_order_variable = variable_get('flag_hook_test_hook_tracking', array());
-    //debug($hook_order_variable);
+    $hook_data_variable = variable_get('flag_hook_test_hook_tracking', array());
+    //debug($hook_data_variable['hook_entity_presave']);
+    //debug($hook_data_variable['hook_entity_insert']);
 
     $expected_hook_order = array(
       'hook_entity_presave',
@@ -1189,7 +1190,48 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
       'rules_event',
     );
 
-    $this->assertEqual($expected_hook_order, $hook_order_variable, "The hooks are invoked in the correct order when flagging a node.");
+    // Check the hooks are invoked in the correct order.
+    $this->assertIdentical($expected_hook_order, array_keys($hook_data_variable), "The hooks are invoked in the correct order when flagging a node.");
+
+    // Check the parameters received by hook_entity_presave().
+    // Param 0: $flagging.
+    // There is a bug with what is passed to entity hooks; for now, just check
+    // the things that do get passed.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_presave() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_presave() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_presave() has the expected uid property.");
+    // Param 1: $entity_type.
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][1], 'flagging', "hook_entity_presave() is passed the correct entity type.");
+
+    // Check the parameters received by hook_entity_insert().
+    // Param 0: $flagging.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_entity_insert'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_insert() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_insert() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_insert'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_insert() has the expected uid property.");
+    $this->assertTrue(!empty($hook_data_variable['hook_entity_insert'][0]->flagging_id), "The Flagging entity passed to hook_entity_insert() has the flagging ID set.");
+    // Param 1: $entity_type.
+    $this->assertEqual($hook_data_variable['hook_entity_insert'][1], 'flagging', "hook_entity_insert() is passed the correct entity type.");
+
+    // Check the parameters received by hook_flag_flag().
+    // Param 0: $flag.
+    $this->assertEqual($hook_data_variable['hook_flag_flag'][0], $flag, "The flag object is passed to hook_flag_flag().");
+    // Param 1: $entity_id.
+    $this->assertEqual($hook_data_variable['hook_flag_flag'][1], $node->nid, "The entity ID is passed to hook_flag_flag().");
+    // Param 2: $account.
+    $this->assertEqual($hook_data_variable['hook_flag_flag'][2]->uid, $this->flag_unflag_user->uid, "The user account is passed to hook_flag_flag().");
+    // Param 3: $flagging.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_flag_flag'][3]->flag_name, $flag->name, "The Flagging entity passed to hook_flag_flag() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_flag_flag'][3]->entity_id, $node->nid, "The Flagging entity passed to hook_flag_flag() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_flag_flag'][3]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_flag_flag() has the expected uid property.");
 
     // Clear the tracking variable.
     variable_set('flag_hook_test_hook_tracking', array());
@@ -1198,8 +1240,8 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag->flag('unflag', $node->nid, $this->flag_unflag_user);
 
     // Get the variable the test module sets the hook order into.
-    $hook_order_variable = variable_get('flag_hook_test_hook_tracking', array());
-    //debug($hook_order_variable);
+    $hook_data_variable = variable_get('flag_hook_test_hook_tracking', array());
+    //debug($hook_data_variable);
 
     $expected_hook_order = array(
       'hook_flag_unflag',
@@ -1207,7 +1249,35 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
       'hook_entity_delete',
     );
 
-    $this->assertEqual($expected_hook_order, $hook_order_variable, "The hooks are invoked in the correct order when unflagging a node.");
+    // Check the hooks are invoked in the correct order.
+    $this->assertIdentical($expected_hook_order, array_keys($hook_data_variable), "The hooks are invoked in the correct order when unflagging a node.");
+
+    // Check the parameters received by hook_flag_unflag().
+    // Param 0: $flag.
+    $this->assertEqual($hook_data_variable['hook_flag_unflag'][0], $flag, "The flag object is passed to hook_flag_unflag().");
+    // Param 1: $entity_id.
+    $this->assertEqual($hook_data_variable['hook_flag_unflag'][1], $node->nid, "The entity ID is passed to hook_flag_unflag().");
+    // Param 2: $account.
+    $this->assertEqual($hook_data_variable['hook_flag_unflag'][2]->uid, $this->flag_unflag_user->uid, "The user account is passed to hook_flag_unflag().");
+    // Param 3: $flagging.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_flag_unflag'][3]->flag_name, $flag->name, "The Flagging entity passed to hook_flag_unflag() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_flag_unflag'][3]->entity_id, $node->nid, "The Flagging entity passed to hook_flag_unflag() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_flag_unflag'][3]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_flag_unflag() has the expected uid property.");
+
+    // Check the parameters received by hook_entity_delete().
+    // Param 0: $flagging.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_entity_delete'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_delete() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_delete'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_delete'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_delete'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_delete() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_delete'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_delete() has the expected uid property.");
+    $this->assertTrue(!empty($hook_data_variable['hook_entity_delete'][0]->flagging_id), "The Flagging entity passed to hook_entity_delete() has the flagging ID set.");
+    // Param 1: $entity_type.
+    $this->assertEqual($hook_data_variable['hook_entity_delete'][1], 'flagging', "hook_entity_delete() is passed the correct entity type.");
   }
 
 }
