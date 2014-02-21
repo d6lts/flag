@@ -598,6 +598,8 @@ function flag_permission() {
     ),
   );
 
+  // Reset static cache to ensure all flag permissions are available.
+  drupal_static_reset('flag_get_flags');
   $flags = flag_get_flags();
   // Provide flag and unflag permissions for each flag.
   foreach ($flags as $flag_name => $flag) {
