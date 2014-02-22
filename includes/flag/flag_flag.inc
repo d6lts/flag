@@ -800,7 +800,7 @@ class flag_flag {
         $this->_flag_anonymous($entity_id);
       }
 
-      // By definition there is no flagging entity yes, but we may have been
+      // By definition there is no flagging entity yet, but we may have been
       // passed one in to save.
       if (!isset($flagging)) {
         // Construct a new flagging object if we weren't passed one.
