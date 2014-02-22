@@ -1236,6 +1236,58 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     // Clear the tracking variable.
     variable_set('flag_hook_test_hook_tracking', array());
 
+    // Get the Flagging, and re-flag the node.
+    // This does nothing in our case, but is the API for updating a Flagging
+    // entity with changes to its Field API fields.
+    $entity_flags = flag_get_entity_flags('node', $node->nid, $flag->name);
+    $flagging_id = $entity_flags[$this->flag_unflag_user->uid]->flagging_id;
+    $flagging = flagging_load($flagging_id);
+
+    // Re-flag the node passing in the flagging entity.
+    $flag->flag('flag', $node->nid, $this->flag_unflag_user, FALSE, $flagging);
+
+    // Get the variable the test module sets the hook order into.
+    $hook_data_variable = variable_get('flag_hook_test_hook_tracking', array());
+    //debug($hook_data_variable);
+
+    $expected_hook_order = array(
+      'hook_entity_presave',
+      'hook_entity_update',
+      // Note that hook_flag() and the rule are not invoked, as this is not a
+      // new act of flagging.
+    );
+
+    // Check the hooks are invoked in the correct order.
+    $this->assertIdentical($expected_hook_order, array_keys($hook_data_variable), "The hooks are invoked in the correct order when re-flagging a node.");
+
+    // Check the parameters received by hook_entity_presave().
+    // Param 0: $flagging.
+    // There is a bug with what is passed to entity hooks; for now, just check
+    // the things that do get passed.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_presave() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_presave() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_presave() has the expected uid property.");
+    // Param 1: $entity_type.
+    $this->assertEqual($hook_data_variable['hook_entity_presave'][1], 'flagging', "hook_entity_presave() is passed the correct entity type.");
+
+    // Check the parameters received by hook_entity_update().
+    // Param 0: $flagging.
+    // See https://drupal.org/node/2196055.
+    $this->assertEqual($hook_data_variable['hook_entity_update'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_update() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_update'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_update'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_update'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_update() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_update'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_update() has the expected uid property.");
+    $this->assertTrue(!empty($hook_data_variable['hook_entity_update'][0]->flagging_id), "The Flagging entity passed to hook_entity_update() has the flagging ID set.");
+    // Param 1: $entity_type.
+    $this->assertEqual($hook_data_variable['hook_entity_update'][1], 'flagging', "hook_entity_update() is passed the correct entity type.");
+
+    // Clear the tracking variable.
+    variable_set('flag_hook_test_hook_tracking', array());
+
     // Unflag the node as the user.
     $flag->flag('unflag', $node->nid, $this->flag_unflag_user);
 
