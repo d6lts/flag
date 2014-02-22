@@ -2099,10 +2099,14 @@ function flag_get_user_flags($entity_type, $entity_id = NULL, $uid = NULL, $sid 
  *   (optional) The name of a flag if wanting a list specific to a single flag.
  *
  * @return
- *   If no flag name is given, an array of flagging data, keyed by the user
- *   ID that flagged the entity. Each flagging array is structured as
- *   an array of flag information for each flag, keyed by the flag name. If
- *   a flag name is specified, only the information for that flag is returned.
+ *   A nested array of flagging records (i.e. rows from the {flagging} table,
+ *   rather than complete Flagging entities). The structure depends on the
+ *   presence of the $flag_name parameter:
+ *    - if $flag_name is omitted, the array is keyed first by the user ID of
+ *      the users that flagged the entity, then by flag name. Each value is
+ *      then the flagging record.
+ *    - if $flag_name is given, the array is keyed only by user ID. Each value
+ *      is the flagging record.
  *   If no flags were found an empty array is returned.
  */
 function flag_get_entity_flags($entity_type, $entity_id, $flag_name = NULL) {
