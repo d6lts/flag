@@ -808,6 +808,9 @@ class flag_flag {
       }
 
       // Invoke hook_entity_presave().
+      // In the case that we have been passed in a flagging entity to update,
+      // this is technically still a presave, even though the {flagging} table
+      // itself is not changed.
       module_invoke_all('entity_presave', $flagging, 'flagging');
 
       if (!$flagged) {
@@ -874,6 +877,10 @@ class flag_flag {
     // Update the cache.
     entity_get_controller('flagging')->resetCache();
     // Invoke hook_entity_update().
+    // Since there are no fields on the {flagging} table that can be
+    // meaningfully changed, we don't perform an update on it. However, this
+    // technically still counts as updating the flagging entity, since we update
+    // its fields.
     module_invoke_all('entity_update', $flagging, 'flagging');
   }
   private function _delete_flagging($flagging) {
