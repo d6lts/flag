@@ -797,8 +797,8 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
       'i18n' => 0,
       'api_version' => 3,
     );
-    $flag = flag_flag::factory_by_array($this->flag_data);
-    $flag->save();
+    $this->flag = flag_flag::factory_by_array($this->flag_data);
+    $this->flag->save();
     // Reset our cache so our permissions show up.
     drupal_static_reset('flag_get_flags');
 
@@ -806,8 +806,8 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
     $this->checkPermissions(array(), TRUE);
 
     // Create test user who can flag and unflag.
-    $flag_unflag_user = $this->drupalCreateUser(array('flag test_flag', 'unflag test_flag'));
-    $this->drupalLogin($flag_unflag_user);
+    $this->flag_unflag_user = $this->drupalCreateUser(array('flag test_flag', 'unflag test_flag'));
+    $this->drupalLogin($this->flag_unflag_user);
 
     // Create an article node to flag and unflag.
     $title = $this->randomName(8);
@@ -824,7 +824,7 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Test that a user sees the flag confirm form.
+   * Test usage of the flag confirm form.
    */
   function testFlag() {
     // Look at our node.
@@ -849,6 +849,10 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
     $this->assertText($this->flag_data['flag_message'], 'The flag message appears once the item has been flagged.');
     $this->assertLink($this->flag_data['unflag_short'], 0, 'The unflag link appears once the item has been flagged.');
 
+    // Reset the static cache before we get data from it.
+    drupal_static_reset('flag_get_user_flags');
+    $this->assertTrue($this->flag->is_flagged($this->nid, $this->flag_unflag_user->uid), "The node is recorded as flagged by the user.");
+
     // Click the link to unflag the node.
     $this->clickLink($this->flag_data['unflag_short']);
 
@@ -864,6 +868,10 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
     $this->drupalPost(NULL, array(), $this->flag_data['unflag_short']);
 
     $this->assertText($this->flag_data['unflag_message'], 'The unflag message appears once the item has been flagged.');
+
+    // Reset the static cache before we get data from it.
+    drupal_static_reset('flag_get_user_flags');
+    $this->assertFalse($this->flag->is_flagged($this->nid, $this->flag_unflag_user->uid), "The node is recorded as not flagged by the user.");
   }
 
 }
