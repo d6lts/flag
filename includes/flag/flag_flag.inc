@@ -817,10 +817,7 @@ class flag_flag {
         // The entity is unflagged.
 
         // Save the flagging entity (just our table).
-        $flagging_id = $this->_flag($entity_id, $uid, $sid);
-        // The _flag() method is a plain DB record writer, so it's a bit
-        // antiquated. We have to explicitly get our new ID out.
-        $flagging->flagging_id = $flagging_id;
+        $this->_flag($flagging);
         $this->_increase_count($entity_id);
         // We're writing out a flagging entity even when we aren't passed one
         // (e.g., when flagging via JavaScript toggle links); in this case
@@ -911,9 +908,12 @@ class flag_flag {
     return (object) array(
       'flagging_id' => NULL,
       'flag_name' => $this->name,
+      'fid' => $this->fid,
+      'entity_type' => $this->entity_type,
       'entity_id' => $entity_id,
       'uid' => $uid,
       'sid' => $sid,
+      // The timestamp is not set until this is saved.
     );
   }
 
@@ -998,23 +998,16 @@ class flag_flag {
    * You probably shouldn't call this raw private method: call the flag()
    * function instead.
    *
-   * @return
-   *   The 'flagging_id' column of the new {flagging} record.
+   * @param
+   *   The flagging record.
    *
    * @private
    */
-  function _flag($entity_id, $uid, $sid) {
-    $flagging_id = db_insert('flagging')
-      ->fields(array(
-        'fid' => $this->fid,
-        'entity_type' => $this->entity_type,
-        'entity_id' => $entity_id,
-        'uid' => $uid,
-        'sid' => $sid,
-        'timestamp' => REQUEST_TIME,
-      ))
-      ->execute();
-    return $flagging_id;
+  function _flag($flagging) {
+    // Set the timestamp.
+    $flagging->timestamp = REQUEST_TIME;
+
+    drupal_write_record('flagging', $flagging);
   }
 
   /**
