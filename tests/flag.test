@@ -245,6 +245,14 @@ class FlagAdminTestCase extends FlagTestCaseBase {
    */
   function testFlagAdmin() {
     // Add a new flag using the UI.
+    $this->drupalGet(FLAG_ADMIN_PATH . '/add/node');
+
+    // Check the form has the expected defaults.
+    $this->assertFieldByName('flag_short', 'Flag this item', "The flag message default value shows in the form.");
+    $this->assertFieldByName('unflag_short', 'Unflag this item', "The unflag message default value shows in the form.");
+    $this->assertFieldByName('show_in_links[full]', 'full', "The view mode option is set to the node 'full' view mode by default.");
+    $this->assertFieldByName('show_in_links[teaser]', 'teaser', "The view mode option is set to the node 'teaser' view mode by default.");
+
     $edit = array(
       'name' => drupal_strtolower($this->randomName()),
       'title' => $this->randomName(),
