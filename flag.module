@@ -1182,7 +1182,7 @@ function flag_user_delete($account) {
 function flag_user_account_removal($account) {
   // Remove flags by this user.
   $query = db_select('flagging', 'fc');
-  $query->leftJoin('flag_counts', 'c', 'fc.entity_id = c.entity_id AND fc.entity_type = c.entity_type');
+  $query->leftJoin('flag_counts', 'c', 'fc.entity_id = c.entity_id AND fc.entity_type = c.entity_type AND fc.fid = c.fid');
   $result = $query
     ->fields('fc', array('fid', 'entity_id'))
     ->fields('c', array('count'))
