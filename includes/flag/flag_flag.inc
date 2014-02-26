@@ -720,12 +720,6 @@ class flag_flag {
       return FALSE;
     }
 
-    // Clear various caches; We don't want code running after us to report
-    // wrong counts or false flaggings.
-    drupal_static_reset('flag_get_counts');
-    drupal_static_reset('flag_get_user_flags');
-    drupal_static_reset('flag_get_entity_flags');
-
     // Find out which user id to use.
     $uid = $this->global ? 0 : $account->uid;
 
@@ -1008,6 +1002,11 @@ class flag_flag {
     $flagging->timestamp = REQUEST_TIME;
 
     drupal_write_record('flagging', $flagging);
+
+    // Clear various caches; we don't want code running after us to report
+    // wrong counts or false flaggings.
+    drupal_static_reset('flag_get_user_flags');
+    drupal_static_reset('flag_get_entity_flags');
   }
 
   /**
@@ -1020,10 +1019,15 @@ class flag_flag {
    */
   function _unflag($entity_id, $flagging_id) {
     db_delete('flagging')->condition('flagging_id', $flagging_id)->execute();
+
+    // Clear various caches; we don't want code running after us to report
+    // wrong counts or false flaggings.
+    drupal_static_reset('flag_get_user_flags');
+    drupal_static_reset('flag_get_entity_flags');
   }
 
   /**
-   * Increases the flag count for an object.
+   * Increases the flag count for an object and clears the static counts cache.
    *
    * @param $entity_id
    *   For which item should the count be increased.
@@ -1048,10 +1052,14 @@ class flag_flag {
       ))
       ->expression('count', 'count + :inc', array(':inc' => $number))
       ->execute();
+
+    // Reset the static cache of flag counts, so code running after this gets
+    // correct counts.
+    drupal_static_reset('flag_get_counts');
   }
 
   /**
-   * Decreases the flag count for an object.
+   * Decreases the flag count for an object and clears the static counts cache.
    *
    * @param $entity_id
    *   For which item should the count be descreased.
@@ -1078,6 +1086,10 @@ class flag_flag {
       ->condition('fid', $this->fid)
       ->condition('entity_id', $entity_id)
       ->execute();
+
+    // Reset the static cache of flag counts, so code running after this gets
+    // correct counts.
+    drupal_static_reset('flag_get_counts');
   }
 
   /**
