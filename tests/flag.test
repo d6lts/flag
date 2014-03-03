@@ -1255,8 +1255,15 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     // Get the Flagging, and re-flag the node.
     // This does nothing in our case, but is the API for updating a Flagging
     // entity with changes to its Field API fields.
-    $entity_flags = flag_get_entity_flags('node', $node->nid, $flag->name);
-    $flagging_id = $entity_flags[$this->flag_unflag_user->uid]->flagging_id;
+    // Query the database to get the Flagging ID rather than Flag API so we
+    // don't interefere with any caches.
+    $query = db_select('flagging', 'f');
+    $query->addField('f', 'flagging_id');
+    $query->condition('fid', $flag->fid)
+      ->condition('entity_id', $node->nid);
+    $flagging_id = $query
+      ->execute()
+      ->fetchField();
     $flagging = flagging_load($flagging_id);
 
     // Re-flag the node passing in the flagging entity.
