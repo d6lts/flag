@@ -1170,10 +1170,16 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $this->drupalLogin($this->flag_unflag_user);
   }
 
+  /**
+   * Test invocation of hooks and their data during flagging and unflagging.
+   *
+   * For each operation (flagging, re-flagging, unflagging) we test:
+   *  - the order in which Flag hooks, entity hooks, and rules are invoked.
+   *  - the parameters each hook receives
+   *  - the data that a hook implementation obtains when it calls the Flag data
+   *    API functions.
+   */
   function testHookInvocation() {
-    // @todo: Expand this test to check the values returned by API functions and
-    // flag counts within each hook implementation.
-
     // Create an article node that we try to create a flagging entity for.
     $title = $this->randomName(8);
     $node = array(
@@ -1214,40 +1220,112 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     // There is a bug with what is passed to entity hooks; for now, just check
     // the things that do get passed.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_presave() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_presave() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_presave() has the expected uid property.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_presave() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_presave() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_presave() has the expected uid property.");
     // Param 1: $entity_type.
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][1], 'flagging', "hook_entity_presave() is passed the correct entity type.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][1], 'flagging', "hook_entity_presave() is passed the correct entity type.");
+
+    // Check the API data available to hook_entity_presave().
+    //debug($hook_data_variable['hook_entity_presave']['api_calls']);
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['api_calls']['flag_get_entity_flags'], array(), "hook_entity_presave() gets no data from from flag_get_entity_flags(), as the flagging has not yet taken place.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['api_calls']['flag_get_user_flags'], array(), "hook_entity_presave() gets no data from from flag_get_user_flags(), as the flagging has not yet taken place.");
+    // The flag counts have not yet been increased.
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['api_calls']['flag_get_counts'], array(), "hook_entity_presave() gets no data from from flag_get_counts(), as the flagging has not yet taken place.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['api_calls']['flag_get_flag_counts'], 0, "hook_entity_presave() gets no data from from flag_get_flag_counts(), as the flagging has not yet taken place.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['api_calls']['flag_get_entity_flag_counts'], 0, "hook_entity_presave() gets no data from from flag_get_entity_flag_counts(), as the flagging has not yet taken place.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['api_calls']['flag_get_user_flag_counts'], 0, "hook_entity_presave() gets no data from from flag_get_user_flag_counts(), as the flagging has not yet taken place.");
 
     // Check the parameters received by hook_entity_insert().
     // Param 0: $flagging.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_entity_insert'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_insert() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_insert() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_entity_insert'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_insert() has the expected uid property.");
-    $this->assertTrue(!empty($hook_data_variable['hook_entity_insert'][0]->flagging_id), "The Flagging entity passed to hook_entity_insert() has the flagging ID set.");
+    $this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_insert() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_insert() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_insert() has the expected uid property.");
+    $this->assertTrue(!empty($hook_data_variable['hook_entity_insert']['parameters'][0]->flagging_id), "The Flagging entity passed to hook_entity_insert() has the flagging ID set.");
     // Param 1: $entity_type.
-    $this->assertEqual($hook_data_variable['hook_entity_insert'][1], 'flagging', "hook_entity_insert() is passed the correct entity type.");
+    $this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][1], 'flagging', "hook_entity_insert() is passed the correct entity type.");
+
+    // Check the API data available to hook_entity_insert().
+    //debug($hook_data_variable['hook_entity_insert']['api_calls']);
+    $flag_get_entity_flags = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_entity_flags'];
+    $flag_get_entity_flags_uids = array_keys($flag_get_entity_flags);
+    $this->assertEqual($flag_get_entity_flags_uids, array($this->flag_unflag_user->uid), "hook_entity_insert() gets correct data for flagging users from flag_get_entity_flags()");
+    $flag_get_entity_flags_flagging = $flag_get_entity_flags[$this->flag_unflag_user->uid];
+    $this->assertEqual($flag_get_entity_flags_flagging->fid, $flag->fid, "hook_entity_insert() gets a correct fid on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_type, 'node', "hook_entity_insert() gets a correct entity type on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_id, $node->nid, "hook_entity_insert() gets a correct entity ID on the Flagging obtained from flag_get_entity_flags()");
+
+    $flag_get_user_flags = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_user_flags'];
+    $flag_get_user_flags_flagging = $flag_get_user_flags[$flag->name];
+    $this->assertEqual($flag_get_user_flags_flagging->fid, $flag->fid, "hook_entity_insert() gets a correct fid on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_type, 'node', "hook_entity_insert() gets a correct entity type on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_id, $node->nid, "hook_entity_insert() gets a correct entity ID on the Flagging obtained from flag_get_user_flags()");
+
+    // The flag counts have been increased.
+    $flag_get_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_counts'];
+    $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_entity_insert() gets a correct flag count from flag_get_counts().");
+
+    // These assertions are commented out because they fail due to a bug
+    // with static caches not being cleared: https://drupal.org/node/2208847
+    $flag_get_flag_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_flag_counts'];
+    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_flag_counts().");
+
+    $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_entity_flag_counts'];
+    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_entity_flag_counts().");
+
+    $flag_get_user_flag_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_user_flag_counts'];
+    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Check the parameters received by hook_flag_flag().
     // Param 0: $flag.
-    $this->assertEqual($hook_data_variable['hook_flag_flag'][0], $flag, "The flag object is passed to hook_flag_flag().");
+    $this->assertEqual($hook_data_variable['hook_flag_flag']['parameters'][0], $flag, "The flag object is passed to hook_flag_flag().");
     // Param 1: $entity_id.
-    $this->assertEqual($hook_data_variable['hook_flag_flag'][1], $node->nid, "The entity ID is passed to hook_flag_flag().");
+    $this->assertEqual($hook_data_variable['hook_flag_flag']['parameters'][1], $node->nid, "The entity ID is passed to hook_flag_flag().");
     // Param 2: $account.
-    $this->assertEqual($hook_data_variable['hook_flag_flag'][2]->uid, $this->flag_unflag_user->uid, "The user account is passed to hook_flag_flag().");
+    $this->assertEqual($hook_data_variable['hook_flag_flag']['parameters'][2]->uid, $this->flag_unflag_user->uid, "The user account is passed to hook_flag_flag().");
     // Param 3: $flagging.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_flag_flag'][3]->flag_name, $flag->name, "The Flagging entity passed to hook_flag_flag() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_flag_flag'][3]->entity_id, $node->nid, "The Flagging entity passed to hook_flag_flag() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_flag_flag'][3]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_flag_flag() has the expected uid property.");
+    $this->assertEqual($hook_data_variable['hook_flag_flag']['parameters'][3]->flag_name, $flag->name, "The Flagging entity passed to hook_flag_flag() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][3]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][3]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_flag_flag']['parameters'][3]->entity_id, $node->nid, "The Flagging entity passed to hook_flag_flag() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_flag_flag']['parameters'][3]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_flag_flag() has the expected uid property.");
+
+    // Check the API data available to hook_flag_flag().
+    //debug($hook_data_variable['hook_flag_flag']['api_calls']);
+    $flag_get_entity_flags = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_entity_flags'];
+    $flag_get_entity_flags_uids = array_keys($flag_get_entity_flags);
+    $this->assertEqual($flag_get_entity_flags_uids, array($this->flag_unflag_user->uid), "hook_flag_flag() gets correct data for flagging users from flag_get_entity_flags()");
+    $flag_get_entity_flags_flagging = $flag_get_entity_flags[$this->flag_unflag_user->uid];
+    $this->assertEqual($flag_get_entity_flags_flagging->fid, $flag->fid, "hook_flag_flag() gets a correct fid on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_type, 'node', "hook_flag_flag() gets a correct entity type on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_id, $node->nid, "hook_flag_flag() gets a correct entity ID on the Flagging obtained from flag_get_entity_flags()");
+
+    $flag_get_user_flags = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_user_flags'];
+    $flag_get_user_flags_flagging = $flag_get_user_flags[$flag->name];
+    $this->assertEqual($flag_get_user_flags_flagging->fid, $flag->fid, "hook_flag_flag() gets a correct fid on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_type, 'node', "hook_flag_flag() gets a correct entity type on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_id, $node->nid, "hook_flag_flag() gets a correct entity ID on the Flagging obtained from flag_get_user_flags()");
+
+    // The flag counts have been increased.
+    $flag_get_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_counts'];
+    $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_flag_flag() gets a correct flag count from flag_get_counts().");
+
+    // These assertions are commented out because they fail due to a bug
+    // with static caches not being cleared: https://drupal.org/node/2208847
+    $flag_get_flag_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_flag_counts'];
+    //$this->assertEqual($flag_get_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_flag_counts().");
+
+    $flag_get_entity_flag_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_entity_flag_counts'];
+    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_entity_flag_counts().");
+
+    $flag_get_user_flag_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_user_flag_counts'];
+    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Clear the tracking variable.
     variable_set('flag_hook_test_hook_tracking', array());
@@ -1288,25 +1366,87 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     // There is a bug with what is passed to entity hooks; for now, just check
     // the things that do get passed.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_presave() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][0]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_presave() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_presave() has the expected uid property.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_presave() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_presave() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_presave() has the expected uid property.");
     // Param 1: $entity_type.
-    $this->assertEqual($hook_data_variable['hook_entity_presave'][1], 'flagging', "hook_entity_presave() is passed the correct entity type.");
+    $this->assertEqual($hook_data_variable['hook_entity_presave']['parameters'][1], 'flagging', "hook_entity_presave() is passed the correct entity type.");
+
+    // Check the API data available to hook_entity_presave().
+    //debug($hook_data_variable['hook_entity_presave']['api_calls']);
+    $flag_get_entity_flags = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_entity_flags'];
+    $flag_get_entity_flags_uids = array_keys($flag_get_entity_flags);
+    $this->assertEqual($flag_get_entity_flags_uids, array($this->flag_unflag_user->uid), "hook_entity_presave() gets correct data for flagging users from flag_get_entity_flags()");
+    $flag_get_entity_flags_flagging = $flag_get_entity_flags[$this->flag_unflag_user->uid];
+    $this->assertEqual($flag_get_entity_flags_flagging->fid, $flag->fid, "hook_entity_presave() gets a correct fid on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_type, 'node', "hook_entity_presave() gets a correct entity type on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_id, $node->nid, "hook_entity_presave() gets a correct entity ID on the Flagging obtained from flag_get_entity_flags()");
+
+    $flag_get_user_flags = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_user_flags'];
+    $flag_get_user_flags_flagging = $flag_get_user_flags[$flag->name];
+    $this->assertEqual($flag_get_user_flags_flagging->fid, $flag->fid, "hook_entity_presave() gets a correct fid on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_type, 'node', "hook_entity_presave() gets a correct entity type on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_id, $node->nid, "hook_entity_presave() gets a correct entity ID on the Flagging obtained from flag_get_user_flags()");
+
+    // The flag counts have not changed.
+    $flag_get_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_counts'];
+    $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_entity_presave() gets a correct flag count from flag_get_counts().");
+
+    // These assertions are commented out because they fail due to a bug
+    // with static caches not being cleared: https://drupal.org/node/2208847
+    $flag_get_flag_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_flag_counts'];
+    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_flag_counts().");
+
+    $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_entity_flag_counts'];
+    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_entity_flag_counts().");
+
+    $flag_get_user_flag_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_user_flag_counts'];
+    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Check the parameters received by hook_entity_update().
     // Param 0: $flagging.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_entity_update'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_update() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_update'][0]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_update'][0]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_entity_update'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_update() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_entity_update'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_update() has the expected uid property.");
-    $this->assertTrue(!empty($hook_data_variable['hook_entity_update'][0]->flagging_id), "The Flagging entity passed to hook_entity_update() has the flagging ID set.");
+    $this->assertEqual($hook_data_variable['hook_entity_update']['parameters'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_update() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_update']['parameters'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_update']['parameters'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_update']['parameters'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_update() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_update']['parameters'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_update() has the expected uid property.");
+    $this->assertTrue(!empty($hook_data_variable['hook_entity_update']['parameters'][0]->flagging_id), "The Flagging entity passed to hook_entity_update() has the flagging ID set.");
     // Param 1: $entity_type.
-    $this->assertEqual($hook_data_variable['hook_entity_update'][1], 'flagging', "hook_entity_update() is passed the correct entity type.");
+    $this->assertEqual($hook_data_variable['hook_entity_update']['parameters'][1], 'flagging', "hook_entity_update() is passed the correct entity type.");
+
+    // Check the API data available to hook_entity_update().
+    //debug($hook_data_variable['hook_entity_update']['api_calls']);
+    $flag_get_entity_flags = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_entity_flags'];
+    $flag_get_entity_flags_uids = array_keys($flag_get_entity_flags);
+    $this->assertEqual($flag_get_entity_flags_uids, array($this->flag_unflag_user->uid), "hook_entity_update() gets correct data for flagging users from flag_get_entity_flags()");
+    $flag_get_entity_flags_flagging = $flag_get_entity_flags[$this->flag_unflag_user->uid];
+    $this->assertEqual($flag_get_entity_flags_flagging->fid, $flag->fid, "hook_entity_update() gets a correct fid on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_type, 'node', "hook_entity_update() gets a correct entity type on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_id, $node->nid, "hook_entity_update() gets a correct entity ID on the Flagging obtained from flag_get_entity_flags()");
+
+    $flag_get_user_flags = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_user_flags'];
+    $flag_get_user_flags_flagging = $flag_get_user_flags[$flag->name];
+    $this->assertEqual($flag_get_user_flags_flagging->fid, $flag->fid, "hook_entity_update() gets a correct fid on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_type, 'node', "hook_entity_update() gets a correct entity type on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_id, $node->nid, "hook_entity_update() gets a correct entity ID on the Flagging obtained from flag_get_user_flags()");
+
+    // The flag counts have not changed.
+    $flag_get_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_counts'];
+    $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_entity_update() gets a correct flag count from flag_get_counts().");
+
+    // These assertions are commented out because they fail due to a bug
+    // with static caches not being cleared: https://drupal.org/node/2208847
+    $flag_get_flag_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_flag_counts'];
+    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_flag_counts().");
+
+    $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_entity_flag_counts'];
+    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_entity_flag_counts().");
+
+    $flag_get_user_flag_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_user_flag_counts'];
+    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Clear the tracking variable.
     variable_set('flag_hook_test_hook_tracking', array());
@@ -1329,30 +1469,104 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
 
     // Check the parameters received by hook_flag_unflag().
     // Param 0: $flag.
-    $this->assertEqual($hook_data_variable['hook_flag_unflag'][0], $flag, "The flag object is passed to hook_flag_unflag().");
+    $this->assertEqual($hook_data_variable['hook_flag_unflag']['parameters'][0], $flag, "The flag object is passed to hook_flag_unflag().");
     // Param 1: $entity_id.
-    $this->assertEqual($hook_data_variable['hook_flag_unflag'][1], $node->nid, "The entity ID is passed to hook_flag_unflag().");
+    $this->assertEqual($hook_data_variable['hook_flag_unflag']['parameters'][1], $node->nid, "The entity ID is passed to hook_flag_unflag().");
     // Param 2: $account.
-    $this->assertEqual($hook_data_variable['hook_flag_unflag'][2]->uid, $this->flag_unflag_user->uid, "The user account is passed to hook_flag_unflag().");
+    $this->assertEqual($hook_data_variable['hook_flag_unflag']['parameters'][2]->uid, $this->flag_unflag_user->uid, "The user account is passed to hook_flag_unflag().");
     // Param 3: $flagging.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_flag_unflag'][3]->flag_name, $flag->name, "The Flagging entity passed to hook_flag_unflag() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_insert'][3]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_flag_unflag'][3]->entity_id, $node->nid, "The Flagging entity passed to hook_flag_unflag() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_flag_unflag'][3]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_flag_unflag() has the expected uid property.");
+    $this->assertEqual($hook_data_variable['hook_flag_unflag']['parameters'][3]->flag_name, $flag->name, "The Flagging entity passed to hook_flag_unflag() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][3]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_insert']['parameters'][3]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_flag_unflag']['parameters'][3]->entity_id, $node->nid, "The Flagging entity passed to hook_flag_unflag() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_flag_unflag']['parameters'][3]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_flag_unflag() has the expected uid property.");
+
+    // Check the API data available to hook_flag_unflag().
+    //debug($hook_data_variable['hook_flag_unflag']['api_calls']);
+    // The unflagging is not yet done, so flag_get_entity_flags() will find the
+    // flagging data.
+    $flag_get_entity_flags = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_entity_flags'];
+    $flag_get_entity_flags_uids = array_keys($flag_get_entity_flags);
+    $this->assertEqual($flag_get_entity_flags_uids, array($this->flag_unflag_user->uid), "hook_flag_unflag() gets correct data for flagging users from flag_get_entity_flags()");
+    $flag_get_entity_flags_flagging = $flag_get_entity_flags[$this->flag_unflag_user->uid];
+    $this->assertEqual($flag_get_entity_flags_flagging->fid, $flag->fid, "hook_flag_unflag() gets a correct fid on the Flagging obtained from flag_get_entity_flags(): the Flagging has not yet been deleted.");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_type, 'node', "hook_flag_unflag() gets a correct entity type on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_id, $node->nid, "hook_flag_unflag() gets a correct entity ID on the Flagging obtained from flag_get_entity_flags()");
+
+    $flag_get_user_flags = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_user_flags'];
+    $flag_get_user_flags_flagging = $flag_get_user_flags[$flag->name];
+    $this->assertEqual($flag_get_user_flags_flagging->fid, $flag->fid, "hook_flag_unflag() gets a correct fid on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_type, 'node', "hook_flag_unflag() gets a correct entity type on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_id, $node->nid, "hook_flag_unflag() gets a correct entity ID on the Flagging obtained from flag_get_user_flags()");
+
+    // The flag counts have already been decreased.
+    $flag_get_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_counts'];
+    $this->assertEqual($flag_get_counts, array(), "hook_flag_unflag() gets a correct flag count from flag_get_counts().");
+
+    // These assertions are commented out because they fail due to a bug
+    // with static caches not being cleared: https://drupal.org/node/2208847
+    $flag_get_flag_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_flag_counts'];
+    //$this->assertEqual($flag_get_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_flag_counts().");
+
+    // flag_get_entity_flag_counts() queries the {flagging} table, so is not
+    // updated yet.
+    $flag_get_entity_flag_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_entity_flag_counts'];
+    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_entity_flag_counts().");
+
+    // flag_get_user_flag_counts() queries the {flagging} table, so is not
+    // updated yet.
+    $flag_get_user_flag_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_user_flag_counts'];
+    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Check the parameters received by hook_entity_delete().
     // Param 0: $flagging.
     // See https://drupal.org/node/2196055.
-    $this->assertEqual($hook_data_variable['hook_entity_delete'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_delete() has the expected flag name property.");
-    //$this->assertEqual($hook_data_variable['hook_entity_delete'][0]->fid, $flag->fid);
-    //$this->assertEqual($hook_data_variable['hook_entity_delete'][0]->entity_type, 'node');
-    $this->assertEqual($hook_data_variable['hook_entity_delete'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_delete() has the expected entity ID property.");
-    $this->assertEqual($hook_data_variable['hook_entity_delete'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_delete() has the expected uid property.");
-    $this->assertTrue(!empty($hook_data_variable['hook_entity_delete'][0]->flagging_id), "The Flagging entity passed to hook_entity_delete() has the flagging ID set.");
+    $this->assertEqual($hook_data_variable['hook_entity_delete']['parameters'][0]->flag_name, $flag->name, "The Flagging entity passed to hook_entity_delete() has the expected flag name property.");
+    //$this->assertEqual($hook_data_variable['hook_entity_delete']['parameters'][0]->fid, $flag->fid);
+    //$this->assertEqual($hook_data_variable['hook_entity_delete']['parameters'][0]->entity_type, 'node');
+    $this->assertEqual($hook_data_variable['hook_entity_delete']['parameters'][0]->entity_id, $node->nid, "The Flagging entity passed to hook_entity_delete() has the expected entity ID property.");
+    $this->assertEqual($hook_data_variable['hook_entity_delete']['parameters'][0]->uid, $this->flag_unflag_user->uid, "The Flagging entity passed to hook_entity_delete() has the expected uid property.");
+    $this->assertTrue(!empty($hook_data_variable['hook_entity_delete']['parameters'][0]->flagging_id), "The Flagging entity passed to hook_entity_delete() has the flagging ID set.");
     // Param 1: $entity_type.
-    $this->assertEqual($hook_data_variable['hook_entity_delete'][1], 'flagging', "hook_entity_delete() is passed the correct entity type.");
+    $this->assertEqual($hook_data_variable['hook_entity_delete']['parameters'][1], 'flagging', "hook_entity_delete() is passed the correct entity type.");
+
+    // Check the API data available to hook_entity_delete().
+    //debug($hook_data_variable['hook_entity_delete']['api_calls']);
+    // The unflagging is not yet done, so hook_entity_delete() will find the
+    // flagging data.
+    $flag_get_entity_flags = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_entity_flags'];
+    $flag_get_entity_flags_uids = array_keys($flag_get_entity_flags);
+    $this->assertEqual($flag_get_entity_flags_uids, array($this->flag_unflag_user->uid), "hook_entity_delete() gets correct data for flagging users from flag_get_entity_flags()");
+    $flag_get_entity_flags_flagging = $flag_get_entity_flags[$this->flag_unflag_user->uid];
+    $this->assertEqual($flag_get_entity_flags_flagging->fid, $flag->fid, "hook_entity_delete() gets a correct fid on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_type, 'node', "hook_entity_delete() gets a correct entity type on the Flagging obtained from flag_get_entity_flags()");
+    $this->assertEqual($flag_get_entity_flags_flagging->entity_id, $node->nid, "hook_entity_delete() gets a correct entity ID on the Flagging obtained from flag_get_entity_flags()");
+
+    $flag_get_user_flags = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_user_flags'];
+    $flag_get_user_flags_flagging = $flag_get_user_flags[$flag->name];
+    $this->assertEqual($flag_get_user_flags_flagging->fid, $flag->fid, "hook_entity_delete() gets a correct fid on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_type, 'node', "hook_entity_delete() gets a correct entity type on the Flagging obtained from flag_get_user_flags()");
+    $this->assertEqual($flag_get_user_flags_flagging->entity_id, $node->nid, "hook_entity_delete() gets a correct entity ID on the Flagging obtained from flag_get_user_flags()");
+
+    // The flag counts have already been decreased.
+    $flag_get_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_counts'];
+    $this->assertEqual($flag_get_counts, array(), "hook_entity_delete() gets a correct flag count from flag_get_counts().");
+
+    // These assertions are commented out because they fail due to a bug
+    // with static caches not being cleared: https://drupal.org/node/2208847
+    $flag_get_flag_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_flag_counts'];
+    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_flag_counts().");
+
+    // flag_get_entity_flag_counts() queries the {flagging} table, so is not
+    // updated yet.
+    $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_entity_flag_counts'];
+    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_entity_flag_counts().");
+
+    // flag_get_user_flag_counts() queries the {flagging} table, so is not
+    // updated yet.
+    $flag_get_user_flag_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_user_flag_counts'];
+    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_user_flag_counts().");
   }
 
 }

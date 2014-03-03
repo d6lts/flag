@@ -14,10 +14,38 @@
  *  The name of the hook invoked.
  * @param $function_parameters
  *  The array of parameters the hook received.
+ * @param $flagging
+ *  (optional) The flagging entity that the hook received. If this is given,
+ *  then various flag API functions have their data set into the tracking
+ *  variable for verification by the test case.
  */
-function _flag_hook_test_record_invocation($hook_name, $function_parameters) {
+function _flag_hook_test_record_invocation($hook_name, $function_parameters, $flagging = NULL) {
   $variable = variable_get('flag_hook_test_hook_tracking', array());
-  $variable[$hook_name] = $function_parameters;
+
+  $variable[$hook_name] = array();
+  $variable[$hook_name]['parameters'] = $function_parameters;
+
+  // If a Flagging entity was passed in, call API functions and store their data
+  // for the test case to check.
+  if (isset($flagging)) {
+    $flag = flag_get_flag(NULL, $flagging->fid);
+
+    $variable[$hook_name]['api_calls'] = array();
+
+    $variable[$hook_name]['api_calls']['flag_get_entity_flags'] = flag_get_entity_flags('node', $flagging->entity_id, $flag->name);
+
+    $variable[$hook_name]['api_calls']['flag_get_user_flags'] = flag_get_user_flags('node', $flagging->entity_id, $flagging->uid);
+
+    $variable[$hook_name]['api_calls']['flag_get_counts'] = flag_get_counts('node', $flagging->entity_id);
+
+    $variable[$hook_name]['api_calls']['flag_get_flag_counts'] = flag_get_flag_counts($flag->name);
+
+    $variable[$hook_name]['api_calls']['flag_get_entity_flag_counts'] = flag_get_entity_flag_counts($flag, 'node');
+
+    $account = user_load($flagging->uid);
+    $variable[$hook_name]['api_calls']['flag_get_user_flag_counts'] = flag_get_user_flag_counts($flag, $account);
+  }
+
   variable_set('flag_hook_test_hook_tracking', $variable);
 }
 
@@ -25,14 +53,14 @@ function _flag_hook_test_record_invocation($hook_name, $function_parameters) {
  * Implements hook_flag_flag().
  */
 function flag_hook_test_flag_flag($flag, $entity_id, $account, $flagging) {
-  _flag_hook_test_record_invocation('hook_flag_flag', func_get_args());
+  _flag_hook_test_record_invocation('hook_flag_flag', func_get_args(), $flagging);
 }
 
 /**
  * Implements hook_flag_unflag().
  */
 function flag_hook_test_flag_unflag($flag, $entity_id, $account, $flagging) {
-  _flag_hook_test_record_invocation('hook_flag_unflag', func_get_args());
+  _flag_hook_test_record_invocation('hook_flag_unflag', func_get_args(), $flagging);
 }
 
 /**
@@ -40,7 +68,7 @@ function flag_hook_test_flag_unflag($flag, $entity_id, $account, $flagging) {
  */
 function flag_hook_test_entity_presave($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_presave', func_get_args());
+    _flag_hook_test_record_invocation('hook_entity_presave', func_get_args(), $entity);
   }
 }
 
@@ -49,7 +77,7 @@ function flag_hook_test_entity_presave($entity, $type) {
  */
 function flag_hook_test_entity_insert($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_insert', func_get_args());
+    _flag_hook_test_record_invocation('hook_entity_insert', func_get_args(), $entity);
   }
 }
 
@@ -58,7 +86,7 @@ function flag_hook_test_entity_insert($entity, $type) {
  */
 function flag_hook_test_entity_update($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_update', func_get_args());
+    _flag_hook_test_record_invocation('hook_entity_update', func_get_args(), $entity);
   }
 }
 
@@ -67,7 +95,7 @@ function flag_hook_test_entity_update($entity, $type) {
  */
 function flag_hook_test_entity_delete($entity, $type) {
   if ($type == 'flagging') {
-    _flag_hook_test_record_invocation('hook_entity_delete', func_get_args());
+    _flag_hook_test_record_invocation('hook_entity_delete', func_get_args(), $entity);
   }
 }
 
