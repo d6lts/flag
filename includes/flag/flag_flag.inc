@@ -1007,6 +1007,10 @@ class flag_flag {
     // wrong counts or false flaggings.
     drupal_static_reset('flag_get_user_flags');
     drupal_static_reset('flag_get_entity_flags');
+    // Despite being named in the same pattern as the count API functions, these
+    // query the {flagging} table, so are reset here.
+    drupal_static_reset('flag_get_entity_flag_counts');
+    drupal_static_reset('flag_get_user_flag_counts');
   }
 
   /**
@@ -1024,6 +1028,10 @@ class flag_flag {
     // wrong counts or false flaggings.
     drupal_static_reset('flag_get_user_flags');
     drupal_static_reset('flag_get_entity_flags');
+    // Despite being named in the same pattern as the count API functions, these
+    // query the {flagging} table, so are reset here.
+    drupal_static_reset('flag_get_entity_flag_counts');
+    drupal_static_reset('flag_get_user_flag_counts');
   }
 
   /**
@@ -1056,6 +1064,7 @@ class flag_flag {
     // Reset the static cache of flag counts, so code running after this gets
     // correct counts.
     drupal_static_reset('flag_get_counts');
+    drupal_static_reset('flag_get_flag_counts');
   }
 
   /**
@@ -1090,6 +1099,7 @@ class flag_flag {
     // Reset the static cache of flag counts, so code running after this gets
     // correct counts.
     drupal_static_reset('flag_get_counts');
+    drupal_static_reset('flag_get_flag_counts');
   }
 
   /**

@@ -1270,16 +1270,14 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag_get_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_counts'];
     $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_entity_insert() gets a correct flag count from flag_get_counts().");
 
-    // These assertions are commented out because they fail due to a bug
-    // with static caches not being cleared: https://drupal.org/node/2208847
     $flag_get_flag_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_flag_counts'];
-    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_flag_counts().");
+    $this->assertEqual($flag_get_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_flag_counts().");
 
     $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_entity_flag_counts'];
-    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_entity_flag_counts().");
+    $this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_entity_flag_counts().");
 
     $flag_get_user_flag_counts = $hook_data_variable['hook_entity_insert']['api_calls']['flag_get_user_flag_counts'];
-    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_user_flag_counts().");
+    $this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_insert() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Check the parameters received by hook_flag_flag().
     // Param 0: $flag.
@@ -1316,16 +1314,14 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag_get_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_counts'];
     $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_flag_flag() gets a correct flag count from flag_get_counts().");
 
-    // These assertions are commented out because they fail due to a bug
-    // with static caches not being cleared: https://drupal.org/node/2208847
     $flag_get_flag_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_flag_counts'];
-    //$this->assertEqual($flag_get_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_flag_counts().");
+    $this->assertEqual($flag_get_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_flag_counts().");
 
     $flag_get_entity_flag_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_entity_flag_counts'];
-    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_entity_flag_counts().");
+    $this->assertEqual($flag_get_entity_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_entity_flag_counts().");
 
     $flag_get_user_flag_counts = $hook_data_variable['hook_flag_flag']['api_calls']['flag_get_user_flag_counts'];
-    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_user_flag_counts().");
+    $this->assertEqual($flag_get_user_flag_counts, 1, "hook_flag_flag() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Clear the tracking variable.
     variable_set('flag_hook_test_hook_tracking', array());
@@ -1394,16 +1390,14 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag_get_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_counts'];
     $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_entity_presave() gets a correct flag count from flag_get_counts().");
 
-    // These assertions are commented out because they fail due to a bug
-    // with static caches not being cleared: https://drupal.org/node/2208847
     $flag_get_flag_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_flag_counts'];
-    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_flag_counts().");
+    $this->assertEqual($flag_get_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_flag_counts().");
 
     $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_entity_flag_counts'];
-    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_entity_flag_counts().");
+    $this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_entity_flag_counts().");
 
     $flag_get_user_flag_counts = $hook_data_variable['hook_entity_presave']['api_calls']['flag_get_user_flag_counts'];
-    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_user_flag_counts().");
+    $this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_presave() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Check the parameters received by hook_entity_update().
     // Param 0: $flagging.
@@ -1437,16 +1431,14 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag_get_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_counts'];
     $this->assertEqual($flag_get_counts[$flag->name], 1, "hook_entity_update() gets a correct flag count from flag_get_counts().");
 
-    // These assertions are commented out because they fail due to a bug
-    // with static caches not being cleared: https://drupal.org/node/2208847
     $flag_get_flag_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_flag_counts'];
-    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_flag_counts().");
+    $this->assertEqual($flag_get_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_flag_counts().");
 
     $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_entity_flag_counts'];
-    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_entity_flag_counts().");
+    $this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_entity_flag_counts().");
 
     $flag_get_user_flag_counts = $hook_data_variable['hook_entity_update']['api_calls']['flag_get_user_flag_counts'];
-    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_user_flag_counts().");
+    $this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_update() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Clear the tracking variable.
     variable_set('flag_hook_test_hook_tracking', array());
@@ -1504,20 +1496,18 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag_get_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_counts'];
     $this->assertEqual($flag_get_counts, array(), "hook_flag_unflag() gets a correct flag count from flag_get_counts().");
 
-    // These assertions are commented out because they fail due to a bug
-    // with static caches not being cleared: https://drupal.org/node/2208847
     $flag_get_flag_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_flag_counts'];
-    //$this->assertEqual($flag_get_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_flag_counts().");
+    $this->assertEqual($flag_get_flag_counts, 0, "hook_flag_unflag() gets a correct flag count from flag_get_flag_counts().");
 
     // flag_get_entity_flag_counts() queries the {flagging} table, so is not
     // updated yet.
     $flag_get_entity_flag_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_entity_flag_counts'];
-    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_entity_flag_counts().");
+    $this->assertEqual($flag_get_entity_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_entity_flag_counts().");
 
     // flag_get_user_flag_counts() queries the {flagging} table, so is not
     // updated yet.
     $flag_get_user_flag_counts = $hook_data_variable['hook_flag_unflag']['api_calls']['flag_get_user_flag_counts'];
-    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_user_flag_counts().");
+    $this->assertEqual($flag_get_user_flag_counts, 1, "hook_flag_unflag() gets a correct flag count from flag_get_user_flag_counts().");
 
     // Check the parameters received by hook_entity_delete().
     // Param 0: $flagging.
@@ -1553,20 +1543,18 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
     $flag_get_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_counts'];
     $this->assertEqual($flag_get_counts, array(), "hook_entity_delete() gets a correct flag count from flag_get_counts().");
 
-    // These assertions are commented out because they fail due to a bug
-    // with static caches not being cleared: https://drupal.org/node/2208847
     $flag_get_flag_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_flag_counts'];
-    //$this->assertEqual($flag_get_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_flag_counts().");
+    $this->assertEqual($flag_get_flag_counts, 0, "hook_entity_delete() gets a correct flag count from flag_get_flag_counts().");
 
     // flag_get_entity_flag_counts() queries the {flagging} table, so is not
     // updated yet.
     $flag_get_entity_flag_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_entity_flag_counts'];
-    //$this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_entity_flag_counts().");
+    $this->assertEqual($flag_get_entity_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_entity_flag_counts().");
 
     // flag_get_user_flag_counts() queries the {flagging} table, so is not
     // updated yet.
     $flag_get_user_flag_counts = $hook_data_variable['hook_entity_delete']['api_calls']['flag_get_user_flag_counts'];
-    //$this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_user_flag_counts().");
+    $this->assertEqual($flag_get_user_flag_counts, 1, "hook_entity_delete() gets a correct flag count from flag_get_user_flag_counts().");
   }
 
 }
