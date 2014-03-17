@@ -33,13 +33,11 @@ function flag_flag_link_content_type_content_types() {
   $entities = entity_get_info();
 
   foreach ($entities as $entity_type => $info) {
-    if (entity_type_supports($entity_type, 'view')) {
-      $types[$entity_type] = array(
-        'title' => t('Flag for @entity_type', array('@entity_type' => $info['label'])),
-        'category' => t('Entity'),
-        'required context' => new ctools_context_required(t('Entity'), $entity_type),
-      );
-    }
+    $types[$entity_type] = array(
+      'title' => t('Flag for @entity_type', array('@entity_type' => $info['label'])),
+      'category' => t('Entity'),
+      'required context' => new ctools_context_required(t('Entity'), $entity_type),
+    );
   }
 
   return $types;
