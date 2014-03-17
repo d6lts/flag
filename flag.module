@@ -1698,7 +1698,8 @@ function _flag_link_type_descriptions() {
  * implementation or from Rules), the flagging or unflagging that is in the
  * process of being performed:
  *  - will be included during a flagging operation
- *  - will NOT be included during an unflagging operation.
+ *  - will STILL be included during an unflagging operation. That is, the count
+ *    will not yet have been decreased.
  * This is because this queries the {flagging} table, which only has its record
  * deleted at the very end of the unflagging process.
  *
@@ -1737,7 +1738,8 @@ function flag_get_entity_flag_counts($flag, $entity_type) {
  * implementation or from Rules), the flagging or unflagging that is in the
  * process of being performed:
  *  - will be included during a flagging operation
- *  - will NOT be included during an unflagging operation.
+ *  - will STILL be included during an unflagging operation. That is, the count
+ *    will not yet have been decreased.
  * This is because this queries the {flagging} table, which only has its record
  * deleted at the very end of the unflagging process.
  *
@@ -1773,8 +1775,8 @@ function flag_get_user_flag_counts($flag, $user) {
  * Get flag counts for all flags on a node.
  *
  * When called during a flagging or unflagging (such as from a hook
- * implementation or from Rules), the count this returns will include the
- * flagging or unflagging that is in the process of being performed.
+ * implementation or from Rules), the count this returns takes into account the
+ * the flagging or unflagging that is in the process of being performed.
  *
  * @param $entity_type
  *   The entity type (usually 'node').
@@ -1809,8 +1811,8 @@ function flag_get_counts($entity_type, $entity_id) {
  * Get the total count of items flagged within a flag.
  *
  * When called during a flagging or unflagging (such as from a hook
- * implementation or from Rules), the count this returns will include the
- * flagging or unflagging that is in the process of being performed.
+ * implementation or from Rules), the count this returns takes into account the
+ * the flagging or unflagging that is in the process of being performed.
  *
  * @param $flag_name
  *   The flag name for which to retrieve a flag count.
@@ -2044,7 +2046,8 @@ function flag_get_flag_flagging_data($flag_name) {
  * implementation or from Rules), the flagging or unflagging that is in the
  * process of being performed:
  *  - will be included during a flagging operation
- *  - will NOT be included during an unflagging operation.
+ *  - will STILL be included during an unflagging operation. That is, the count
+ *    will not yet have been decreased.
  * This is because this queries the {flagging} table, which only has its record
  * deleted at the very end of the unflagging process.
  *
@@ -2127,7 +2130,8 @@ function flag_get_user_flags($entity_type, $entity_id = NULL, $uid = NULL, $sid 
  * implementation or from Rules), the flagging or unflagging that is in the
  * process of being performed:
  *  - will be included during a flagging operation
- *  - will NOT be included during an unflagging operation.
+ *  - will STILL be included during an unflagging operation. That is, the count
+ *    will not yet have been decreased.
  * This is because this queries the {flagging} table, which only has its record
  * deleted at the very end of the unflagging process.
  *
