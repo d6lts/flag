@@ -58,7 +58,8 @@ class flag_entity extends flag_flag {
     }
     // Select the first display option by default if this is a new flag.
     if (empty($this->fid)) {
-      $first_view_mode = reset(array_keys($entity_view_modes));
+      $first_view_mode_keys = array_keys($entity_view_modes);
+      $first_view_mode = reset($first_view_mode_keys);
       $defaults[$first_view_mode] = $first_view_mode;
     }
 
