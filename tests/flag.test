@@ -43,7 +43,7 @@ class FlagFlaggingCRUDTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flagging CRUD',
+      'name' => 'CRUD API',
       'description' => 'Basic CRUD operations on flagging entities.',
       'group' => 'Flag',
     );
@@ -223,7 +223,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flag admin tests',
+      'name' => 'Admin UI',
       'description' => 'Add, edit and delete flags.',
       'group' => 'Flag',
     );
@@ -385,7 +385,7 @@ class FlagAccessFormTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flag access: entity forms',
+      'name' => 'Access to flags via entity forms',
       'description' => 'Access to flag and unflag entities via entity forms.',
       'group' => 'Flag',
     );
@@ -481,7 +481,7 @@ class FlagEntityTokensTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flag: Entity tokens',
+      'name' => 'Entity tokens',
       'description' => 'Tokens for flag count on entities.',
       'group' => 'Flag',
     );
@@ -636,7 +636,7 @@ class FlagAccessLinkTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flag access tests',
+      'name' => 'Access to flags via basic link',
       'description' => 'Access to flag and unflag entities using the basic link.',
       'group' => 'Flag',
     );
@@ -762,7 +762,7 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flag confirm link tests',
+      'name' => 'Confirm form',
       'description' => 'Flag confirm form link type.',
       'group' => 'Flag',
     );
@@ -894,7 +894,7 @@ class FlagHookFlagAccessTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Flag hook_flag_access() tests',
+      'name' => 'hook_flag_access()',
       'description' => 'Checks the ability of modules to use hook_flag_access().',
       'group' => 'Flag',
     );
@@ -1051,7 +1051,7 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
      return array(
-      'name' => 'Flagging Entity Field Query Extension',
+      'name' => 'Entity Field Query',
       'description' => 'Entity Field Query for flagging entities.',
       'group' => 'Flag',
     );
@@ -1151,7 +1151,7 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
    */
   public static function getInfo() {
      return array(
-      'name' => 'Flag hook invocations',
+      'name' => 'Hook invocations',
       'description' => 'Invocation of flag and entity hooks and rules during flagging and unflagging.',
       'group' => 'Flag',
     );
