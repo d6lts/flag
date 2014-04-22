@@ -2,7 +2,7 @@
 
 /**
  * @file
- *   Contains the flag_entity class.
+ * Contains the flag_entity class.
  */
 
 /**

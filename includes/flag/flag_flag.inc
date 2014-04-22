@@ -2,9 +2,9 @@
 
 /**
  * @file
- *  Contains the flag_flag class.
- *  Flag type classes use an object oriented style inspired by that
- *  of Views 2.
+ * Contains the flag_flag class.
+ * Flag type classes use an object oriented style inspired by that
+ * of Views 2.
  */
 
 /**
@@ -1048,7 +1048,7 @@ class flag_flag {
    *   The amount of counts to increasing. Defaults to 1.
    *
    * @private
-  */
+   */
   function _increase_count($entity_id, $number = 1) {
     db_merge('flag_counts')
       ->key(array(
@@ -1081,7 +1081,7 @@ class flag_flag {
    *   The amount of counts to decrease. Defaults to 1.
    *
    * @private
-  */
+   */
   function _decrease_count($entity_id, $number = 1) {
     // Delete rows with count 0, for data consistency and space-saving.
     // Done before the db_update() to prevent out-of-bounds errors on "count".
@@ -1169,6 +1169,7 @@ class flag_flag {
    * @param $entity_id
    *   The ID in whose context to interpret tokens. If not given, only global
    *   tokens will be substituted.
+   *
    * @return
    *   The processed label.
    */

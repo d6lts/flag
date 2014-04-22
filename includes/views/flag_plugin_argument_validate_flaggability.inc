@@ -66,8 +66,9 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
   }
 
   /**
-   * Returns form #options for the flags. Returns empty array if no flags were
-   * found.
+   * Returns form #options for the flags.
+   *
+   * Returns empty array if no flags were found.
    */
   function flags_options() {
     $flags = flag_get_flags($this->flag_type);
@@ -96,8 +97,9 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
   }
 
   /**
-   * Declares all tests. This scheme makes it easy for derived classes to add
-   * and remove tests.
+   * Declares all tests.
+   *
+   * This scheme makes it easy for derived classes to add and remove tests.
    */
   function tests_info($which = NULL) {
     return array(

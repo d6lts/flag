@@ -397,7 +397,6 @@ function theme_flag_actions_add_form($variables) {
  *   If editing an action, an action ID must be passed in.
  * @param $flag_name
  *   If adding a new action to a flag, a flag name must be specified.
- *
  */
 function flag_actions_form($form, &$form_state, $aid = NULL, $flag_name = NULL) {
   // This is a multistep form. Get the callback value if set and continue.
