@@ -735,7 +735,7 @@ function flag_form_node_type_form_alter(&$form, &$form_state, $form_id) {
  * Warning: will not work on entity types that are not fieldable, as this relies
  * on a field module hook.
  *
- * @see flag_field_attach_submit().
+ * @see flag_field_attach_submit()
  */
 function flag_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
   list($id) = entity_extract_ids($entity_type, $entity);
@@ -844,7 +844,7 @@ function flag_field_attach_form($entity_type, $entity, &$form, &$form_state, $la
 /**
  * Implements hook_field_attach_submit().
  *
- * @see flag_field_attach_form().
+ * @see flag_field_attach_form()
  */
 function flag_field_attach_submit($entity_type, $entity, $form, &$form_state) {
   // This is invoked for each flag_field_attach_form(), but possibly more than
@@ -882,7 +882,7 @@ function flag_field_attach_update($entity_type, $entity) {
 /**
  * Shared saving routine between flag_field_attach_insert/update().
  *
- * @see flag_field_attach_form().
+ * @see flag_field_attach_form()
  */
 function flag_field_attach_save($entity_type, $entity) {
   list($id) = entity_extract_ids($entity_type, $entity);

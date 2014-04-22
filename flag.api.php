@@ -93,7 +93,7 @@ function hook_flag_default_flags() {
 /**
  * Allow modules to alter a flag when it is initially loaded.
  *
- * @see flag_get_flags().
+ * @see flag_get_flags()
  */
 function hook_flag_alter(&$flag) {
 
