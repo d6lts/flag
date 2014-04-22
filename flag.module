@@ -183,7 +183,8 @@ function flag_entity_query_alter(EntityFieldQuery $query) {
 
   // Alter only flagging queries with bundle conditions.
   if (isset($conditions['entity_type']) && $conditions['entity_type']['value'] == 'flagging' && isset($conditions['bundle'])) {
-    $query->addTag('flagging_flag_names'); // Add tag to alter query.
+    // Add tag to alter query.
+    $query->addTag('flagging_flag_names');
     // Make value and operator of the bundle condition accessible
     // in hook_query_TAG_alter.
     $query->addMetaData('flag_name_value', $conditions['bundle']['value']);
@@ -254,7 +255,8 @@ function flag_menu() {
   );
 
   $items[FLAG_ADMIN_PATH . '/manage/%flag'] = array(
-    'load arguments' => array(TRUE), // Allow for disabled flags.
+    // Allow for disabled flags.
+    'load arguments' => array(TRUE),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('flag_form', FLAG_ADMIN_PATH_START + 1),
     'access callback' => 'user_access',
@@ -266,7 +268,8 @@ function flag_menu() {
     'title arguments' => array(FLAG_ADMIN_PATH_START + 1),
   );
   $items[FLAG_ADMIN_PATH . '/manage/%flag/edit'] = array(
-    'load arguments' => array(TRUE), // Allow for disabled flags.
+    // Allow for disabled flags.
+    'load arguments' => array(TRUE),
     'title' => 'Edit flag',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
@@ -290,7 +293,8 @@ function flag_menu() {
     'type' => MENU_CALLBACK,
   );
   $items[FLAG_ADMIN_PATH . '/manage/%flag/update'] = array(
-    'load arguments' => array(TRUE), // Allow for disabled flags.
+    // Allow for disabled flags.
+    'load arguments' => array(TRUE),
     'title' => 'Update',
     'page callback' => 'flag_update_page',
     'page arguments' => array(FLAG_ADMIN_PATH_START + 1),

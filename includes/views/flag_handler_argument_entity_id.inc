@@ -27,7 +27,8 @@ class flag_handler_argument_entity_id extends views_handler_argument_numeric {
    */
   function title_query() {
     if (!($flag = $this->get_flag())) {
-      return array(); // Error message is printed by get_flag().
+      // Error message is printed by get_flag().
+      return array();
     }
     $views_info = $flag->get_views_info();
 

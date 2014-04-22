@@ -15,7 +15,8 @@
  *   in hook_flag_default_flags().
  */
 function flag_export_flags($flags = array(), $module = '', $indent = '') {
-  module_load_include('inc', 'features', 'features.export'); // For features_var_export() (optional).
+  // For features_var_export() (optional).
+  module_load_include('inc', 'features', 'features.export');
   $output = $indent . '$flags = array();' . "\n";
   foreach ($flags as $item) {
     if (is_object($item)) {
