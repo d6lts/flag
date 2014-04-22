@@ -227,4 +227,3 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
     return $passed;
   }
 }
-

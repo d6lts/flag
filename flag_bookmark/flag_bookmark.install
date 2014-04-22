@@ -65,4 +65,3 @@ function _flag_bookmark_install_get_suggested_node_types() {
   }
   return $existing;
 }
-
