@@ -1365,7 +1365,7 @@ function flag_flag_trigger($action, $flag, $entity_id, $account, $flagging) {
   $object = $flag->fetch_entity($entity_id);
 
   // Generic "all flags" actions.
-  foreach (trigger_get_assigned_actions('flag_' . $action)  as $aid => $action_info) {
+  foreach (trigger_get_assigned_actions('flag_' . $action) as $aid => $action_info) {
     // The 'if ($aid)' is a safeguard against
     // http://drupal.org/node/271460#comment-886564
     if ($aid) {
@@ -1733,7 +1733,7 @@ function flag_get_entity_flag_counts($flag, $entity_type) {
       ->countQuery()
       ->execute()
       ->fetchField();
-    $counts[$flag->name][$entity_type] =  $result;
+    $counts[$flag->name][$entity_type] = $result;
   }
 
   return $counts[$flag->name][$entity_type];
@@ -2270,7 +2270,7 @@ function flag_trim_flag($flag, $account, $cutoff_size, $trim_newest, $permission
     $query->orderBy('timestamp', 'ASC');
   }
   else {
-    $query->orderBy('timestamp', 'DESC') ;
+    $query->orderBy('timestamp', 'DESC');
   }
 
   // Execute the query
@@ -2309,7 +2309,7 @@ function flag_reset_flag($flag, $entity_id = NULL) {
   }
   module_invoke_all('flag_reset', $flag, $entity_id, $rows);
 
-  $query = db_delete('flagging')->condition('fid' , $flag->fid);
+  $query = db_delete('flagging')->condition('fid', $flag->fid);
   // Update the flag_counts table.
   $count_query = db_delete('flag_counts')->condition('fid', $flag->fid);
   if ($entity_id) {
@@ -2628,6 +2628,6 @@ function flag_properties_get_flagging_users($entity, array $options, $name, $ent
  * @ingroup callbacks
  */
 function flag_properties_get_user_sid($entity, array $options, $name, $entity_type, $property_info) {
-  $sid =  flag_get_sid($entity->uid, FALSE);
+  $sid = flag_get_sid($entity->uid, FALSE);
   return $sid;
 }
