@@ -208,7 +208,7 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
   function test_flagged_by_current_user($ids, $flag) {
     global $user;
     if (!$user->uid) {
-      // Anonymous user
+      // Anonymous user.
       return array();
     }
     $flattened_ids = implode(',', $ids);

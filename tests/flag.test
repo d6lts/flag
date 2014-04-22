@@ -235,7 +235,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
   function setUp() {
     parent::setUp('flag');
 
-    // Create and login user
+    // Create and login user.
     $admin_user = $this->drupalCreateUser(array('access administration pages', 'administer flags'));
     $this->drupalLogin($admin_user);
   }
@@ -451,7 +451,7 @@ class FlagAccessFormTestCase extends FlagTestCaseBase {
 
     $this->drupalGet('node/add/article');
 
-    // Check that the flag form element cannot be seen
+    // Check that the flag form element cannot be seen.
     $this->assertNoText('Flag this item', t('Flag form element was not found.'));
 
     // Have the user create a node.

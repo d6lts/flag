@@ -103,7 +103,7 @@ function flag_flag_is_flagged_access_check($conf, $context) {
 }
 
 /**
- * Provide a summary description based upon the specified context
+ * Provide a summary description based upon the specified context.
  */
 function flag_flag_is_flagged_access_summary($conf, $context) {
   $flag = flag_get_flag($conf['flag_name']);

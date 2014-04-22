@@ -2273,7 +2273,7 @@ function flag_trim_flag($flag, $account, $cutoff_size, $trim_newest, $permission
     $query->orderBy('timestamp', 'DESC');
   }
 
-  // Execute the query
+  // Execute the query.
   $result = $query->execute();
 
   $i = 1;
