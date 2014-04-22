@@ -270,7 +270,7 @@ function flag_update_export(&$flag) {
     if (substr($class, 0, 11) == 'FlagUpdate_') {
       // @todo: change this to work with the static class when we drop support
       // for PHP 5.2: see commit d5b517.
-      $update_handler = new $class;
+      $update_handler = new $class();
       // Cast to string, as decimals as array keys seem to be rounded down to
       // ints, WTF PHP?
       $version = (string) $update_handler->old_api_version;

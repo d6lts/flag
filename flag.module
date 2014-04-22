@@ -577,10 +577,10 @@ function flag_get_types() {
 function flag_create_handler($entity_type) {
   $definition = flag_fetch_definition($entity_type);
   if (isset($definition) && class_exists($definition['handler'])) {
-    $handler = new $definition['handler'];
+    $handler = new $definition['handler']();
   }
   else {
-    $handler = new flag_broken;
+    $handler = new flag_broken();
   }
   $handler->entity_type = $entity_type;
   $handler->construct();
