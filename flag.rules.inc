@@ -81,7 +81,7 @@ class FlagRulesUIClass extends RulesDataUI implements RulesDataDirectInputFormIn
       '#required' => empty($info['optional']),
       '#multiple' => FALSE,
       '#default_value' => $settings[$name],
-      '#empty' => t('There is no suiting flag available.')
+      '#empty' => t('There is no suiting flag available.'),
     );
     return $form;
   }
@@ -515,7 +515,7 @@ function flag_rules_condition_info() {
             'type' => 'flag',
             'label' => t('Flag'),
             'flag_type' => $type,
-            'description' => t('The flag to check for.')
+            'description' => t('The flag to check for.'),
           ),
           $type => array(
             'type' => $type,
@@ -551,7 +551,7 @@ function flag_rules_condition_info() {
             'type' => 'flag',
             'label' => t('Flag'),
             'flag_type' => $type,
-            'description' => t('The flag to check for.')
+            'description' => t('The flag to check for.'),
           ),
           $type => array(
             'type' => $type,

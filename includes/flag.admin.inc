@@ -116,7 +116,13 @@ function theme_flag_admin_listing($variables) {
   if (count($flags) > 1) {
     $header[] = t('Weight');
   }
-  $header = array_merge($header, array(t('Flag type'), t('Roles'), t('Entity bundles'), t('Global?'), t('Operations')));
+  $header = array_merge($header, array(
+    t('Flag type'),
+    t('Roles'),
+    t('Entity bundles'),
+    t('Global?'),
+    t('Operations'),
+  ));
   $output .= theme('table', array(
     'header' => $header,
     'rows' => $rows,
@@ -142,7 +148,11 @@ function theme_flag_admin_listing_disabled($variables) {
       $ops = array();
       if (!$flag->is_compatible()) {
         $flag_updates_needed = TRUE;
-        $ops['flags_update'] = array('title' => '<strong>' . t('update code') . '</strong>', 'href' => $flag->admin_path('update'), 'html' => TRUE);
+        $ops['flags_update'] = array(
+          'title' => '<strong>' . t('update code') . '</strong>',
+          'href' => $flag->admin_path('update'),
+          'html' => TRUE,
+        );
       }
       else {
         $ops['flags_enable'] = array('title' => t('enable'), 'href' => $flag->admin_path('edit'));
@@ -163,7 +173,12 @@ function theme_flag_admin_listing_disabled($variables) {
   }
 
   if (!empty($rows)) {
-    $header = array(t('Disabled Flags'), t('Module'), t('Flag type'), t('Operations'));
+    $header = array(
+      t('Disabled Flags'),
+      t('Module'),
+      t('Flag type'),
+      t('Operations'),
+    );
     $output .= theme('table', array('header' => $header, 'rows' => $rows));
   }
 

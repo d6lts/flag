@@ -277,7 +277,13 @@ class FlagAdminTestCase extends FlagTestCaseBase {
     $saved = $edit;
     $saved['roles'] = array('flag' => array(2), 'unflag' => array(2));
     $saved['types'] = array('page');
-    $saved['show_in_links'] = array('full' => 0, 'teaser' => 0, 'rss' => 0, 'search_index' => 0, 'search_result' => 0);
+    $saved['show_in_links'] = array(
+      'full' => 0,
+      'teaser' => 0,
+      'rss' => 0,
+      'search_index' => 0,
+      'search_result' => 0,
+    );
     unset($saved['roles[flag][2]'], $saved['roles[unflag][2]'], $saved['types[article]'], $saved['types[page]'], $saved['show_in_links[full]'], $saved['show_in_links[teaser]'], $saved['show_in_links[rss]'], $saved['show_in_links[search_index]'], $saved['show_in_links[search_result]']);
 
     $this->drupalPost(FLAG_ADMIN_PATH . '/add/node', $edit, t('Save flag'));
@@ -331,7 +337,13 @@ class FlagAdminTestCase extends FlagTestCaseBase {
     $saved = $edit;
     $saved['roles'] = array('flag' => array(2), 'unflag' => array(2));
     $saved['types'] = array('article');
-    $saved['show_in_links'] = array('full' => TRUE, 'teaser' => TRUE, 'rss' => 0, 'search_index' => 0, 'search_result' => 0);
+    $saved['show_in_links'] = array(
+      'full' => TRUE,
+      'teaser' => TRUE,
+      'rss' => 0,
+      'search_index' => 0,
+      'search_result' => 0,
+    );
     unset($saved['roles[flag][2]'], $saved['roles[unflag][2]'], $saved['types[article]'], $saved['types[page]'], $saved['show_in_links[full]'], $saved['show_in_links[teaser]'], $saved['show_in_links[rss]'], $saved['show_in_links[search_index]'], $saved['show_in_links[search_result]']);
 
     $this->drupalPost(FLAG_ADMIN_PATH . '/manage/' . $flag->name, $edit, t('Save flag'));
@@ -1101,7 +1113,12 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
     $this->flag3 = $this->createFlag($flag_data);
 
     // Create test user who can flag and unflag.
-    $this->flag_unflag_user = $this->drupalCreateUser(array('flag test_flag_1', 'unflag test_flag_1', 'flag test_flag_2', 'unflag test_flag_2'));
+    $this->flag_unflag_user = $this->drupalCreateUser(array(
+      'flag test_flag_1',
+      'unflag test_flag_1',
+      'flag test_flag_2',
+      'unflag test_flag_2',
+    ));
     $this->drupalLogin($this->flag_unflag_user);
 
   }

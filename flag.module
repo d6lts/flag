@@ -667,7 +667,7 @@ function flag_field_extra_fields() {
         $extra[$flag->entity_type][$bundle_name]['form']['flag'] = array(
           'label' => t('Flags'),
           'description' => t('Checkboxes for toggling flags'),
-          'weight' => 10
+          'weight' => 10,
         );
       }
 
@@ -1902,7 +1902,14 @@ function flag_get_flags($entity_type = NULL, $content_subtype = NULL, $account =
     $query = db_select('flag', 'f');
     $query->leftJoin('flag_types', 'fn', 'fn.fid = f.fid');
     $result = $query
-      ->fields('f', array('fid', 'entity_type', 'name', 'title', 'global', 'options'))
+      ->fields('f', array(
+        'fid',
+        'entity_type',
+        'name',
+        'title',
+        'global',
+        'options',
+      ))
       ->fields('fn', array('type'))
       ->execute();
     foreach ($result as $row) {
