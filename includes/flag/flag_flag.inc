@@ -8,7 +8,8 @@
  */
 
 /**
- * This abstract class represents a flag, or, in Views 2 terminology, "a handler".
+ * This abstract class represents a flag, or, in Views 2 terminology,
+ * "a handler".
  *
  * This is the base class for all flag implementations. Notable derived
  * classes are flag_node and flag_comment.
@@ -29,8 +30,8 @@
  * - flag_flag::factory_by_array(), creates a flag handler from a configuration
  *   array. This is used by flag_get_default_flags() and the flag import form.
  * - flag_flag::factory_by_entity_type(), creates an empty flag handler for the
- *   given entity type. This is used when a new or dummy flag handler is required
- *   and there is no configuration yet.
+ *   given entity type. This is used when a new or dummy flag handler is
+ *   required and there is no configuration yet.
  *
  * The factory methods in turn all call the low-level function
  * flag_create_handler(), which obtains the correct handler for the flag, or if
@@ -94,7 +95,8 @@ class flag_flag {
   );
 
   /**
-   * An associative array containing textual errors that may be created during validation.
+   * An associative array containing textual errors that may be created during
+   * validation.
    *
    * The array keys should reflect the type of error being set. At this time,
    * the only "special" behavior related to the array keys is that
@@ -135,7 +137,8 @@ class flag_flag {
     }
 
     if (!empty($row->type)) {
-      // The loop loading from the database should further populate this property.
+      // The loop loading from the database should further populate this
+      // property.
       $flag->types[] = $row->type;
     }
 
@@ -189,7 +192,8 @@ class flag_flag {
       'unflag_long' => '',
       'unflag_message' => '',
       'unflag_denied_text' => '',
-      // The link type used by the flag, as defined in hook_flag_link_type_info().
+      // The link type used by the flag, as defined in
+      // hook_flag_link_type_info().
       'link_type' => 'toggle',
       'weight' => 0,
     );
@@ -245,7 +249,8 @@ class flag_flag {
    */
   function form_input($form_values) {
     // Load the form fields indiscriminately unto the flag (we don't care about
-    // stray FormAPI fields because we aren't touching unknown properties anyway.
+    // stray FormAPI fields because we aren't touching unknown properties
+    // anyway).
     foreach ($form_values as $field => $value) {
       $this->$field = $value;
     }
@@ -1511,8 +1516,8 @@ class flag_flag {
    * @param $variables = array()
    *  An array of further variables to pass to theme('flag'). For the full list
    *  of parameters, see flag.tpl.php. Of particular interest:
-   *  - after_flagging: Set to TRUE if this flag link is being displayed as the result
-   *    of a flagging action.
+   *  - after_flagging: Set to TRUE if this flag link is being displayed as the
+   *    result of a flagging action.
    *  - errors: An array of error messages.
    *
    * @return

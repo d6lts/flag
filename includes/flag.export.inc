@@ -364,7 +364,8 @@ class FlagUpdate_3 {
     }
 
     // Update show_on_comment and show_on_entity properties to use new view
-    // mode settings. Since the old logic was to show on all view modes, do that.
+    // mode settings. Since the old logic was to show on all view modes, do
+    // that.
     if (!empty($flag->show_on_entity) || !empty($flag->show_on_comment)) {
       if ($entity_info = entity_get_info($flag->entity_type)) {
         foreach ($entity_info['view modes'] as $view_mode => $value) {

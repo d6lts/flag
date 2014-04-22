@@ -160,14 +160,15 @@ function flagging_save($flagging) {
 // @todo: flag_reset_flag():
 // - it should delete the flaggings.
 // - (it has other issues; see http://drupal.org/node/894992.)
-// - (is problematic: it might not be possible to delete all data in a single page request.)
+// - (is problematic: it might not be possible to delete all data in a single
+//   page request.)
 
 // @todo: Discuss: Note that almost all functions/identifiers dealing with
 // flaggings *aren't* prefixed by "flag_". For example:
-//  - The menu argument is %flagging, not %flag_flagging.
-//  - The entity type is "flagging", not "flag_flagging".
-// On the one hand this succinct version is readable and nice. On the other hand, it isn't
-// very "correct".
+// - The menu argument is %flagging, not %flag_flagging.
+// - The entity type is "flagging", not "flag_flagging".
+// On the one hand this succinct version is readable and nice. On the other
+// hand, it isn't very "correct".
 
 /**
  * Implements hook_entity_query_alter().
@@ -918,9 +919,10 @@ function flag_contextual_links_view_alter(&$element, $items) {
 
       list($entity_id) = entity_extract_ids($entity_type, $entity);
       if (!$flag->access($entity_id) && (!$flag->is_flagged($entity_id) || !$flag->access($entity_id, 'flag'))) {
-        // User has no permission to use this flag or flag does not apply to this
-        // object. The link is not skipped if the user has "flag" access but
-        // not "unflag" access (this way the unflag denied message is shown).
+        // User has no permission to use this flag or flag does not apply to
+        // this object. The link is not skipped if the user has "flag" access
+        // but not "unflag" access (this way the unflag denied message is
+        // shown).
         continue;
       }
 
@@ -1360,7 +1362,8 @@ function flag_flag_trigger($action, $flag, $entity_id, $account, $flagging) {
 
   // Generic "all flags" actions.
   foreach (trigger_get_assigned_actions('flag_' . $action)  as $aid => $action_info) {
-    // The 'if ($aid)' is a safeguard against http://drupal.org/node/271460#comment-886564
+    // The 'if ($aid)' is a safeguard against
+    // http://drupal.org/node/271460#comment-886564
     if ($aid) {
       actions_do($aid, $object, $context);
     }
@@ -1629,7 +1632,8 @@ function template_preprocess_flag(&$variables) {
       $variables['message_classes_array'][] = 'flag-' . $variables['status'] . '-message';
       $variables['message_text'] = $flag->get_label($inverse_action . '_message', $entity_id);
       $variables['flag_classes_array'][] = $variables['status'];
-      // By default we make our JS code remove, after a few seconds, only success messages.
+      // By default we make our JS code remove, after a few seconds, only
+      // success messages.
       $variables['message_classes_array'][] = 'flag-auto-remove';
     }
   }
@@ -1919,7 +1923,8 @@ function flag_get_flags($entity_type = NULL, $content_subtype = NULL, $account =
         // Ensure overridden flags are associated with their parent module.
         $flags[$name]->module = $default_flag->module;
 
-        // Update the flag with any properties that are "locked" by the code version.
+        // Update the flag with any properties that are "locked" by the code
+        // version.
         if (isset($default_flag->locked)) {
           $flags[$name]->locked = $default_flag->locked;
           foreach ($default_flag->locked as $property) {
@@ -2067,11 +2072,15 @@ function flag_get_flag_flagging_data($flag_name) {
  * @return
  *   If returning a single item's flags (that is, when $entity_id isn't NULL),
  *   an array of the structure
- *   [flag_name] => (flagging_id => [flagging_id], uid => [uid], entity_id => [entity_id], timestamp => [timestamp], ...)
+ *   [flag_name] => (
+ *     flagging_id => [flagging_id],
+ *     uid => [uid],
+ *     entity_id => [entity_id],
+ *     timestamp => [timestamp],
+ *     ...)
  *
  *   If returning all items' flags, an array of arrays for each flag:
  *   [flag_name] => [entity_id] => Object from above.
- *
  */
 function flag_get_user_flags($entity_type, $entity_id = NULL, $uid = NULL, $sid = NULL) {
   $flagged_content = &drupal_static(__FUNCTION__);

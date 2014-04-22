@@ -1002,7 +1002,8 @@ class FlagHookFlagAccessTestCase extends FlagTestCaseBase {
   }
 
   /**
-   * Verifies that the user sees the flag if a module returns TRUE (Allow) to override default access check.
+   * Verifies that the user sees the flag if a module returns TRUE (Allow) to
+   * override default access check.
    */
   function testFlagAccessAllowOverride() {
     variable_set('FlagHookFlagAccessTestCaseMode', 'allow');
@@ -1026,7 +1027,8 @@ class FlagHookFlagAccessTestCase extends FlagTestCaseBase {
   }
 
   /**
-   * Verifies that the user does not see the flag if a module returns FALSE (Deny).
+   * Verifies that the user does not see the flag if a module returns FALSE
+   * (Deny).
    */
   function testFlagAccessDeny() {
     variable_set('FlagHookFlagAccessTestCaseMode', 'deny');

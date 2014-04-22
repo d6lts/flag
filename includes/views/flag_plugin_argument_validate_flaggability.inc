@@ -130,7 +130,8 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
     if ($flag_name == '*relationship*') {
       // Pick the first flag mentioned in the relationships.
       foreach ($this->view->relationship as $id => $handler) {
-        // Note: we can't do $handler->field, because the relationship handler's init() may overwrite it.
+        // Note: we can't do $handler->field, because the relationship handler's
+        // init() may overwrite it.
         if (strpos($handler->options['field'], 'flag') !== FALSE && !empty($handler->options['flag'])) {
           $flag = flag_get_flag($handler->options['flag']);
           if ($flag && $flag->entity_type == $this->flag_type) {
@@ -198,7 +199,8 @@ class flag_plugin_argument_validate_flaggability extends views_plugin_argument_v
   }
 
   function test_flagged($ids, $flag) {
-    // view_break_phrase() is guaranteed to return only integers, so this is SQL safe.
+    // view_break_phrase() is guaranteed to return only integers, so this is SQL
+    // safe.
     $flattened_ids = implode(',', $ids);
     return $this->_test_by_sql("SELECT entity_id FROM {flag_counts} WHERE fid = :fid AND entity_id IN ($flattened_ids) AND count > 0", array(':fid' => $flag->fid));
   }
