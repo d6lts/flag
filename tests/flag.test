@@ -216,7 +216,7 @@ class FlagFlaggingCRUDTestCase extends FlagTestCaseBase {
  * Test Flag admin UI.
  */
 class FlagAdminTestCase extends FlagTestCaseBase {
-  var $_flag = FALSE;
+  public $_flag = FALSE;
 
   /**
    * Implements getInfo().

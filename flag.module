@@ -1566,7 +1566,7 @@ function template_preprocess_flag(&$variables) {
   $flag =& $variables['flag'];
   $action = $variables['action'];
   $entity_id = $variables['entity_id'];
-  $errors = join('<br />', $variables['errors']);
+  $errors = implode('<br />', $variables['errors']);
   $flag_css_name = str_replace('_', '-', $flag->name);
 
   // Generate the link URL.

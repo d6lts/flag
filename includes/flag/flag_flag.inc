@@ -105,7 +105,7 @@ class flag_flag {
    *
    * @var array
    */
-  var $errors = array();
+  public $errors = array();
 
   /**
    * Creates a flag from a database row. Returns it.

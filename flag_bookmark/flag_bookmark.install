@@ -13,7 +13,7 @@
  */
 function flag_bookmark_enable() {
   // Load the flag API in case we want to use it when enabling.
-  include_once(drupal_get_path('module', 'flag') . '/flag.module');
+  include_once drupal_get_path('module', 'flag') . '/flag.module';
 
   if (!flag_get_flags()) {
     // Install a demonstration flag only if no flag exists. This is to prevent
