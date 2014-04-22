@@ -631,18 +631,18 @@ class flag_flag {
    *   TRUE if the flag is enabled for this type and subtype.
    */
   function access_entity_enabled($entity_type, $content_subtype = NULL) {
-   $entity_type_matches = ($this->entity_type == $entity_type);
-   $sub_type_matches = FALSE;
-   if (!isset($content_subtype) || !count($this->types)) {
-     // Subtype automatically matches if we're not asked about it,
-     // or if the flag applies to all subtypes.
-     $sub_type_matches = TRUE;
-   }
-   else {
-     $sub_type_matches = in_array($content_subtype, $this->types);
-   }
-   return $entity_type_matches && $sub_type_matches;
- }
+    $entity_type_matches = ($this->entity_type == $entity_type);
+    $sub_type_matches = FALSE;
+    if (!isset($content_subtype) || !count($this->types)) {
+      // Subtype automatically matches if we're not asked about it,
+      // or if the flag applies to all subtypes.
+      $sub_type_matches = TRUE;
+    }
+    else {
+      $sub_type_matches = in_array($content_subtype, $this->types);
+    }
+    return $entity_type_matches && $sub_type_matches;
+  }
 
   /**
    * Determine whether the flag should show a flag link in entity links.

@@ -21,24 +21,24 @@ function flag_bookmark_enable() {
     // flag is overwritten or re-created.
     $flag = flag_flag::factory_by_entity_type('node');
     $configuration = array(
-        'name' => 'bookmarks',
-        'global' => 0,
-        'show_in_links' => array(
-          'full' => 1,
-          'teaser' => 1,
-        ),
-        'show_on_form' => 1,
-        // The following UI labels aren't wrapped in t() because they are written
-        // to the DB in English. They are passed to t() later, thus allowing for
-        // multilingual sites.
-        'title' => 'Bookmarks',
-        'flag_short' => 'Bookmark this',
-        'flag_long' => 'Add this post to your bookmarks',
-        'flag_message' => 'This post has been added to your bookmarks',
-        'unflag_short' => 'Unbookmark this',
-        'unflag_long' => 'Remove this post from your bookmarks',
-        'unflag_message' => 'This post has been removed from your bookmarks',
-        'types' => _flag_bookmark_install_get_suggested_node_types(),
+      'name' => 'bookmarks',
+      'global' => 0,
+      'show_in_links' => array(
+        'full' => 1,
+        'teaser' => 1,
+      ),
+      'show_on_form' => 1,
+      // The following UI labels aren't wrapped in t() because they are written
+      // to the DB in English. They are passed to t() later, thus allowing for
+      // multilingual sites.
+      'title' => 'Bookmarks',
+      'flag_short' => 'Bookmark this',
+      'flag_long' => 'Add this post to your bookmarks',
+      'flag_message' => 'This post has been added to your bookmarks',
+      'unflag_short' => 'Unbookmark this',
+      'unflag_long' => 'Remove this post from your bookmarks',
+      'unflag_message' => 'This post has been removed from your bookmarks',
+      'types' => _flag_bookmark_install_get_suggested_node_types(),
     );
     $flag->form_input($configuration);
     $flag->save();

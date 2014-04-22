@@ -1064,7 +1064,7 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
    * Implements getInfo().
    */
   public static function getInfo() {
-     return array(
+    return array(
       'name' => 'Entity Field Query',
       'description' => 'Entity Field Query for flagging entities.',
       'group' => 'Flag',
@@ -1127,7 +1127,7 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
    * Test use of EntityFieldQuery with flagging entities.
    */
   function testEntityFieldQuery() {
-     $node_settings = array(
+    $node_settings = array(
       'title' => $this->randomName(),
       'body' => array(LANGUAGE_NONE => array(array('value' => $this->randomName(32)))),
       'uid' => 1,
@@ -1169,7 +1169,7 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
    * Implements getInfo().
    */
   public static function getInfo() {
-     return array(
+    return array(
       'name' => 'Hook invocations',
       'description' => 'Invocation of flag and entity hooks and rules during flagging and unflagging.',
       'group' => 'Flag',
