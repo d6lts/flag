@@ -930,7 +930,7 @@ function flag_contextual_links_view_alter(&$element, $items) {
         continue;
       }
 
-      $element['#links']['flag-'. $name] = array(
+      $element['#links']['flag-' . $name] = array(
         'title' => $flag->theme($flag->is_flagged($entity_id) ? 'unflag' : 'flag', $entity_id),
         'html' => TRUE,
       );

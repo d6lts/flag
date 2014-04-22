@@ -378,7 +378,7 @@ function flag_rules_action_info() {
   // For backward compatibility sake. This was the original name of the
   // 'fetch node by user'.
   $items['flag_fetch_entity_by_user'] = $items['flag_fetch_node_by_user'];
-  $items['flag_fetch_entity_by_user']['label'] .= ' '. t('(Legacy)');
+  $items['flag_fetch_entity_by_user']['label'] .= ' ' . t('(Legacy)');
   return $items;
 }
 
@@ -595,10 +595,10 @@ function flag_rules_condition_threshold($flag, $entity, $number, $operator = '='
   $count = $flag->get_count($flag->get_entity_id($entity));
 
   switch ($operator) {
-    case '>' : return $count >  $number;
+    case '>': return $count > $number;
     case '>=': return $count >= $number;
-    case '=' : return $count == $number;
-    case '<' : return $count <  $number;
+    case '=': return $count == $number;
+    case '<': return $count < $number;
     case '<=': return $count <= $number;
   }
 }

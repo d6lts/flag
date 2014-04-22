@@ -305,7 +305,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
     $permissions = user_role_permissions(user_roles());
     foreach ($saved['roles'] as $action => $rids) {
       foreach ($rids as $rid) {
-        $permission_string = "$action ". $saved['name'];
+        $permission_string = "$action " . $saved['name'];
         $this->assertTrue(isset($permissions[$rid][$permission_string]), t('Permission %perm set for flag.', array(
           '%perm' => $permission_string,
         )));
@@ -370,7 +370,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
 
     foreach ($saved['roles'] as $action => $rids) {
       foreach ($rids as $rid) {
-        $permission_string = "$action ". $saved['name'];
+        $permission_string = "$action " . $saved['name'];
         $this->assertTrue(isset($permissions[$rid][$permission_string]), t('Permission %perm set for flag.', array(
           '%perm' => $permission_string,
         )));
