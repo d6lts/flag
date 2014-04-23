@@ -421,9 +421,11 @@ function flag_help($path, $arg) {
     case FLAG_ADMIN_PATH:
       $output = '<p>' . t('This page lists all the <em>flags</em> that are currently defined on this system.') . '</p>';
       return $output;
+
     case FLAG_ADMIN_PATH . '/add':
       $output = '<p>' . t('Select the type of flag to create. An individual flag can only affect one type of object. This cannot be changed once the flag is created.') . '</p>';
       return $output;
+
     case FLAG_ADMIN_PATH . '/manage/%/fields':
       // Get the existing link types that provide a flagging form.
       $link_types = flag_get_link_types();
