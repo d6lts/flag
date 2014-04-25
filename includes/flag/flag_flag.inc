@@ -2,13 +2,14 @@
 
 /**
  * @file
- *  Contains the flag_flag class.
- *  Flag type classes use an object oriented style inspired by that
- *  of Views 2.
+ * Contains the flag_flag class.
+ * Flag type classes use an object oriented style inspired by that
+ * of Views 2.
  */
 
 /**
- * This abstract class represents a flag, or, in Views 2 terminology, "a handler".
+ * This abstract class represents a flag, or, in Views 2 terminology,
+ * "a handler".
  *
  * This is the base class for all flag implementations. Notable derived
  * classes are flag_node and flag_comment.
@@ -29,8 +30,8 @@
  * - flag_flag::factory_by_array(), creates a flag handler from a configuration
  *   array. This is used by flag_get_default_flags() and the flag import form.
  * - flag_flag::factory_by_entity_type(), creates an empty flag handler for the
- *   given entity type. This is used when a new or dummy flag handler is required
- *   and there is no configuration yet.
+ *   given entity type. This is used when a new or dummy flag handler is
+ *   required and there is no configuration yet.
  *
  * The factory methods in turn all call the low-level function
  * flag_create_handler(), which obtains the correct handler for the flag, or if
@@ -94,7 +95,8 @@ class flag_flag {
   );
 
   /**
-   * An associative array containing textual errors that may be created during validation.
+   * An associative array containing textual errors that may be created during
+   * validation.
    *
    * The array keys should reflect the type of error being set. At this time,
    * the only "special" behavior related to the array keys is that
@@ -103,7 +105,7 @@ class flag_flag {
    *
    * @var array
    */
-  var $errors = array();
+  public $errors = array();
 
   /**
    * Creates a flag from a database row. Returns it.
@@ -135,7 +137,8 @@ class flag_flag {
     }
 
     if (!empty($row->type)) {
-      // The loop loading from the database should further populate this property.
+      // The loop loading from the database should further populate this
+      // property.
       $flag->types[] = $row->type;
     }
 
@@ -189,7 +192,8 @@ class flag_flag {
       'unflag_long' => '',
       'unflag_message' => '',
       'unflag_denied_text' => '',
-      // The link type used by the flag, as defined in hook_flag_link_type_info().
+      // The link type used by the flag, as defined in
+      // hook_flag_link_type_info().
       'link_type' => 'toggle',
       'weight' => 0,
     );
@@ -245,7 +249,8 @@ class flag_flag {
    */
   function form_input($form_values) {
     // Load the form fields indiscriminately unto the flag (we don't care about
-    // stray FormAPI fields because we aren't touching unknown properties anyway.
+    // stray FormAPI fields because we aren't touching unknown properties
+    // anyway).
     foreach ($form_values as $field => $value) {
       $this->$field = $value;
     }
@@ -626,18 +631,18 @@ class flag_flag {
    *   TRUE if the flag is enabled for this type and subtype.
    */
   function access_entity_enabled($entity_type, $content_subtype = NULL) {
-   $entity_type_matches = ($this->entity_type == $entity_type);
-   $sub_type_matches = FALSE;
-   if (!isset($content_subtype) || !count($this->types)) {
-     // Subtype automatically matches if we're not asked about it,
-     // or if the flag applies to all subtypes.
-     $sub_type_matches = TRUE;
-   }
-   else {
-     $sub_type_matches = in_array($content_subtype, $this->types);
-   }
-   return $entity_type_matches && $sub_type_matches;
- }
+    $entity_type_matches = ($this->entity_type == $entity_type);
+    $sub_type_matches = FALSE;
+    if (!isset($content_subtype) || !count($this->types)) {
+      // Subtype automatically matches if we're not asked about it,
+      // or if the flag applies to all subtypes.
+      $sub_type_matches = TRUE;
+    }
+    else {
+      $sub_type_matches = in_array($content_subtype, $this->types);
+    }
+    return $entity_type_matches && $sub_type_matches;
+  }
 
   /**
    * Determine whether the flag should show a flag link in entity links.
@@ -1043,7 +1048,7 @@ class flag_flag {
    *   The amount of counts to increasing. Defaults to 1.
    *
    * @private
-  */
+   */
   function _increase_count($entity_id, $number = 1) {
     db_merge('flag_counts')
       ->key(array(
@@ -1076,7 +1081,7 @@ class flag_flag {
    *   The amount of counts to decrease. Defaults to 1.
    *
    * @private
-  */
+   */
   function _decrease_count($entity_id, $number = 1) {
     // Delete rows with count 0, for data consistency and space-saving.
     // Done before the db_update() to prevent out-of-bounds errors on "count".
@@ -1164,6 +1169,7 @@ class flag_flag {
    * @param $entity_id
    *   The ID in whose context to interpret tokens. If not given, only global
    *   tokens will be substituted.
+   *
    * @return
    *   The processed label.
    */
@@ -1511,8 +1517,8 @@ class flag_flag {
    * @param $variables = array()
    *  An array of further variables to pass to theme('flag'). For the full list
    *  of parameters, see flag.tpl.php. Of particular interest:
-   *  - after_flagging: Set to TRUE if this flag link is being displayed as the result
-   *    of a flagging action.
+   *  - after_flagging: Set to TRUE if this flag link is being displayed as the
+   *    result of a flagging action.
    *  - errors: An array of error messages.
    *
    * @return

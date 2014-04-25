@@ -216,7 +216,7 @@ class FlagFlaggingCRUDTestCase extends FlagTestCaseBase {
  * Test Flag admin UI.
  */
 class FlagAdminTestCase extends FlagTestCaseBase {
-  var $_flag = FALSE;
+  public $_flag = FALSE;
 
   /**
    * Implements getInfo().
@@ -235,7 +235,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
   function setUp() {
     parent::setUp('flag');
 
-    // Create and login user
+    // Create and login user.
     $admin_user = $this->drupalCreateUser(array('access administration pages', 'administer flags'));
     $this->drupalLogin($admin_user);
   }
@@ -277,7 +277,13 @@ class FlagAdminTestCase extends FlagTestCaseBase {
     $saved = $edit;
     $saved['roles'] = array('flag' => array(2), 'unflag' => array(2));
     $saved['types'] = array('page');
-    $saved['show_in_links'] = array('full' => 0, 'teaser' => 0, 'rss' => 0, 'search_index' => 0, 'search_result' => 0);
+    $saved['show_in_links'] = array(
+      'full' => 0,
+      'teaser' => 0,
+      'rss' => 0,
+      'search_index' => 0,
+      'search_result' => 0,
+    );
     unset($saved['roles[flag][2]'], $saved['roles[unflag][2]'], $saved['types[article]'], $saved['types[page]'], $saved['show_in_links[full]'], $saved['show_in_links[teaser]'], $saved['show_in_links[rss]'], $saved['show_in_links[search_index]'], $saved['show_in_links[search_result]']);
 
     $this->drupalPost(FLAG_ADMIN_PATH . '/add/node', $edit, t('Save flag'));
@@ -299,7 +305,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
     $permissions = user_role_permissions(user_roles());
     foreach ($saved['roles'] as $action => $rids) {
       foreach ($rids as $rid) {
-        $permission_string = "$action ". $saved['name'];
+        $permission_string = "$action " . $saved['name'];
         $this->assertTrue(isset($permissions[$rid][$permission_string]), t('Permission %perm set for flag.', array(
           '%perm' => $permission_string,
         )));
@@ -331,7 +337,13 @@ class FlagAdminTestCase extends FlagTestCaseBase {
     $saved = $edit;
     $saved['roles'] = array('flag' => array(2), 'unflag' => array(2));
     $saved['types'] = array('article');
-    $saved['show_in_links'] = array('full' => TRUE, 'teaser' => TRUE, 'rss' => 0, 'search_index' => 0, 'search_result' => 0);
+    $saved['show_in_links'] = array(
+      'full' => TRUE,
+      'teaser' => TRUE,
+      'rss' => 0,
+      'search_index' => 0,
+      'search_result' => 0,
+    );
     unset($saved['roles[flag][2]'], $saved['roles[unflag][2]'], $saved['types[article]'], $saved['types[page]'], $saved['show_in_links[full]'], $saved['show_in_links[teaser]'], $saved['show_in_links[rss]'], $saved['show_in_links[search_index]'], $saved['show_in_links[search_result]']);
 
     $this->drupalPost(FLAG_ADMIN_PATH . '/manage/' . $flag->name, $edit, t('Save flag'));
@@ -358,7 +370,7 @@ class FlagAdminTestCase extends FlagTestCaseBase {
 
     foreach ($saved['roles'] as $action => $rids) {
       foreach ($rids as $rid) {
-        $permission_string = "$action ". $saved['name'];
+        $permission_string = "$action " . $saved['name'];
         $this->assertTrue(isset($permissions[$rid][$permission_string]), t('Permission %perm set for flag.', array(
           '%perm' => $permission_string,
         )));
@@ -439,7 +451,7 @@ class FlagAccessFormTestCase extends FlagTestCaseBase {
 
     $this->drupalGet('node/add/article');
 
-    // Check that the flag form element cannot be seen
+    // Check that the flag form element cannot be seen.
     $this->assertNoText('Flag this item', t('Flag form element was not found.'));
 
     // Have the user create a node.
@@ -1002,7 +1014,8 @@ class FlagHookFlagAccessTestCase extends FlagTestCaseBase {
   }
 
   /**
-   * Verifies that the user sees the flag if a module returns TRUE (Allow) to override default access check.
+   * Verifies that the user sees the flag if a module returns TRUE (Allow) to
+   * override default access check.
    */
   function testFlagAccessAllowOverride() {
     variable_set('FlagHookFlagAccessTestCaseMode', 'allow');
@@ -1026,7 +1039,8 @@ class FlagHookFlagAccessTestCase extends FlagTestCaseBase {
   }
 
   /**
-   * Verifies that the user does not see the flag if a module returns FALSE (Deny).
+   * Verifies that the user does not see the flag if a module returns FALSE
+   * (Deny).
    */
   function testFlagAccessDeny() {
     variable_set('FlagHookFlagAccessTestCaseMode', 'deny');
@@ -1050,7 +1064,7 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
    * Implements getInfo().
    */
   public static function getInfo() {
-     return array(
+    return array(
       'name' => 'Entity Field Query',
       'description' => 'Entity Field Query for flagging entities.',
       'group' => 'Flag',
@@ -1099,7 +1113,12 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
     $this->flag3 = $this->createFlag($flag_data);
 
     // Create test user who can flag and unflag.
-    $this->flag_unflag_user = $this->drupalCreateUser(array('flag test_flag_1', 'unflag test_flag_1', 'flag test_flag_2', 'unflag test_flag_2'));
+    $this->flag_unflag_user = $this->drupalCreateUser(array(
+      'flag test_flag_1',
+      'unflag test_flag_1',
+      'flag test_flag_2',
+      'unflag test_flag_2',
+    ));
     $this->drupalLogin($this->flag_unflag_user);
 
   }
@@ -1108,7 +1127,7 @@ class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
    * Test use of EntityFieldQuery with flagging entities.
    */
   function testEntityFieldQuery() {
-     $node_settings = array(
+    $node_settings = array(
       'title' => $this->randomName(),
       'body' => array(LANGUAGE_NONE => array(array('value' => $this->randomName(32)))),
       'uid' => 1,
@@ -1150,7 +1169,7 @@ class FlagHookInvocationsTestCase extends FlagTestCaseBase {
    * Implements getInfo().
    */
   public static function getInfo() {
-     return array(
+    return array(
       'name' => 'Hook invocations',
       'description' => 'Invocation of flag and entity hooks and rules during flagging and unflagging.',
       'group' => 'Flag',

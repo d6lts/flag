@@ -81,7 +81,7 @@ class FlagRulesUIClass extends RulesDataUI implements RulesDataDirectInputFormIn
       '#required' => empty($info['optional']),
       '#multiple' => FALSE,
       '#default_value' => $settings[$name],
-      '#empty' => t('There is no suiting flag available.')
+      '#empty' => t('There is no suiting flag available.'),
     );
     return $form;
   }
@@ -375,9 +375,10 @@ function flag_rules_action_info() {
       'access callback' => 'flag_rules_integration_access',
     );
   }
-  // For backward compatibility sake. This was the original name of the 'fetch node by user'.
+  // For backward compatibility sake. This was the original name of the
+  // 'fetch node by user'.
   $items['flag_fetch_entity_by_user'] = $items['flag_fetch_node_by_user'];
-  $items['flag_fetch_entity_by_user']['label'] .= ' '. t('(Legacy)');
+  $items['flag_fetch_entity_by_user']['label'] .= ' ' . t('(Legacy)');
   return $items;
 }
 
@@ -473,7 +474,8 @@ function flag_rules_get_flag_types() {
 }
 
 /**
- * Base action implementation: Fetch count of flags for a particular entity type.
+ * Base action implementation: Fetch count of flags for a particular entity
+ * type.
  *
  * During a flagging, the current flagging will be included in the count.
  * During an unflagging, the current flagging being removed will not yet have
@@ -513,7 +515,7 @@ function flag_rules_condition_info() {
             'type' => 'flag',
             'label' => t('Flag'),
             'flag_type' => $type,
-            'description' => t('The flag to check for.')
+            'description' => t('The flag to check for.'),
           ),
           $type => array(
             'type' => $type,
@@ -549,7 +551,7 @@ function flag_rules_condition_info() {
             'type' => 'flag',
             'label' => t('Flag'),
             'flag_type' => $type,
-            'description' => t('The flag to check for.')
+            'description' => t('The flag to check for.'),
           ),
           $type => array(
             'type' => $type,
@@ -570,7 +572,8 @@ function flag_rules_condition_info() {
 }
 
 /**
- * Options list callback for the operator parameter of the flagging threshold condition.
+ * Options list callback for the operator parameter of the flagging threshold
+ * condition.
  */
 function flag_rules_condition_threshold_operator_options() {
   return array(
@@ -592,10 +595,10 @@ function flag_rules_condition_threshold($flag, $entity, $number, $operator = '='
   $count = $flag->get_count($flag->get_entity_id($entity));
 
   switch ($operator) {
-    case '>' : return $count >  $number;
+    case '>': return $count > $number;
     case '>=': return $count >= $number;
-    case '=' : return $count == $number;
-    case '<' : return $count <  $number;
+    case '=': return $count == $number;
+    case '<': return $count < $number;
     case '<=': return $count <= $number;
   }
 }
