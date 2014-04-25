@@ -770,39 +770,11 @@ class flag_flag {
     }
 
     if ($action == 'unflag') {
-      if ($this->uses_anonymous_cookies()) {
-        $this->_unflag_anonymous($entity_id);
-      }
       if ($flagged) {
-        $transaction = db_transaction();
-        try {
-          // Note the order: We decrease the count first so hooks have accurate
-          // data, then invoke hooks, then delete the flagging entity.
-          $this->_decrease_count($entity_id);
-          module_invoke_all('flag_unflag', $this, $entity_id, $account, $flagging);
-          // Invoke Rules event.
-          if (module_exists('rules')) {
-            $event_name = 'flag_unflagged_' . $this->name;
-            // We only support flags on entities.
-            if (entity_get_info($this->entity_type)) {
-              $variables = array(
-                'flag' => $this,
-                'flagged_' . $this->entity_type => $entity_id,
-                'flagging_user' => $account,
-                'flagging' => $flagging,
-              );
-              rules_invoke_event_by_args($event_name, $variables);
-            }
-          }
-          $this->_delete_flagging($flagging);
-          $this->_unflag($entity_id, $flagging->flagging_id);
-        }
-        catch (Exception $e) {
-          $transaction->rollback();
-          watchdog_exception('flag', $e);
-          throw $e;
-        }
+        $this->flagging_delete($flagging, $entity_id, $account);
       }
+      // We do nothing in the case of an attempt to unflag something that isn't
+      // actually flagged.
     }
     elseif ($action == 'flag') {
       if ($this->uses_anonymous_cookies()) {
@@ -854,6 +826,55 @@ class flag_flag {
     }
 
     return TRUE;
+  }
+
+  // The new low-level Flagging CRUD methods are to replace the 2.x era methods
+  // _flag()/_unflag(), as well as the original 3.x entity CRUD methods
+  // _insert_flagging()/_update_flagging()/_delete_flagging().
+
+  /**
+   * Unflag an entity by deleting a Flagging.
+   *
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  private function flagging_delete($flagging, $entity_id, $account) {
+    if ($this->uses_anonymous_cookies()) {
+      $this->_unflag_anonymous($entity_id);
+    }
+
+    $transaction = db_transaction();
+    try {
+      // Note the order: We decrease the count first so hooks have accurate
+      // data, then invoke hooks, then delete the flagging entity.
+      $this->_decrease_count($entity_id);
+      module_invoke_all('flag_unflag', $this, $entity_id, $account, $flagging);
+      // Invoke Rules event.
+      if (module_exists('rules')) {
+        $event_name = 'flag_unflagged_' . $this->name;
+        // We only support flags on entities.
+        if (entity_get_info($this->entity_type)) {
+          $variables = array(
+            'flag' => $this,
+            'flagged_' . $this->entity_type => $entity_id,
+            'flagging_user' => $account,
+            'flagging' => $flagging,
+          );
+          rules_invoke_event_by_args($event_name, $variables);
+        }
+      }
+      $this->_delete_flagging($flagging);
+      $this->_unflag($entity_id, $flagging->flagging_id);
+    }
+    catch (Exception $e) {
+      $transaction->rollback();
+      watchdog_exception('flag', $e);
+      throw $e;
+    }
   }
 
   /**
