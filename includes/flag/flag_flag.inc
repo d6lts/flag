@@ -777,18 +777,17 @@ class flag_flag {
       // actually flagged.
     }
     elseif ($action == 'flag') {
-      if ($this->uses_anonymous_cookies()) {
-        $this->_flag_anonymous($entity_id);
-      }
-
-      // Invoke hook_entity_presave().
-      // In the case that we have been passed in a flagging entity to update,
-      // this is technically still a presave, even though the {flagging} table
-      // itself is not changed.
-      module_invoke_all('entity_presave', $flagging, 'flagging');
-
       if (!$flagged) {
         // The entity is unflagged.
+        if ($this->uses_anonymous_cookies()) {
+          $this->_flag_anonymous($entity_id);
+        }
+
+        // Invoke hook_entity_presave().
+        // In the case that we have been passed in a flagging entity to update,
+        // this is technically still a presave, even though the {flagging} table
+        // itself is not changed.
+        module_invoke_all('entity_presave', $flagging, 'flagging');
 
         // Save the flagging entity (just our table).
         $this->_flag($flagging);
@@ -814,6 +813,16 @@ class flag_flag {
         }
       }
       else {
+        if ($this->uses_anonymous_cookies()) {
+          $this->_flag_anonymous($entity_id);
+        }
+
+        // Invoke hook_entity_presave().
+        // In the case that we have been passed in a flagging entity to update,
+        // this is technically still a presave, even though the {flagging} table
+        // itself is not changed.
+        module_invoke_all('entity_presave', $flagging, 'flagging');
+
         // Nothing to do. Item is already flagged.
         //
         // Except in the case a $flagging object is one that was passed in: in
