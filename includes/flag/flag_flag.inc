@@ -756,14 +756,24 @@ class flag_flag {
     // Perform the flagging or unflagging of this flag.
     $existing_flagging_id = $this->_is_flagged($entity_id, $uid, $sid);
     $flagged = (bool) $existing_flagging_id;
+
+    // Ensure we have a Flagging entity.
+    if (!isset($flagging)) {
+      if ($flagged) {
+        $flagging = flagging_load($existing_flagging_id);
+      }
+      else {
+        // Construct a new flagging object if we weren't passed one to to flag
+        // with.
+        $flagging = $this->new_flagging($entity_id, $uid, $sid);
+      }
+    }
+
     if ($action == 'unflag') {
       if ($this->uses_anonymous_cookies()) {
         $this->_unflag_anonymous($entity_id);
       }
       if ($flagged) {
-        if (!isset($flagging)) {
-          $flagging = flagging_load($existing_flagging_id);
-        }
         $transaction = db_transaction();
         try {
           // Note the order: We decrease the count first so hooks have accurate
@@ -797,13 +807,6 @@ class flag_flag {
     elseif ($action == 'flag') {
       if ($this->uses_anonymous_cookies()) {
         $this->_flag_anonymous($entity_id);
-      }
-
-      // By definition there is no flagging entity yet, but we may have been
-      // passed one in to save.
-      if (!isset($flagging)) {
-        // Construct a new flagging object if we weren't passed one.
-        $flagging = $this->new_flagging($entity_id, $uid, $sid);
       }
 
       // Invoke hook_entity_presave().
