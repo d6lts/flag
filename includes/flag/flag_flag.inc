@@ -778,39 +778,7 @@ class flag_flag {
     }
     elseif ($action == 'flag') {
       if (!$flagged) {
-        // The entity is unflagged.
-        if ($this->uses_anonymous_cookies()) {
-          $this->_flag_anonymous($entity_id);
-        }
-
-        // Invoke hook_entity_presave().
-        // In the case that we have been passed in a flagging entity to update,
-        // this is technically still a presave, even though the {flagging} table
-        // itself is not changed.
-        module_invoke_all('entity_presave', $flagging, 'flagging');
-
-        // Save the flagging entity (just our table).
-        $this->_flag($flagging);
-        $this->_increase_count($entity_id);
-        // We're writing out a flagging entity even when we aren't passed one
-        // (e.g., when flagging via JavaScript toggle links); in this case
-        // Field API will assign the fields their default values.
-        $this->_insert_flagging($flagging);
-        module_invoke_all('flag_flag', $this, $entity_id, $account, $flagging);
-        // Invoke Rules event.
-        if (module_exists('rules')) {
-          $event_name = 'flag_flagged_' . $this->name;
-          // We only support flags on entities.
-          if (entity_get_info($this->entity_type)) {
-            $variables = array(
-              'flag' => $this,
-              'flagged_' . $this->entity_type => $entity_id,
-              'flagging_user' => $account,
-              'flagging' => $this->get_flagging($entity_id, $account->uid),
-            );
-            rules_invoke_event_by_args($event_name, $variables);
-          }
-        }
+        $this->flagging_insert($flagging, $entity_id, $account);
       }
       else {
         if ($this->uses_anonymous_cookies()) {
@@ -840,6 +808,48 @@ class flag_flag {
   // The new low-level Flagging CRUD methods are to replace the 2.x era methods
   // _flag()/_unflag(), as well as the original 3.x entity CRUD methods
   // _insert_flagging()/_update_flagging()/_delete_flagging().
+
+  /**
+   * Create a new Flagging to flag an entity.
+   *
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  private function flagging_insert($flagging, $entity_id, $account) {
+    if ($this->uses_anonymous_cookies()) {
+      $this->_flag_anonymous($entity_id);
+    }
+
+    // Invoke hook_entity_presave().
+    module_invoke_all('entity_presave', $flagging, 'flagging');
+
+    // Save the flagging entity (just our table).
+    $this->_flag($flagging);
+    $this->_increase_count($entity_id);
+    // We're writing out a flagging entity even when we aren't passed one
+    // (e.g., when flagging via JavaScript toggle links); in this case
+    // Field API will assign the fields their default values.
+    $this->_insert_flagging($flagging);
+    module_invoke_all('flag_flag', $this, $entity_id, $account, $flagging);
+    // Invoke Rules event.
+    if (module_exists('rules')) {
+      $event_name = 'flag_flagged_' . $this->name;
+      // We only support flags on entities.
+      if (entity_get_info($this->entity_type)) {
+        $variables = array(
+          'flag' => $this,
+          'flagged_' . $this->entity_type => $entity_id,
+          'flagging_user' => $account,
+          'flagging' => $this->get_flagging($entity_id, $account->uid),
+        );
+        rules_invoke_event_by_args($event_name, $variables);
+      }
+    }
+  }
 
   /**
    * Unflag an entity by deleting a Flagging.
