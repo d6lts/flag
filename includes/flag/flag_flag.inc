@@ -877,8 +877,16 @@ class flag_flag {
     // This check exists solely to preserve previous behaviour with re-flagging.
     // TODO: consider removing it.
     if (!empty($flagging->given_as_parameter)) {
-      // TODO: refactor
-      $this->_update_flagging($flagging);
+      field_attach_presave('flagging', $flagging);
+      field_attach_update('flagging', $flagging);
+      // Update the cache.
+      entity_get_controller('flagging')->resetCache();
+      // Invoke hook_entity_update().
+      // Since there are no fields on the {flagging} table that can be
+      // meaningfully changed, we don't perform an update on it. However, this
+      // technically still counts as updating the flagging entity, since we update
+      // its fields.
+      module_invoke_all('entity_update', $flagging, 'flagging');
     }
   }
 
@@ -946,18 +954,6 @@ class flag_flag {
    * operation is also accompanied by some bookkeeping (calling hooks, updating
    * counters) or access control. These tasks are handled by the flag() method.
    */
-  private function _update_flagging($flagging) {
-    field_attach_presave('flagging', $flagging);
-    field_attach_update('flagging', $flagging);
-    // Update the cache.
-    entity_get_controller('flagging')->resetCache();
-    // Invoke hook_entity_update().
-    // Since there are no fields on the {flagging} table that can be
-    // meaningfully changed, we don't perform an update on it. However, this
-    // technically still counts as updating the flagging entity, since we update
-    // its fields.
-    module_invoke_all('entity_update', $flagging, 'flagging');
-  }
   private function _delete_flagging($flagging) {
     field_attach_delete('flagging', $flagging);
     // Remove from the cache.
