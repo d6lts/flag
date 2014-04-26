@@ -745,6 +745,9 @@ class flag_flag {
     if (isset($flagging)) {
       $flagging->uid = $uid;
       $flagging->sid = $sid;
+
+      // This is an ugly hack to preserve previous behaviour.
+      $flagging->given_as_parameter = TRUE;
     }
 
     // @todo: Discuss: Should we call field_attach_validate()? None of the
@@ -781,24 +784,7 @@ class flag_flag {
         $this->flagging_insert($flagging, $entity_id, $account);
       }
       else {
-        if ($this->uses_anonymous_cookies()) {
-          $this->_flag_anonymous($entity_id);
-        }
-
-        // Invoke hook_entity_presave().
-        // In the case that we have been passed in a flagging entity to update,
-        // this is technically still a presave, even though the {flagging} table
-        // itself is not changed.
-        module_invoke_all('entity_presave', $flagging, 'flagging');
-
-        // Nothing to do. Item is already flagged.
-        //
-        // Except in the case a $flagging object is one that was passed in: in
-        // this case we're being requested to update the flagging. This occurs,
-        // for example, when the user updates the flagging entity form.
-        if (!empty($flagging->flagging_id)) {
-          $this->_update_flagging($flagging);
-        }
+        $this->flagging_update($flagging, $entity_id, $account);
       }
     }
 
@@ -848,6 +834,30 @@ class flag_flag {
         );
         rules_invoke_event_by_args($event_name, $variables);
       }
+    }
+  }
+
+  /**
+   * Update a Flagging.
+   *
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  private function flagging_update($flagging, $entity_id, $account) {
+    // Invoke hook_entity_presave().
+    // This is technically still a presave, even though the {flagging} table
+    // itself is not changed.
+    module_invoke_all('entity_presave', $flagging, 'flagging');
+
+    // This check exists solely to preserve previous behaviour with re-flagging.
+    // TODO: consider removing it.
+    if (!empty($flagging->given_as_parameter)) {
+      // TODO: refactor
+      $this->_update_flagging($flagging);
     }
   }
 
