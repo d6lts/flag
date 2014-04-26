@@ -832,7 +832,15 @@ class flag_flag {
     // We're writing out a flagging entity even when we aren't passed one
     // (e.g., when flagging via JavaScript toggle links); in this case
     // Field API will assign the fields their default values.
-    $this->_insert_flagging($flagging);
+
+    // Invoke Field API hooks.
+    // TODO: This call to field_attach_presave() is clearly in the wrong place,
+    // but matches the prior order. Fix this as a follow-up to refactoring.
+    field_attach_presave('flagging', $flagging);
+    field_attach_insert('flagging', $flagging);
+    // Invoke hook_entity_insert().
+    module_invoke_all('entity_insert', $flagging, 'flagging');
+
     module_invoke_all('flag_flag', $this, $entity_id, $account, $flagging);
     // Invoke Rules event.
     if (module_exists('rules')) {
@@ -938,12 +946,6 @@ class flag_flag {
    * operation is also accompanied by some bookkeeping (calling hooks, updating
    * counters) or access control. These tasks are handled by the flag() method.
    */
-  private function _insert_flagging($flagging) {
-    field_attach_presave('flagging', $flagging);
-    field_attach_insert('flagging', $flagging);
-    // Invoke hook_entity_insert().
-    module_invoke_all('entity_insert', $flagging, 'flagging');
-  }
   private function _update_flagging($flagging) {
     field_attach_presave('flagging', $flagging);
     field_attach_update('flagging', $flagging);
