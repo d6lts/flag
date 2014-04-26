@@ -910,7 +910,18 @@ class flag_flag {
         }
       }
       $this->_delete_flagging($flagging);
-      $this->_unflag($entity_id, $flagging->flagging_id);
+
+      // Delete the flagging entity.
+      db_delete('flagging')->condition('flagging_id', $flagging->flagging_id)->execute();
+
+      // Clear various caches; we don't want code running after us to report
+      // wrong counts or false flaggings.
+      drupal_static_reset('flag_get_user_flags');
+      drupal_static_reset('flag_get_entity_flags');
+      // Despite being named in the same pattern as the count API functions, these
+      // query the {flagging} table, so are reset here.
+      drupal_static_reset('flag_get_entity_flag_counts');
+      drupal_static_reset('flag_get_user_flag_counts');
     }
     catch (Exception $e) {
       $transaction->rollback();
@@ -1055,27 +1066,6 @@ class flag_flag {
       ->condition('entity_id', $entity_id)
       ->execute()
       ->fetchField();
-  }
-
-  /**
-   * A low-level method to unflag an object.
-   *
-   * You probably shouldn't call this raw private method: call the flag()
-   * function instead.
-   *
-   * @private
-   */
-  function _unflag($entity_id, $flagging_id) {
-    db_delete('flagging')->condition('flagging_id', $flagging_id)->execute();
-
-    // Clear various caches; we don't want code running after us to report
-    // wrong counts or false flaggings.
-    drupal_static_reset('flag_get_user_flags');
-    drupal_static_reset('flag_get_entity_flags');
-    // Despite being named in the same pattern as the count API functions, these
-    // query the {flagging} table, so are reset here.
-    drupal_static_reset('flag_get_entity_flag_counts');
-    drupal_static_reset('flag_get_user_flag_counts');
   }
 
   /**
