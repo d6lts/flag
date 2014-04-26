@@ -756,7 +756,6 @@ class flag_flag {
     //
     // @todo: Discuss: Core wraps everything in a try { }, should we?
 
-    // Perform the flagging or unflagging of this flag.
     $existing_flagging_id = $this->_is_flagged($entity_id, $uid, $sid);
     $flagged = (bool) $existing_flagging_id;
 
@@ -772,6 +771,7 @@ class flag_flag {
       }
     }
 
+    // Perform the flagging or unflagging of this flag.
     if ($action == 'unflag') {
       if ($flagged) {
         $this->flagging_delete($flagging, $entity_id, $account);
