@@ -925,7 +925,14 @@ class flag_flag {
           rules_invoke_event_by_args($event_name, $variables);
         }
       }
-      $this->_delete_flagging($flagging);
+
+      field_attach_delete('flagging', $flagging);
+      // Remove from the cache.
+      // TODO: This is clearly happening too early, as the entity is not yet
+      // deleted.
+      entity_get_controller('flagging')->resetCache();
+      // Invoke hook_entity_delete().
+      module_invoke_all('entity_delete', $flagging, 'flagging');
 
       // Delete the flagging entity.
       db_delete('flagging')->condition('flagging_id', $flagging->flagging_id)->execute();
@@ -954,13 +961,6 @@ class flag_flag {
    * operation is also accompanied by some bookkeeping (calling hooks, updating
    * counters) or access control. These tasks are handled by the flag() method.
    */
-  private function _delete_flagging($flagging) {
-    field_attach_delete('flagging', $flagging);
-    // Remove from the cache.
-    entity_get_controller('flagging')->resetCache();
-    // Invoke hook_entity_delete().
-    module_invoke_all('entity_delete', $flagging, 'flagging');
-  }
 
   /**
    * Construct a new, empty flagging entity object.
