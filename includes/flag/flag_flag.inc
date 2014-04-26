@@ -791,10 +791,6 @@ class flag_flag {
     return TRUE;
   }
 
-  // The new low-level Flagging CRUD methods are to replace the 2.x era methods
-  // _flag()/_unflag(), as well as the original 3.x entity CRUD methods
-  // _insert_flagging()/_update_flagging()/_delete_flagging().
-
   /**
    * Create a new Flagging to flag an entity.
    *
@@ -952,15 +948,6 @@ class flag_flag {
       throw $e;
     }
   }
-
-  /**
-   * The entity CRUD methods _{insert,update,delete}_flagging() are for private
-   * use by the flag() method.
-   *
-   * The reason programmers should not call them directly is because a flagging
-   * operation is also accompanied by some bookkeeping (calling hooks, updating
-   * counters) or access control. These tasks are handled by the flag() method.
-   */
 
   /**
    * Construct a new, empty flagging entity object.
