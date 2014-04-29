@@ -745,6 +745,9 @@ class flag_flag {
     if (isset($flagging)) {
       $flagging->uid = $uid;
       $flagging->sid = $sid;
+
+      // This is an ugly hack to preserve previous behaviour.
+      $flagging->given_as_parameter = TRUE;
     }
 
     // @todo: Discuss: Should we call field_attach_validate()? None of the
@@ -753,100 +756,35 @@ class flag_flag {
     //
     // @todo: Discuss: Core wraps everything in a try { }, should we?
 
-    // Perform the flagging or unflagging of this flag.
     $existing_flagging_id = $this->_is_flagged($entity_id, $uid, $sid);
     $flagged = (bool) $existing_flagging_id;
-    if ($action == 'unflag') {
-      if ($this->uses_anonymous_cookies()) {
-        $this->_unflag_anonymous($entity_id);
-      }
+
+    // Ensure we have a Flagging entity.
+    if (!isset($flagging)) {
       if ($flagged) {
-        if (!isset($flagging)) {
-          $flagging = flagging_load($existing_flagging_id);
-        }
-        $transaction = db_transaction();
-        try {
-          // Note the order: We decrease the count first so hooks have accurate
-          // data, then invoke hooks, then delete the flagging entity.
-          $this->_decrease_count($entity_id);
-          module_invoke_all('flag_unflag', $this, $entity_id, $account, $flagging);
-          // Invoke Rules event.
-          if (module_exists('rules')) {
-            $event_name = 'flag_unflagged_' . $this->name;
-            // We only support flags on entities.
-            if (entity_get_info($this->entity_type)) {
-              $variables = array(
-                'flag' => $this,
-                'flagged_' . $this->entity_type => $entity_id,
-                'flagging_user' => $account,
-                'flagging' => $flagging,
-              );
-              rules_invoke_event_by_args($event_name, $variables);
-            }
-          }
-          $this->_delete_flagging($flagging);
-          $this->_unflag($entity_id, $flagging->flagging_id);
-        }
-        catch (Exception $e) {
-          $transaction->rollback();
-          watchdog_exception('flag', $e);
-          throw $e;
-        }
-      }
-    }
-    elseif ($action == 'flag') {
-      if ($this->uses_anonymous_cookies()) {
-        $this->_flag_anonymous($entity_id);
-      }
-
-      // By definition there is no flagging entity yet, but we may have been
-      // passed one in to save.
-      if (!isset($flagging)) {
-        // Construct a new flagging object if we weren't passed one.
-        $flagging = $this->new_flagging($entity_id, $uid, $sid);
-      }
-
-      // Invoke hook_entity_presave().
-      // In the case that we have been passed in a flagging entity to update,
-      // this is technically still a presave, even though the {flagging} table
-      // itself is not changed.
-      module_invoke_all('entity_presave', $flagging, 'flagging');
-
-      if (!$flagged) {
-        // The entity is unflagged.
-
-        // Save the flagging entity (just our table).
-        $this->_flag($flagging);
-        $this->_increase_count($entity_id);
-        // We're writing out a flagging entity even when we aren't passed one
-        // (e.g., when flagging via JavaScript toggle links); in this case
-        // Field API will assign the fields their default values.
-        $this->_insert_flagging($flagging);
-        module_invoke_all('flag_flag', $this, $entity_id, $account, $flagging);
-        // Invoke Rules event.
-        if (module_exists('rules')) {
-          $event_name = 'flag_flagged_' . $this->name;
-          // We only support flags on entities.
-          if (entity_get_info($this->entity_type)) {
-            $variables = array(
-              'flag' => $this,
-              'flagged_' . $this->entity_type => $entity_id,
-              'flagging_user' => $account,
-              'flagging' => $this->get_flagging($entity_id, $account->uid),
-            );
-            rules_invoke_event_by_args($event_name, $variables);
-          }
-        }
+        $flagging = flagging_load($existing_flagging_id);
       }
       else {
-        // Nothing to do. Item is already flagged.
-        //
-        // Except in the case a $flagging object is one that was passed in: in
-        // this case we're being requested to update the flagging. This occurs,
-        // for example, when the user updates the flagging entity form.
-        if (!empty($flagging->flagging_id)) {
-          $this->_update_flagging($flagging);
-        }
+        // Construct a new flagging object if we weren't passed one to to flag
+        // with.
+        $flagging = $this->new_flagging($entity_id, $uid, $sid);
+      }
+    }
+
+    // Perform the flagging or unflagging of this flag.
+    if ($action == 'unflag') {
+      if ($flagged) {
+        $this->flagging_delete($flagging, $entity_id, $account);
+      }
+      // We do nothing in the case of an attempt to unflag something that isn't
+      // actually flagged.
+    }
+    elseif ($action == 'flag') {
+      if (!$flagged) {
+        $this->flagging_insert($flagging, $entity_id, $account);
+      }
+      else {
+        $this->flagging_update($flagging, $entity_id, $account);
       }
     }
 
@@ -854,37 +792,161 @@ class flag_flag {
   }
 
   /**
-   * The entity CRUD methods _{insert,update,delete}_flagging() are for private
-   * use by the flag() method.
+   * Create a new Flagging to flag an entity.
    *
-   * The reason programmers should not call them directly is because a flagging
-   * operation is also accompanied by some bookkeeping (calling hooks, updating
-   * counters) or access control. These tasks are handled by the flag() method.
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
    */
-  private function _insert_flagging($flagging) {
+  private function flagging_insert($flagging, $entity_id, $account) {
+    if ($this->uses_anonymous_cookies()) {
+      $this->_flag_anonymous($entity_id);
+    }
+
+    // Invoke hook_entity_presave().
+    module_invoke_all('entity_presave', $flagging, 'flagging');
+
+    // Set the timestamp.
+    $flagging->timestamp = REQUEST_TIME;
+
+    // Save the flagging entity.
+    drupal_write_record('flagging', $flagging);
+
+    // Clear various caches; we don't want code running after us to report
+    // wrong counts or false flaggings.
+    drupal_static_reset('flag_get_user_flags');
+    drupal_static_reset('flag_get_entity_flags');
+    // Despite being named in the same pattern as the count API functions, these
+    // query the {flagging} table, so are reset here.
+    drupal_static_reset('flag_get_entity_flag_counts');
+    drupal_static_reset('flag_get_user_flag_counts');
+
+    $this->_increase_count($entity_id);
+    // We're writing out a flagging entity even when we aren't passed one
+    // (e.g., when flagging via JavaScript toggle links); in this case
+    // Field API will assign the fields their default values.
+
+    // Invoke Field API hooks.
+    // TODO: This call to field_attach_presave() is clearly in the wrong place,
+    // but matches the prior order. Fix this as a follow-up to refactoring.
     field_attach_presave('flagging', $flagging);
     field_attach_insert('flagging', $flagging);
     // Invoke hook_entity_insert().
     module_invoke_all('entity_insert', $flagging, 'flagging');
+
+    module_invoke_all('flag_flag', $this, $entity_id, $account, $flagging);
+    // Invoke Rules event.
+    if (module_exists('rules')) {
+      $event_name = 'flag_flagged_' . $this->name;
+      // We only support flags on entities.
+      if (entity_get_info($this->entity_type)) {
+        $variables = array(
+          'flag' => $this,
+          'flagged_' . $this->entity_type => $entity_id,
+          'flagging_user' => $account,
+          'flagging' => $this->get_flagging($entity_id, $account->uid),
+        );
+        rules_invoke_event_by_args($event_name, $variables);
+      }
+    }
   }
-  private function _update_flagging($flagging) {
-    field_attach_presave('flagging', $flagging);
-    field_attach_update('flagging', $flagging);
-    // Update the cache.
-    entity_get_controller('flagging')->resetCache();
-    // Invoke hook_entity_update().
-    // Since there are no fields on the {flagging} table that can be
-    // meaningfully changed, we don't perform an update on it. However, this
-    // technically still counts as updating the flagging entity, since we update
-    // its fields.
-    module_invoke_all('entity_update', $flagging, 'flagging');
+
+  /**
+   * Update a Flagging.
+   *
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  private function flagging_update($flagging, $entity_id, $account) {
+    // Invoke hook_entity_presave().
+    // This is technically still a presave, even though the {flagging} table
+    // itself is not changed.
+    module_invoke_all('entity_presave', $flagging, 'flagging');
+
+    // This check exists solely to preserve previous behaviour with re-flagging.
+    // TODO: consider removing it.
+    if (!empty($flagging->given_as_parameter)) {
+      field_attach_presave('flagging', $flagging);
+      field_attach_update('flagging', $flagging);
+      // Update the cache.
+      entity_get_controller('flagging')->resetCache();
+      // Invoke hook_entity_update().
+      // Since there are no fields on the {flagging} table that can be
+      // meaningfully changed, we don't perform an update on it. However, this
+      // technically still counts as updating the flagging entity, since we update
+      // its fields.
+      module_invoke_all('entity_update', $flagging, 'flagging');
+    }
   }
-  private function _delete_flagging($flagging) {
-    field_attach_delete('flagging', $flagging);
-    // Remove from the cache.
-    entity_get_controller('flagging')->resetCache();
-    // Invoke hook_entity_delete().
-    module_invoke_all('entity_delete', $flagging, 'flagging');
+
+  /**
+   * Unflag an entity by deleting a Flagging.
+   *
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  private function flagging_delete($flagging, $entity_id, $account) {
+    if ($this->uses_anonymous_cookies()) {
+      $this->_unflag_anonymous($entity_id);
+    }
+
+    $transaction = db_transaction();
+    try {
+      // Note the order: We decrease the count first so hooks have accurate
+      // data, then invoke hooks, then delete the flagging entity.
+      $this->_decrease_count($entity_id);
+      module_invoke_all('flag_unflag', $this, $entity_id, $account, $flagging);
+      // Invoke Rules event.
+      if (module_exists('rules')) {
+        $event_name = 'flag_unflagged_' . $this->name;
+        // We only support flags on entities.
+        if (entity_get_info($this->entity_type)) {
+          $variables = array(
+            'flag' => $this,
+            'flagged_' . $this->entity_type => $entity_id,
+            'flagging_user' => $account,
+            'flagging' => $flagging,
+          );
+          rules_invoke_event_by_args($event_name, $variables);
+        }
+      }
+
+      field_attach_delete('flagging', $flagging);
+      // Remove from the cache.
+      // TODO: This is clearly happening too early, as the entity is not yet
+      // deleted.
+      entity_get_controller('flagging')->resetCache();
+      // Invoke hook_entity_delete().
+      module_invoke_all('entity_delete', $flagging, 'flagging');
+
+      // Delete the flagging entity.
+      db_delete('flagging')->condition('flagging_id', $flagging->flagging_id)->execute();
+
+      // Clear various caches; we don't want code running after us to report
+      // wrong counts or false flaggings.
+      drupal_static_reset('flag_get_user_flags');
+      drupal_static_reset('flag_get_entity_flags');
+      // Despite being named in the same pattern as the count API functions, these
+      // query the {flagging} table, so are reset here.
+      drupal_static_reset('flag_get_entity_flag_counts');
+      drupal_static_reset('flag_get_user_flag_counts');
+    }
+    catch (Exception $e) {
+      $transaction->rollback();
+      watchdog_exception('flag', $e);
+      throw $e;
+    }
   }
 
   /**
@@ -989,54 +1051,6 @@ class flag_flag {
       ->condition('entity_id', $entity_id)
       ->execute()
       ->fetchField();
-  }
-
-  /**
-   * A low-level method to flag an object.
-   *
-   * You probably shouldn't call this raw private method: call the flag()
-   * function instead.
-   *
-   * @param
-   *   The flagging record.
-   *
-   * @private
-   */
-  function _flag($flagging) {
-    // Set the timestamp.
-    $flagging->timestamp = REQUEST_TIME;
-
-    drupal_write_record('flagging', $flagging);
-
-    // Clear various caches; we don't want code running after us to report
-    // wrong counts or false flaggings.
-    drupal_static_reset('flag_get_user_flags');
-    drupal_static_reset('flag_get_entity_flags');
-    // Despite being named in the same pattern as the count API functions, these
-    // query the {flagging} table, so are reset here.
-    drupal_static_reset('flag_get_entity_flag_counts');
-    drupal_static_reset('flag_get_user_flag_counts');
-  }
-
-  /**
-   * A low-level method to unflag an object.
-   *
-   * You probably shouldn't call this raw private method: call the flag()
-   * function instead.
-   *
-   * @private
-   */
-  function _unflag($entity_id, $flagging_id) {
-    db_delete('flagging')->condition('flagging_id', $flagging_id)->execute();
-
-    // Clear various caches; we don't want code running after us to report
-    // wrong counts or false flaggings.
-    drupal_static_reset('flag_get_user_flags');
-    drupal_static_reset('flag_get_entity_flags');
-    // Despite being named in the same pattern as the count API functions, these
-    // query the {flagging} table, so are reset here.
-    drupal_static_reset('flag_get_entity_flag_counts');
-    drupal_static_reset('flag_get_user_flag_counts');
   }
 
   /**
