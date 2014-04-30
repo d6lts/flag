@@ -840,18 +840,26 @@ class flag_flag {
     module_invoke_all('flag_flag', $this, $entity_id, $account, $flagging);
     // Invoke Rules event.
     if (module_exists('rules')) {
-      $event_name = 'flag_flagged_' . $this->name;
-      // We only support flags on entities.
-      if (entity_get_info($this->entity_type)) {
-        $variables = array(
-          'flag' => $this,
-          'flagged_' . $this->entity_type => $entity_id,
-          'flagging_user' => $account,
-          'flagging' => $flagging,
-        );
-        rules_invoke_event_by_args($event_name, $variables);
-      }
+      $this->invoke_rules_event('flag', $flagging, $entity_id, $account);
     }
+  }
+
+  /**
+   * Invoke a Rules event in reaction to a flagging or unflagging.
+   *
+   * @param $action
+   *   Either 'flag' or 'unflag'.
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  protected function invoke_rules_event($action, $flagging, $entity_id, $account) {
+    // We only support flags on entities: do nothing in this class.
+    // See flag_entity::invoke_rules_event().
+    return;
   }
 
   /**
@@ -909,17 +917,7 @@ class flag_flag {
       module_invoke_all('flag_unflag', $this, $entity_id, $account, $flagging);
       // Invoke Rules event.
       if (module_exists('rules')) {
-        $event_name = 'flag_unflagged_' . $this->name;
-        // We only support flags on entities.
-        if (entity_get_info($this->entity_type)) {
-          $variables = array(
-            'flag' => $this,
-            'flagged_' . $this->entity_type => $entity_id,
-            'flagging_user' => $account,
-            'flagging' => $flagging,
-          );
-          rules_invoke_event_by_args($event_name, $variables);
-        }
+        $this->invoke_rules_event('unflag', $flagging, $entity_id, $account);
       }
 
       field_attach_delete('flagging', $flagging);

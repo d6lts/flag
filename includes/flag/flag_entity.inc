@@ -161,6 +161,37 @@ class flag_entity extends flag_flag {
   }
 
   /**
+   * Invoke a Rules event in reaction to a flagging or unflagging.
+   *
+   * @param $action
+   *   Either 'flag' or 'unflag'.
+   * @param $flagging
+   *  The flagging entity that is to be removed.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  protected function invoke_rules_event($action, $flagging, $entity_id, $account) {
+    switch ($action) {
+      case 'flag':
+        $event_name = 'flag_flagged_' . $this->name;
+        break;
+      case 'unflag':
+        $event_name = 'flag_unflagged_' . $this->name;
+        break;
+    }
+
+    $variables = array(
+      'flag' => $this,
+      'flagged_' . $this->entity_type => $entity_id,
+      'flagging_user' => $account,
+      'flagging' => $flagging,
+    );
+    rules_invoke_event_by_args($event_name, $variables);
+  }
+
+  /**
    * Returns the entity id, if it already exists.
    */
   function get_entity_id($entity) {
