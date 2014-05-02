@@ -1056,6 +1056,83 @@ class FlagHookFlagAccessTestCase extends FlagTestCaseBase {
 }
 
 /**
+ * Test use of fields on flagging entities.
+ */
+class FlagFlaggingFieldTestCase extends FlagTestCaseBase {
+
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Flagging fields',
+      'description' => 'Fields on Flagging entities.',
+      'group' => 'Flag',
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  function setUp() {
+    parent::setUp('flag', 'flag_fields_test');
+  }
+
+  function testFlaggingFields() {
+    $this->assertTrue(1);
+
+    $flag_user = $this->drupalCreateUser(array(
+      'flag flag_fields_test_flag',
+      'unflag flag_fields_test_flag',
+    ));
+    $this->drupalLogin($flag_user);
+
+    $node = $this->drupalCreateNode();
+
+    $this->drupalGet('node/' . $node->nid);
+
+    $this->clickLink('Flag with the test flag');
+
+    // Try to fail the form validation by providing something non-numeric.
+    // This validation is only present in the widget validation: this is a core
+    // bug, but lets us test widget validation works correctly until it's fixed.
+    $edit = array(
+      'flag_fields_test_integer[und][0][value]' => 'banana',
+    );
+    $this->drupalPost(NULL, $edit, 'Flag with the test flag');
+
+    $this->assertText("Only numbers are allowed in Test integer.", "Form validation correctly failed the input.");
+
+    // Try to fail the form validation by a number that's out of bounds.
+    $edit = array(
+      'flag_fields_test_integer[und][0][value]' => 12,
+    );
+    $this->drupalPost(NULL, $edit, 'Flag with the test flag');
+
+    $this->assertText("Test integer: the value may be no greater than 11.", "Form validation correctly failed the input.");
+
+    $edit = array(
+      'flag_fields_test_integer[und][0][value]' => 6,
+    );
+    $this->drupalPost(NULL, $edit, 'Flag with the test flag');
+
+    $this->assertUrl('node/' . $node->nid, array(), "The flagging form submission succeeded.");
+
+    // Try to load the flagging, querying for the field value.
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'flagging')
+      ->entityCondition('bundle', 'flag_fields_test_flag')
+      ->propertyCondition('entity_id', $node->nid)
+      ->fieldCondition('flag_fields_test_integer', 'value', 6);
+
+    $result = $query->execute();
+
+    $this->assertEqual(count($result['flagging']), 1, "The Flagging entity was found with the correct field values.");
+  }
+
+}
+
+/**
  * Test use of EntityFieldQueries with flagging entities.
  */
 class FlagEntityFieldQueryTestCase extends FlagTestCaseBase {
