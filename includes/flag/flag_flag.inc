@@ -690,6 +690,10 @@ class flag_flag {
    *   - to update field data an existing flagging. The $action parameter should
    *     be set to 'flag'. The Flagging entity will need to be loaded first with
    *     flagging_load().
+   *  As with Drupal core API functions for saving entities, no validation of
+   *  Field API fields is performed here. It is the responsibility of the caller
+   *  to take care of Field API validation, using either
+   *  field_attach_form_validate() or field_attach_validate().
    *
    * @return
    *   FALSE if some error occured (e.g., user has no permission, flag isn't
@@ -747,10 +751,6 @@ class flag_flag {
       $flagging->given_as_parameter = TRUE;
     }
 
-    // @todo: Discuss: Should we call field_attach_validate()? None of the
-    // entities in core does this (fields entered through forms are already
-    // validated).
-    //
     // @todo: Discuss: Core wraps everything in a try { }, should we?
 
     $existing_flagging_id = $this->_is_flagged($entity_id, $uid, $sid);
