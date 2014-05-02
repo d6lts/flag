@@ -93,7 +93,7 @@ function flag_confirm($form, &$form_state, $action, $flag, $entity_id) {
 
   $question = $flag->get_label($action . '_confirmation', $entity_id);
   $path = isset($_GET['destination']) ? $_GET['destination'] : '<front>';
-  $yes = $flag->get_label($action . '_short', $entity_id);
+  $yes = strip_tags($flag->get_label($action . '_short', $entity_id));
 
   if ($action == 'flag') {
     // If the action 'flag', we're potentially about to create a new

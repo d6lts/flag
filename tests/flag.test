@@ -796,7 +796,7 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
       'types' => array(
         0 => 'article',
       ),
-      'flag_short' => 'Flag this item',
+      'flag_short' => 'Flag <em>this</em> item',
       'flag_long' => '',
       'flag_message' => 'You have flagged this item.',
       'unflag_short' => 'Unflag this item',
@@ -850,10 +850,21 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
     // Look at our node.
     $this->drupalGet('node/' . $this->nid);
 
-    $this->assertLink($this->flag_data['flag_short'], 0, 'The flag link appears on the page');
+    $flag_short_label = strip_tags($this->flag_data['flag_short']);
+
+    $this->assertRaw($this->flag_data['flag_short'], 'The flag text, including HTML, appears on the page.');
+
+    // assertLink() appears to have interesting problems dealing with an A
+    // element which contains other tags. However, the xpath it uses appears to
+    // be fine with being given just the portion of the link text that comes
+    // before the interior tag.
+    // Fortunately, there will be no other text on the page that matches 'Flag'.
+    $this->assertLink('Flag', 0, 'The flag link appears on the page.');
 
     // Click the link to flag the node.
-    $this->clickLink($this->flag_data['flag_short']);
+    // clickLink() has the same problem, as it uses the same xpath expression as
+    // assertLink().
+    $this->clickLink('Flag');
 
     $this->assertUrl('flag/confirm/flag/test_flag/' . $this->nid, array(
       'query' => array(
@@ -863,8 +874,10 @@ class FlagLinkTypeConfirmTestCase extends DrupalWebTestCase {
 
     $this->assertText($this->flag_data['flag_confirmation'], 'The flag confirmation text appears as the confirmation page title.');
 
+    $this->assertPattern('@<input [^>]* value="' . $flag_short_label . '" [^>]*>@', 'The flag text, excluding HTML, is shown in the button.');
+
     // Click the button to confirm the flagging.
-    $this->drupalPost(NULL, array(), $this->flag_data['flag_short']);
+    $this->drupalPost(NULL, array(), $flag_short_label);
 
     $this->assertText($this->flag_data['flag_message'], 'The flag message appears once the item has been flagged.');
     $this->assertLink($this->flag_data['unflag_short'], 0, 'The unflag link appears once the item has been flagged.');
