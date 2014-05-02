@@ -700,9 +700,6 @@ class flag_flag {
     if (!isset($account)) {
       $account = $GLOBALS['user'];
     }
-    if (!$account) {
-      return FALSE;
-    }
 
     // Check access and applicability.
     if (!$skip_permission_check) {
