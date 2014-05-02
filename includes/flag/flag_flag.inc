@@ -806,6 +806,8 @@ class flag_flag {
       $this->_flag_anonymous($entity_id);
     }
 
+    // Invoke presave hooks.
+    field_attach_presave('flagging', $flagging);
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $flagging, 'flagging');
 
@@ -829,10 +831,7 @@ class flag_flag {
     // (e.g., when flagging via JavaScript toggle links); in this case
     // Field API will assign the fields their default values.
 
-    // Invoke Field API hooks.
-    // TODO: This call to field_attach_presave() is clearly in the wrong place,
-    // but matches the prior order. Fix this as a follow-up to refactoring.
-    field_attach_presave('flagging', $flagging);
+    // Invoke insert hooks.
     field_attach_insert('flagging', $flagging);
     // Invoke hook_entity_insert().
     module_invoke_all('entity_insert', $flagging, 'flagging');
@@ -873,15 +872,16 @@ class flag_flag {
    *  The account performing the unflagging.
    */
   private function flagging_update($flagging, $entity_id, $account) {
-    // Invoke hook_entity_presave().
+    // Invoke presave hooks.
     // This is technically still a presave, even though the {flagging} table
     // itself is not changed.
+    field_attach_presave('flagging', $flagging);
+    // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $flagging, 'flagging');
 
     // This check exists solely to preserve previous behaviour with re-flagging.
     // TODO: consider removing it.
     if (!empty($flagging->given_as_parameter)) {
-      field_attach_presave('flagging', $flagging);
       field_attach_update('flagging', $flagging);
       // Update the cache.
       entity_get_controller('flagging')->resetCache();
