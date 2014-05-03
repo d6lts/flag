@@ -742,28 +742,29 @@ class flag_flag {
       }
     }
 
-    // Set our uid and sid to the flagging object.
+    // @todo: Discuss: Core wraps everything in a try { }, should we?
+
+    $existing_flagging_id = $this->_is_flagged($entity_id, $uid, $sid);
+    $flagged = (bool) $existing_flagging_id;
+
+    // Ensure we have a Flagging entity and it is correctly formed.
     if (isset($flagging)) {
+      // We were given a Flagging entity.
+      // Ensure that it has the uid and sid that we were also given.
       $flagging->uid = $uid;
       $flagging->sid = $sid;
 
       // This is an ugly hack to preserve previous behaviour.
       $flagging->given_as_parameter = TRUE;
     }
-
-    // @todo: Discuss: Core wraps everything in a try { }, should we?
-
-    $existing_flagging_id = $this->_is_flagged($entity_id, $uid, $sid);
-    $flagged = (bool) $existing_flagging_id;
-
-    // Ensure we have a Flagging entity.
-    if (!isset($flagging)) {
+    else {
+      // We were not given a Flagging entity.
       if ($flagged) {
+        // Load the existing Flagging entity.
         $flagging = flagging_load($existing_flagging_id);
       }
       else {
-        // Construct a new flagging object if we weren't passed one to to flag
-        // with.
+        // Construct a new Flagging entity to flag with.
         $flagging = $this->new_flagging($entity_id, $uid, $sid);
       }
     }
