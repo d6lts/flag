@@ -917,16 +917,16 @@ class flag_flag {
         $this->invoke_rules_event('unflag', $flagging, $entity_id, $account);
       }
 
-      field_attach_delete('flagging', $flagging);
-      // Remove from the cache.
-      // TODO: This is clearly happening too early, as the entity is not yet
-      // deleted.
-      entity_get_controller('flagging')->resetCache();
       // Invoke hook_entity_delete().
       module_invoke_all('entity_delete', $flagging, 'flagging');
+      // Delete field data.
+      field_attach_delete('flagging', $flagging);
 
       // Delete the flagging entity.
       db_delete('flagging')->condition('flagging_id', $flagging->flagging_id)->execute();
+
+      // Remove from the cache.
+      entity_get_controller('flagging')->resetCache();
 
       // Clear various caches; we don't want code running after us to report
       // wrong counts or false flaggings.
