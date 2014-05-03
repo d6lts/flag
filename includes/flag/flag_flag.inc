@@ -793,11 +793,11 @@ class flag_flag {
    * Create a new Flagging to flag an entity.
    *
    * @param $flagging
-   *  The flagging entity that is to be removed.
+   *  The flagging entity that is to be saved.
    * @param $entity_id
-   *  The entity ID of entity being unflagged.
+   *  The entity ID of entity being flagged.
    * @param $account
-   *  The account performing the unflagging.
+   *  The account performing the flagging.
    */
   private function flagging_insert($flagging, $entity_id, $account) {
     if ($this->uses_anonymous_cookies()) {
@@ -847,7 +847,7 @@ class flag_flag {
    * @param $action
    *   Either 'flag' or 'unflag'.
    * @param $flagging
-   *  The flagging entity that is to be removed.
+   *  The flagging entity that is either newly created or about to be deleted.
    * @param $entity_id
    *  The entity ID of entity being unflagged.
    * @param $account
@@ -863,11 +863,11 @@ class flag_flag {
    * Update a Flagging.
    *
    * @param $flagging
-   *  The flagging entity that is to be removed.
+   *  The flagging entity that is being updated.
    * @param $entity_id
-   *  The entity ID of entity being unflagged.
+   *  The entity ID of entity the flagging is on.
    * @param $account
-   *  The account performing the unflagging.
+   *  The account performing the action.
    */
   private function flagging_update($flagging, $entity_id, $account) {
     // Invoke presave hooks.
