@@ -842,24 +842,6 @@ class flag_flag {
   }
 
   /**
-   * Invoke a Rules event in reaction to a flagging or unflagging.
-   *
-   * @param $action
-   *   Either 'flag' or 'unflag'.
-   * @param $flagging
-   *  The flagging entity that is either newly created or about to be deleted.
-   * @param $entity_id
-   *  The entity ID of entity being unflagged.
-   * @param $account
-   *  The account performing the unflagging.
-   */
-  protected function invoke_rules_event($action, $flagging, $entity_id, $account) {
-    // We only support flags on entities: do nothing in this class.
-    // See flag_entity::invoke_rules_event().
-    return;
-  }
-
-  /**
    * Update a Flagging.
    *
    * @param $flagging
@@ -943,6 +925,24 @@ class flag_flag {
       watchdog_exception('flag', $e);
       throw $e;
     }
+  }
+
+  /**
+   * Invoke a Rules event in reaction to a flagging or unflagging.
+   *
+   * @param $action
+   *   Either 'flag' or 'unflag'.
+   * @param $flagging
+   *  The flagging entity that is either newly created or about to be deleted.
+   * @param $entity_id
+   *  The entity ID of entity being unflagged.
+   * @param $account
+   *  The account performing the unflagging.
+   */
+  protected function invoke_rules_event($action, $flagging, $entity_id, $account) {
+    // We only support flags on entities: do nothing in this class.
+    // See flag_entity::invoke_rules_event().
+    return;
   }
 
   /**
