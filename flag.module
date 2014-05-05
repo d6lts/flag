@@ -1794,7 +1794,7 @@ function flag_get_user_flag_counts($flag, $user) {
  *   The entity ID (usually the node ID).
  *
  * @return
- *   The flag count with the entity type and id as array keys.
+ *   The flag count with the flag names as array keys.
  */
 function flag_get_counts($entity_type, $entity_id) {
   $counts = &drupal_static(__FUNCTION__);
