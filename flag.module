@@ -1569,7 +1569,7 @@ function template_preprocess_flag(&$variables) {
   $action = $variables['action'];
   $entity_id = $variables['entity_id'];
   $errors = implode('<br />', $variables['errors']);
-  $flag_css_name = str_replace('_', '-', $flag->name);
+  $flag_name_css = str_replace('_', '-', $flag->name);
 
   // Generate the link URL.
   $link_type = $flag->get_link_type();
@@ -1605,12 +1605,12 @@ function template_preprocess_flag(&$variables) {
   $variables['link_text'] = isset($link['title']) ? $link['title'] : $flag->get_label($action . '_short', $entity_id);
   $variables['link_title'] = isset($link['attributes']['title']) ? check_plain($link['attributes']['title']) : check_plain(strip_tags($flag->get_label($action . '_long', $entity_id)));
   $variables['status'] = ($action == 'flag' ? 'unflagged' : 'flagged');
-  $variables['flag_name_css'] = $flag_css_name;
+  $variables['flag_name_css'] = $flag_name_css;
 
   $variables['flag_wrapper_classes_array'] = array();
   $variables['flag_wrapper_classes_array'][] = 'flag-wrapper';
-  $variables['flag_wrapper_classes_array'][] = 'flag-' . $flag_css_name;
-  $variables['flag_wrapper_classes_array'][] = 'flag-' . $flag_css_name . '-' . $entity_id;
+  $variables['flag_wrapper_classes_array'][] = 'flag-' . $flag_name_css;
+  $variables['flag_wrapper_classes_array'][] = 'flag-' . $flag_name_css . '-' . $entity_id;
 
   $variables['flag_classes_array'] = array();
   $variables['flag_classes_array'][] = 'flag';
