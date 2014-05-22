@@ -935,9 +935,9 @@ class flag_flag {
    * @param $flagging
    *  The flagging entity that is either newly created or about to be deleted.
    * @param $entity_id
-   *  The entity ID of entity being unflagged.
+   *  The entity ID of entity being flagged or unflagged.
    * @param $account
-   *  The account performing the unflagging.
+   *  The account performing the action.
    */
   protected function invoke_rules_event($action, $flagging, $entity_id, $account) {
     // We only support flags on entities: do nothing in this class.
