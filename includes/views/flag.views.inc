@@ -264,7 +264,8 @@ function flag_views_flag_default($entity_type) {
   $default_flag = &drupal_static(__FUNCTION__, array());
 
   if (!array_key_exists($entity_type, $default_flag)) {
-    $flag = array_shift(flag_get_flags($entity_type));
+    $flags = flag_get_flags($entity_type);
+    $flag = array_shift($flags);
     $default_flag[$entity_type] = $flag ? $flag->name : NULL;
   }
 
