@@ -122,6 +122,24 @@ function flag_views_data() {
     ),
   );
 
+  $data['flagging']['sid'] = array(
+    'title' => t('Flagging session ID'),
+    'help' => t('The session ID of the flagging.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+  );
+
   $data['flag_counts']['count'] = array(
     'title' => t('Flag counter'),
     'help' => t('The number of times a piece of content is flagged by any user.'),
