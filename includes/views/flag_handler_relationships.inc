@@ -44,6 +44,17 @@ abstract class flag_handler_relationship extends views_handler_relationship {
     return $errors;
   }
 
+  /**
+   * Get the type of the flag this relationship uses.
+   *
+   * This looks at the data set in the relationship definition in Views data.
+   *
+   * @return
+   *  The flag's type, e.g., 'node' or 'taxonomy_term', or NULL if this is not
+   *  set in data from hook_views_data().
+   *
+   * @see flag_views_data_alter()
+   */
   function get_flag_type() {
     return isset($this->definition['flag type']) ? $this->definition['flag type'] : NULL;
   }
