@@ -88,7 +88,11 @@ abstract class flag_handler_relationship extends views_handler_relationship {
 }
 
 /**
- * Specialized relationship handler associating flags and content.
+ * Views relationship handler associating flags and content.
+ *
+ * This forms a bridge from the entity table to the {flagging} table, with
+ * options to restrict the join to only flagged content, and to flagged content
+ * by the current user.
  *
  * @ingroup views
  */
@@ -183,7 +187,10 @@ class flag_handler_relationship_content extends flag_handler_relationship {
 }
 
 /**
- * Specialized relationship handler associating flag counts and content.
+ * Views relationship handler associating flag counts and content.
+ *
+ * This forms a bridge from the entity table to the {flag_counts} table, with
+ * the option to restrict the join to include only flagged content.
  *
  * @ingroup views
  */
@@ -238,7 +245,9 @@ class flag_handler_relationship_counts extends flag_handler_relationship {
 }
 
 /**
- * Specialized relationship handler associating flags and users.
+ * Views relationship handler associating flags and users.
+ *
+ * This forms a bridge from the the {users} table to the {flagging} table.
  *
  * @ingroup views
  */
