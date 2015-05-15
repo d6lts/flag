@@ -4,6 +4,3 @@ core = 7.x
 dependencies[] = flag
 package = Flags
 configure = admin/structure/flags/actions
-
-files[] = flag.install
-files[] = flag_actions.module
