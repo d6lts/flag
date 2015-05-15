@@ -769,21 +769,30 @@ class flag_flag {
       }
     }
 
-    // Perform the flagging or unflagging of this flag.
-    if ($action == 'unflag') {
-      if ($flagged) {
-        $this->flagging_delete($flagging, $entity_id, $account);
+    // Perform the flagging or unflagging of this flag
+    // along with a transaction mechanism.
+    $transaction = db_transaction();
+    try {
+      if ($action == 'unflag') {
+        if ($flagged) {
+          $this->flagging_delete($flagging, $entity_id, $account);
+        }
+        // We do nothing in the case of an attempt to unflag something that isn't
+        // actually flagged.
       }
-      // We do nothing in the case of an attempt to unflag something that isn't
-      // actually flagged.
+      elseif ($action == 'flag') {
+        if (!$flagged) {
+          $this->flagging_insert($flagging, $entity_id, $account);
+        }
+        else {
+          $this->flagging_update($flagging, $entity_id, $account);
+        }
+      }
     }
-    elseif ($action == 'flag') {
-      if (!$flagged) {
-        $this->flagging_insert($flagging, $entity_id, $account);
-      }
-      else {
-        $this->flagging_update($flagging, $entity_id, $account);
-      }
+    catch (Exception $e) {
+      $transaction->rollback();
+      watchdog_exception('flag', $e);
+      throw $e;
     }
 
     return TRUE;
