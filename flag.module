@@ -306,8 +306,8 @@ function flag_menu() {
     'title' => 'Flag',
     'page callback' => 'flag_page',
     'page arguments' => array(1, 2, 3),
-    'access callback' => 'user_access',
-    'access arguments' => array('access content'),
+    'access callback' => 'flag_page_access',
+    'access arguments' => array(1, 2, 3),
     'file' => 'includes/flag.pages.inc',
     'type' => MENU_CALLBACK,
   );
@@ -315,13 +315,26 @@ function flag_menu() {
     'title' => 'Flag confirm',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('flag_confirm', 2, 3, 4),
-    'access callback' => 'user_access',
-    'access arguments' => array('access content'),
+    'access callback' => 'flag_page_access',
+    'access arguments' => array(2, 3, 4),
     'file' => 'includes/flag.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   return $items;
+}
+
+/**
+ * Menu access callback for flagging pages.
+ *
+ * Same parameters as flag_page().
+ *
+ * @see flag_page()
+ * @see flag_confirm()
+ */
+function flag_page_access($action, $flag, $entity_id) {
+  $access = $flag->access($entity_id, $action);
+  return $access;
 }
 
 /**
