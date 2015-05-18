@@ -327,7 +327,7 @@ function hook_flag_link_type_info_alter(&$link_types) {
  * @see hook_flag_link_type_info()
  * @see template_preprocess_flag()
  */
-function hook_flag_link() {
+function hook_flag_link($flag, $action, $entity_id) {
 
 }
 
