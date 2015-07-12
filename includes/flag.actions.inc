@@ -189,7 +189,10 @@ function flag_action_form($context, $content_type) {
   if (isset($context['actions_flag'])) {
     unset($flags[$context['actions_flag']]);
   }
-  $options = drupal_map_assoc(array_keys($flags));
+  $options = array();
+  foreach ($flags as $key => $flag) {
+    $options[$key] = $flag->title;
+  }
 
   $form['flag_action']['#tree'] = TRUE;
   $form['flag_action']['warning'] = array(
