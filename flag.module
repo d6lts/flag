@@ -1868,8 +1868,7 @@ function flag_get_flag($name = NULL, $fid = NULL) {
 /**
  * List all flags available.
  *
- * If node type or account are entered, a list of all possible flags will be
- * returned.
+ * If all the parameters are omitted, a list of all flags will be returned.
  *
  * @param $entity_type
  *   (optional) The type of entity for which to load the flags. Usually 'node'.
@@ -1880,7 +1879,7 @@ function flag_get_flag($name = NULL, $fid = NULL) {
  *   flags for will this node will be returned.
  *
  * @return
- *   An array of the structure [fid] = flag_object.
+ *   An array of flag objects, keyed by the flag names.
  */
 function flag_get_flags($entity_type = NULL, $content_subtype = NULL, $account = NULL) {
   $flags = &drupal_static(__FUNCTION__);
