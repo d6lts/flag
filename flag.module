@@ -2558,6 +2558,21 @@ function flag_ctools_plugin_directory($module, $plugin) {
   }
 }
 
+/**
+ * Implements hook_field_attach_rename_bundle().
+ */
+function flag_field_attach_rename_bundle($entity_type, $bundle_old, $bundle_new) {
+  $flags = flag_get_flags($entity_type);
+  foreach ($flags as $flag) {
+    foreach ($flag->types as $key => $type) {
+      if ($type == $bundle_old) {
+        $flag->types[$key] = $bundle_new;
+      }
+    }
+    $flag->save();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Entity Metadata callbacks
 
