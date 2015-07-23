@@ -1740,6 +1740,8 @@ function flag_get_entity_flag_counts($flag, $entity_type) {
  * This is because this queries the {flagging} table, which only has its record
  * deleted at the very end of the unflagging process.
  *
+ * However, it should be noted that this method does not serves global flags.
+ *
  * @param $flag
  *   The flag.
  * @param $user
