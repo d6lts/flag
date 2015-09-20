@@ -193,6 +193,21 @@ function flag_entity_query_alter(EntityFieldQuery $query) {
  * @see flag_entity_query_alter()
  */
 function flag_query_flagging_flag_names_alter(QueryAlterableInterface $query) {
+  // Queries with this tag need to have the {flag} table joined on so they can
+  // have a condition on the flag name.
+  // However, we need to ensure the {flagging} table is there to join from. Not
+  // all instances of EntityFieldQuery will add it; for example, with only a
+  // field condition the entity base table is not added to the SelectQuery.
+  $tables =& $query->getTables();
+  if (!isset($tables['flagging'])) {
+    // All tables that are in the query will be field tables and are equivalent,
+    // so just join on the first one.
+    $field_table = reset($tables);
+    $field_table_alias = $field_table['alias'];
+
+    $query->join('flagging', 'flagging', "$field_table_alias.entity_id = flagging.fid");
+  }
+
   // Get value and operator for bundle condition from meta data.
   $value = $query->getMetaData('flag_name_value');
   $operator = $query->getMetaData('flag_name_operator');
