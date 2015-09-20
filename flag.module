@@ -37,20 +37,25 @@ function flag_entity_info() {
     ),
   );
 
-  // Add bundle info but bypass flag_get_flags() as we cannot use it here, as
-  // it calls entity_get_info().
-  $result = db_query("SELECT name, title FROM {flag}");
-  $flag_names = $result->fetchAllKeyed();
-  foreach ($flag_names as $flag_name => $flag_title) {
-    $return['flagging']['bundles'][$flag_name] = array(
-      'label' => $flag_title,
-      'admin' => array(
-        'path' => FLAG_ADMIN_PATH . '/manage/%flag',
-        'real path' => FLAG_ADMIN_PATH . '/manage/' . $flag_name,
-        'bundle argument' => FLAG_ADMIN_PATH_START + 1,
-        'access arguments' => array('administer flags'),
-      ),
-    );
+  // Check for our table before we query it. This is a workaround for a core
+  // bug: https://www.drupal.org/node/1311820
+  // TODO: Remove this when that bug is fixed.
+  if (db_table_exists('flag')) {
+    // Add bundle info but bypass flag_get_flags() as we cannot use it here, as
+    // it calls entity_get_info().
+    $result = db_query("SELECT name, title FROM {flag}");
+    $flag_names = $result->fetchAllKeyed();
+    foreach ($flag_names as $flag_name => $flag_title) {
+      $return['flagging']['bundles'][$flag_name] = array(
+        'label' => $flag_title,
+        'admin' => array(
+          'path' => FLAG_ADMIN_PATH . '/manage/%flag',
+          'real path' => FLAG_ADMIN_PATH . '/manage/' . $flag_name,
+          'bundle argument' => FLAG_ADMIN_PATH_START + 1,
+          'access arguments' => array('administer flags'),
+        ),
+      );
+    }
   }
 
   return $return;
