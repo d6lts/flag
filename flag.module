@@ -1689,7 +1689,11 @@ function _flag_link_type_descriptions() {
 // Non-Views public API
 
 /**
- * Get the count of flags for a particular entity type.
+ * Gets the count of flaggings for the given flag.
+ *
+ * For example, if you have an 'endorse' flag, this method will tell you how
+ * many endorsements have been made, rather than how many things have been
+ * endorsed.
  *
  * When called during a flagging or unflagging (such as from a hook
  * implementation or from Rules), the flagging or unflagging that is in the
@@ -1705,8 +1709,8 @@ function _flag_link_type_descriptions() {
  * @param $entity_type
  *   The entity type. For example, 'node'.
  *
- * @return
- *   The flag count with the flag name and entity type as the array key.
+ * @return int
+ *   The number of flaggings for the flag.
  */
 function flag_get_entity_flag_counts($flag, $entity_type) {
   $counts = &drupal_static(__FUNCTION__);
@@ -1729,7 +1733,10 @@ function flag_get_entity_flag_counts($flag, $entity_type) {
 }
 
 /**
- * Get the user's flag count.
+ * Gets the count of the flaggings made by a user with a flag.
+ *
+ * For example, with a 'bookmarks' flag, this returns the number of bookmarks
+ * a user has created.
  *
  * When called during a flagging or unflagging (such as from a hook
  * implementation or from Rules), the flagging or unflagging that is in the
@@ -1747,8 +1754,8 @@ function flag_get_entity_flag_counts($flag, $entity_type) {
  * @param $user
  *   The user object.
  *
- * @return
- *   The flag count with the flag name and the uid as the array key.
+ * @return int
+ *   The number of flaggings for the given flag and user.
  */
 function flag_get_user_flag_counts($flag, $user) {
   $counts = &drupal_static(__FUNCTION__);
@@ -1771,7 +1778,18 @@ function flag_get_user_flag_counts($flag, $user) {
 }
 
 /**
- * Get flag counts for all flags on a node.
+ * Gets flag counts for all flags on an entity.
+ *
+ * Provides a count of all the flaggings for a single entity. Instead
+ * of a single response, this method returns an array of counts keyed by
+ * the flag ID:
+ *
+ * @code
+ * array(
+ *   my_flag => 42
+ *   another_flag => 57
+ * );
+ * @endcode
  *
  * When called during a flagging or unflagging (such as from a hook
  * implementation or from Rules), the count this returns takes into account the
@@ -1782,8 +1800,10 @@ function flag_get_user_flag_counts($flag, $user) {
  * @param $entity_id
  *   The entity ID (usually the node ID).
  *
- * @return
- *   The flag count with the flag names as array keys.
+ * @return array
+ *   An array giving the counts of all flaggings on the entity. The flag IDs
+ *   are the keys and the counts for each flag the values. Note that flags
+ *   that have no flaggings are not included in the array.
  */
 function flag_get_counts($entity_type, $entity_id) {
   $counts = &drupal_static(__FUNCTION__);
@@ -1807,7 +1827,12 @@ function flag_get_counts($entity_type, $entity_id) {
 }
 
 /**
- * Get the total count of items flagged within a flag.
+ * Gets the count of entities flagged by the given flag.
+ *
+ * For example, with a 'report abuse' flag, this returns the number of
+ * entities that have been reported, not the total number of reports. In other
+ * words, an entity that has been reported multiple times will only be counted
+ * once.
  *
  * When called during a flagging or unflagging (such as from a hook
  * implementation or from Rules), the count this returns takes into account the
@@ -1817,6 +1842,9 @@ function flag_get_counts($entity_type, $entity_id) {
  *   The flag name for which to retrieve a flag count.
  * @param $reset
  *   (optional) Reset the internal cache and execute the SQL query another time.
+ *
+ * @return int
+ *   The number of entities that are flagged with the flag.
  */
 function flag_get_flag_counts($flag_name, $reset = FALSE) {
   $counts = &drupal_static(__FUNCTION__);
