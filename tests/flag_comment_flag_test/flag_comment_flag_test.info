@@ -1,0 +1,6 @@
+name = Flag Comment Flag Test
+description = Test module for comment flags.
+dependencies[] = flag
+dependencies[] = comment
+core = 7.x
+hidden = TRUE
