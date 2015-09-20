@@ -149,12 +149,6 @@ function flagging_save($flagging) {
 
 // @todo: Implement flagging_view(). Not extremely useful. I already have it.
 
-// @todo: When renaming a flag: Call field_attach_rename_bundle().
-
-// @todo: When creating a flag: Call field_attach_create_bundle().
-
-// @todo: When deleting a flag: Call field_attach_delete_bundle().
-
 // @tood: Discuss: Should flag deleting call flag_reset_flag()? No.
 
 // @todo: flag_reset_flag():
