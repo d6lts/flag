@@ -1413,7 +1413,7 @@ function flag_flag_access($flag, $entity_id, $action, $account) {
   if ($flag->entity_type == 'comment') {
     // For non-existent comments (such as on the comment add form), assume that
     // the current user is creating the content.
-    if (empty($entity_id) || !($comment = $flag->fetch_entity($entity_id))) {
+    if (empty($entity_id) || !($comment = $flag->fetch_entity($entity_id)) || $entity_id == 'new') {
       return $flag->access_author == 'comment_others' ? FALSE : NULL;
     }
 
