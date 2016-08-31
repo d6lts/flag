@@ -3,8 +3,3 @@ description = Execute actions on Flag events.
 core = 6.x
 dependencies[] = flag
 package = Flags
-; Information added by Drupal 6 LTS vendors on 2016-08-31
-version = "6.x-1.6"
-core = "6.x"
-project = "flag"
-datestamp = "1472665186"
